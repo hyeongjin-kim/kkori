@@ -1,11 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import PracticeButton from './PracticeButton';
 
 function PairPracticeButton() {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate('/pair-practice');
-  };
-  return <button onClick={handleClick}>같이 연습하기</button>;
+  return <PracticeButton text="같이 연습하기" path="/pair-practice" />;
 }
 
 export default PairPracticeButton;
