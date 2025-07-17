@@ -1,11 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-
+import PracticeButton from './PracticeButton';
 function SoloPracticeButton() {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate('/solo-practice');
-  };
-  return <button onClick={handleClick}>혼자 연습하기</button>;
+    return <PracticeButton text="혼자 연습하기" path="/solo-practice" />;
 }
 
 export default SoloPracticeButton;
