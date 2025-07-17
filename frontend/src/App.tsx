@@ -8,9 +8,11 @@ function App() {
   return (
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/solo-practice" element={<SoloPracticePage />} />
-          <Route path="/pair-practice" element={<PairPracticePage />} />
+          <Route element={<MainLayout />} >
+            <Route path="/" element={<HomePage />} />
+            <Route path="/solo-practice" element={<SoloPracticePage />} />
+            <Route path="/pair-practice" element={<PairPracticePage />} />
+          </Route>
         </Routes>
       </Router>
   );
