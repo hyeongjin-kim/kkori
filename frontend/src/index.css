@@ -1,68 +1,53 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 공통 폰트 설정 */
+@font-face {
+  font-family: 'Pretendard-Regular';
+  src: url('/src/assets/fonts/PretendardVariable.woff2') format('woff2');
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  font-family: 'Pretendard-Regular', sans-serif;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* 🌞 Light Theme (기본) */
+:root {
+  --color-point: #3384fa;
+  --color-background: #ffffff;
+  --color-text-white: #17171c;
+  --color-gray-1: #e5e7eb;
+  --color-logo-white: #111111;
+  --color-black-chat: #f5f5f5;
+  --color-input-gray: #f0f0f0;
+  --color-primary-purple-100: #ddd6fe;
+  --color-primary-purple-200: #c4b5fd;
+  --color-primary-purple-300: #a78bfa;
+  --color-primary-purple-400: #8b5cf6;
+  --color-primary-purple-500: #7c3aed;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.dark {
+  --color-point: #3384fa;
+  --color-background: #17171c;
+  --color-text-white: #fbfbfb;
+  --color-gray-1: #2c2c35;
+  --color-logo-white: #eae7e6;
+  --color-black-chat: #101014;
+  --color-input-gray: #272932;
+  --color-primary-purple-100: #a78bfa;
+  --color-primary-purple-200: #8b5cf6;
+  --color-primary-purple-300: #7c3aed;
+  --color-primary-purple-400: #6d28d9;
+  --color-primary-purple-500: #5b21b6;
 }
