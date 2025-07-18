@@ -5,11 +5,13 @@ function Header() {
         <header>
             <img src="/logo.png" alt="로고 이미지" />
             <nav>
-                <Link to="/">홈</Link>
-                <Link to="/interview-questions">면접 질문</Link>
-                <Link to="/my-page">마이페이지</Link>
+                <ul>
+                    <li><Link to="/">홈</Link></li>
+                    <li><Link to="/interview-questions">면접 질문</Link></li>
+                    <li><Link to="/my-page">마이페이지</Link></li>
+                </ul>
             </nav>
-            <button>로그인</button>
+            <Link to="/login">로그인</Link>
         </header>
     );
 }
