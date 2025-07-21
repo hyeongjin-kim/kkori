@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import Logo from "../header/Logo";
 
 function Header() {
     return (
         <header>
-            <img src="/logo.png" alt="로고 이미지" />
+            <Logo />
             <nav>
                 <ul>
                     <li><Link to="/">홈</Link></li>
