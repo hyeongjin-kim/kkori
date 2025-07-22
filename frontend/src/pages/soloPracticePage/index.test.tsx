@@ -1,15 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import BrowserRouterWrapped from "../../components/common/BrowserRouterWrapped";
-import SoloPracticePage from "./index";
+import { render, screen } from '@testing-library/react';
+import MemoryRouterWrapped from '../../components/common/MemoryRouterWrapped';
+import SoloPracticePage from './index';
 
-test("SoloPracticePage 페이지가 렌더링 된다.", () => {
-    render(<BrowserRouterWrapped component={<SoloPracticePage />} />);
-    expect(screen.getByText("SoloPracticePage")).toBeInTheDocument();
+describe('SoloPracticePage', () => {
+  beforeEach(() => {
+    render(<MemoryRouterWrapped component={<SoloPracticePage />} />);
+  });
+
+  test('SoloPracticePage 페이지가 렌더링 된다.', () => {
+    expect(
+      screen.getByRole('main', { name: 'solo-practice-page' }),
+    ).toBeInTheDocument();
+  });
 });
-
-
-
-
-
-
-    

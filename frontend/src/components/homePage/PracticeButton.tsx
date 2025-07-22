@@ -1,5 +1,5 @@
 // PracticeButton.tsx
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 interface PracticeButtonProps {
   text: string;
