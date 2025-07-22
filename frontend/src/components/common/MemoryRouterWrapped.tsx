@@ -1,9 +1,22 @@
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { mainLayoutRoutes } from "../../constants/routes";
 
-function MemoryRouterWrapped({ component }: { component: React.ReactNode }) {
+interface MemoryRouterWrappedProps {
+    component: React.ReactNode;
+    initialEntries?: string[];
+    path?: string;
+}
+
+function MemoryRouterWrapped({ component, initialEntries = ["/test"], path = "/test" }: MemoryRouterWrappedProps) {
+    const routes = mainLayoutRoutes;    
     return (
-        <MemoryRouter>
-            {component}
+        <MemoryRouter initialEntries={initialEntries}>
+            <Routes>
+                <Route path={path}  element={component} />
+                {routes.map((route) => (
+                    <Route key={route.path} path={route.path} element={route.element} />
+                ))}
+            </Routes>
         </MemoryRouter>
     );
 }
