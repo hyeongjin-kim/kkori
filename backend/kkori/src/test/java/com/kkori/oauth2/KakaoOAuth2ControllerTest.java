@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.kkori.controller.KakaoOAuth2Controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,8 +14,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(controllers = KakaoOAuth2AuthenticationTest.class)
-public class KakaoOAuth2AuthenticationTest {
+@WebMvcTest(controllers = KakaoOAuth2Controller.class)
+public class KakaoOAuth2ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
