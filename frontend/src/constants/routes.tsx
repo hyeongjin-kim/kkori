@@ -11,7 +11,11 @@ interface Route {
   label: string;
 }
 
-const mainLayoutRoutes: readonly Route[] = Object.freeze([
+interface AppRoutes {
+  [layoutName: string]: readonly Route[];
+}
+
+const mainLayoutRoutes: readonly Route[] = [
   { path: '/', element: <HomePage />, label: 'home-page' },
   { path: '/login', element: <LoginPage />, label: 'login-page' },
   { path: '/my-page', element: <MyPage />, label: 'my-page' },
@@ -30,8 +34,8 @@ const mainLayoutRoutes: readonly Route[] = Object.freeze([
     element: <InterviewQuestionsPage />,
     label: 'interview-questions-page',
   },
-]);
+];
 
-const appRoutes: readonly Route[] = Object.freeze([...mainLayoutRoutes]);
+const appRoutes: AppRoutes = Object.freeze({ mainLayout: mainLayoutRoutes });
 
-export { mainLayoutRoutes, appRoutes };
+export { appRoutes, mainLayoutRoutes };
