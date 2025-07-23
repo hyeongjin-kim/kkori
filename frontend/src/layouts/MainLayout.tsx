@@ -8,9 +8,7 @@ function MainLayout() {
   return (
     <div>
       <Header />
-      <main>
-        <Outlet />
-      </main>
+      <Outlet />
     </div>
   );
 }
