@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import MemoryRouterWrapped from '../../components/common/MemoryRouterWrapped';
 import LoginPage from './index';
+import { SOCIAL_LOGIN_REQUEST_PATHS } from '../../constants';
 
 describe('LoginPage', () => {
   beforeEach(() => {
@@ -11,5 +12,12 @@ describe('LoginPage', () => {
     expect(
       screen.getByRole('main', { name: 'login-page' }),
     ).toBeInTheDocument();
+  });
+
+  test('소셜 로그인 버튼이 렌더링 된다.', () => {
+    const socialLoginRequestText = Object.values(SOCIAL_LOGIN_REQUEST_PATHS);
+    socialLoginRequestText.forEach(({ text }) => {
+      expect(screen.getByRole('button', { name: text })).toBeInTheDocument();
+    });
   });
 });

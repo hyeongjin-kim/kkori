@@ -5,15 +5,17 @@ import { MemoryRouter } from 'react-router-dom';
 
 describe('AppRouter', () => {
   test('appRoutes의 모든 경로가 렌더링 된다.', () => {
-    appRoutes.forEach((route) => {
-      render(
-        <MemoryRouter initialEntries={[`${route.path}`]}>
-          <AppRouter />
-        </MemoryRouter>,
-      );
-      expect(
-        screen.getByRole('main', { name: route.label }),
-      ).toBeInTheDocument();
+    Object.values(appRoutes).forEach((routes) => {
+      routes.forEach((route) => {
+        render(
+          <MemoryRouter initialEntries={[route.path]}>
+            <AppRouter />
+          </MemoryRouter>,
+        );
+        expect(
+          screen.getByRole('main', { name: route.label }),
+        ).toBeInTheDocument();
+      });
     });
   });
 });
