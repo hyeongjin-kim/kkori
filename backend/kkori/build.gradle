@@ -30,6 +30,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'
@@ -58,7 +59,7 @@ tasks.named('asciidoctor') {
     sources {
         include("**/index.adoc")
     }
-	
+
     baseDirFollowsSourceFile()
     dependsOn(tasks.named('test'))
 }
