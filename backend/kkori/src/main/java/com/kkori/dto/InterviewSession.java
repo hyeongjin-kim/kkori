@@ -1,10 +1,9 @@
 package com.kkori.dto;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,52 +12,80 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class InterviewSession {
-    private String currentId;
-    private String parentId;
-    private String tqIdx = "TQ1";
-    private String cqIdx = "CQ1";
 
-    private List<TailQuestion> tailQuestions = new ArrayList<>();
-    private List<CustomQuestion> customQuestions = new ArrayList<>();
-    private Map<String, String> answers = new HashMap<>();
+    private int newQuestionId = 1;
 
-    private Map<String, TailQuestion> pendingTailQuestions = new TreeMap<>();
+    private QuestionForm currentQuestion;
+    private QuestionForm parentQuestion;
 
-    public void selectQuestion(String questionId) {
-        if (!questionId.startsWith("TQ")) {
-            this.parentId = questionId;
-        } else {
-            tailQuestions.add(pendingTailQuestions.get(questionId));
-            pendingTailQuestions.clear();
+    private List<QuestionForm> defaultQuestions;
+
+    private Map<QuestionForm, String> questionAnswer = new LinkedHashMap<>();
+
+    public InterviewSession(List<QuestionForm> defaultQuestions) {
+        this.defaultQuestions = defaultQuestions;
+        this.currentQuestion = defaultQuestions.removeFirst();
+        this.parentQuestion = this.currentQuestion;
+    }
+
+    public List<QuestionForm> getNextQuestions(String answerText) {
+        saveAnswer(answerText);
+        List<QuestionForm> nextQuestions = generateTailQuestions(answerText);
+        if (!defaultQuestions.isEmpty()) {
+            nextQuestions.add(defaultQuestions.getFirst());
         }
-        this.currentId = questionId;
+
+        return nextQuestions;
     }
 
-    public CustomQuestion createCustomQuestion(String customQuestionText) {
-        CustomQuestion customQuestion = new CustomQuestion(cqIdx, customQuestionText);
-        customQuestions.add(customQuestion);
-        cqIdx = "CQ" + (Integer.parseInt(cqIdx.substring(2)) + 1);
-        return customQuestion;
+    public QuestionForm selectQuestion(QuestionType questionType, int questionId, String questionText) {
+        QuestionForm questionForm = new QuestionForm(questionType, questionId, questionText);
+
+        setParentQuestion(questionForm);
+        setCurrentQuestion(questionForm);
+
+        return currentQuestion;
     }
 
-    public List<TailQuestion> saveAnswer(String answerText) {
-        List<TailQuestion> tailQuestionList = new ArrayList<>();
-
-        if (currentId != null) {
-            answers.put(currentId, answerText);
-            generateTailQuestions(answerText);
-            for (String key : pendingTailQuestions.keySet()) {
-                tailQuestionList.add(pendingTailQuestions.get(key));
-            }
+    private void setParentQuestion(QuestionForm questionForm) {
+        if (questionForm.getQuestionType() == QuestionType.TAIL) {
+            return;
         }
-        return tailQuestionList;
+
+        checkAndRemoveDefaultQuestion(questionForm);
+        parentQuestion = questionForm;
     }
 
-    private void generateTailQuestions(String answerText) {
-        //pendingTailQuestions.clear();
-        pendingTailQuestions.put(tqIdx, new TailQuestion(tqIdx, "꼬리질문 1번 입니다", parentId));
-        tqIdx = "TQ" + (Integer.parseInt(tqIdx.substring(2)) + 1);
-        pendingTailQuestions.put(tqIdx, new TailQuestion(tqIdx, "꼬리질문 2번 입니다", parentId));
-        tqIdx = "TQ" + (Integer.parseInt(tqIdx.substring(2)) + 1);
+    private void setCurrentQuestion(QuestionForm questionForm) {
+        currentQuestion = questionForm;
+        if (questionForm.getQuestionType() == QuestionType.TAIL) {
+            currentQuestion.setParentQuestion(parentQuestion);
+        }
+    }
+
+    private void checkAndRemoveDefaultQuestion(QuestionForm questionForm) {
+        if (questionForm.getQuestionType() == QuestionType.DEFAULT && !defaultQuestions.isEmpty()) {
+            defaultQuestions.removeFirst();
+        }
+    }
+
+    public QuestionForm createCustomQuestion(String customQuestionText) {
+        QuestionForm newCustomQuestion = selectQuestion(QuestionType.CUSTOM, newQuestionId++, customQuestionText);
+        return newCustomQuestion;
+    }
+
+    private void saveAnswer(String answerText) {
+        questionAnswer.put(currentQuestion, answerText);
+    }
+
+
+    private List<QuestionForm> generateTailQuestions(String answerText) {
+        String currentText = currentQuestion.getQuestionText();
+        List<QuestionForm> newTailQuestions = new ArrayList<>();
+
+        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, "꼬리질문 1번 입니다."));
+        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, "꼬리질문 2번 입니다."));
+
+        return newTailQuestions;
     }
 }
