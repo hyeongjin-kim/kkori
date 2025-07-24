@@ -16,17 +16,38 @@ import org.junit.jupiter.api.Test;
 @DisplayName("InterviewSession 비즈니스 로직 테스트")
 public class InterviewSessionTest {
 
+    private static final int QUESTION_ID_INTRO = 1;
+    private static final int QUESTION_ID_MOTIVATION = 2;
+    private static final int QUESTION_ID_STRENGTH_WEAKNESS = 3;
+
+    private static final String QUESTION_TEXT_INTRO = "자기소개를 해주세요";
+    private static final String QUESTION_TEXT_MOTIVATION = "지원동기는 무엇인가요";
+    private static final String QUESTION_TEXT_WEAKNESS = "장단점을 말해주세요";
+
+
     private InterviewSession session;
     private List<QuestionForm> defaultQuestions;
+    private List<String> tailQuestionExample = new ArrayList<>();
+
+    private List<QuestionForm> answerAndProceed(String answer) {
+        session.saveAnswer(answer);
+        return session.getNextQuestions(tailQuestionExample);
+    }
 
     @BeforeEach
     void setUp() {
-        defaultQuestions = new ArrayList<>();
-        defaultQuestions.add(new QuestionForm(QuestionType.DEFAULT, 1, "자기소개를 해주세요"));
-        defaultQuestions.add(new QuestionForm(QuestionType.DEFAULT, 2, "지원동기는 무엇인가요"));
-        defaultQuestions.add(new QuestionForm(QuestionType.DEFAULT, 3, "장단점을 말해주세요"));
+
+        defaultQuestions = List.of(
+                new QuestionForm(QuestionType.DEFAULT, QUESTION_ID_INTRO, QUESTION_TEXT_INTRO),
+                new QuestionForm(QuestionType.DEFAULT, QUESTION_ID_MOTIVATION, QUESTION_TEXT_MOTIVATION),
+                new QuestionForm(QuestionType.DEFAULT, QUESTION_ID_STRENGTH_WEAKNESS, QUESTION_TEXT_WEAKNESS)
+        );
 
         session = new InterviewSession(new ArrayList<>(defaultQuestions));
+
+        tailQuestionExample.add("1번 꼬리질문 입니다");
+        tailQuestionExample.add("2번 꼬리질문 입니다");
+
     }
 
     @DisplayName("세션 초기화 테스트")
@@ -35,7 +56,7 @@ public class InterviewSessionTest {
         // then
         assertThat(session.getCurrentQuestion().getQuestionType()).isEqualTo(QuestionType.DEFAULT);
         assertThat(session.getCurrentQuestion().getQuestionId()).isEqualTo(1);
-        assertThat(session.getCurrentQuestion().getQuestionText()).isEqualTo("자기소개를 해주세요");
+        assertThat(session.getCurrentQuestion().getQuestionText()).isEqualTo(QUESTION_TEXT_INTRO);
         assertThat(session.getParentQuestion()).isEqualTo(session.getCurrentQuestion());
     }
 
@@ -47,13 +68,14 @@ public class InterviewSessionTest {
         @Test
         void should_update_both_parent_and_current_question_when_selecting_default_question() {
             // when
-            session.getNextQuestions("답변 1");
-            QuestionForm selectedQuestion = session.selectQuestion(QuestionType.DEFAULT, 2, "지원동기는 무엇인가요");
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 1");
+            QuestionForm selectedQuestion = session.selectQuestion(QuestionType.DEFAULT, QUESTION_ID_MOTIVATION,
+                    QUESTION_TEXT_MOTIVATION);
+            answerAndProceed("답변 2");
 
             // then
-            assertThat(session.getParentQuestion().getQuestionId()).isEqualTo(2);
-            assertThat(session.getCurrentQuestion().getQuestionId()).isEqualTo(2);
+            assertThat(session.getParentQuestion().getQuestionId()).isEqualTo(QUESTION_ID_MOTIVATION);
+            assertThat(session.getCurrentQuestion().getQuestionId()).isEqualTo(QUESTION_ID_MOTIVATION);
             assertThat(selectedQuestion).isEqualTo(session.getCurrentQuestion());
         }
 
@@ -64,9 +86,9 @@ public class InterviewSessionTest {
             int originalSize = session.getDefaultQuestions().size();
 
             // when
-            session.getNextQuestions("답변 1");
-            session.selectQuestion(QuestionType.DEFAULT, 1, "자기소개를 해주세요");
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 1");
+            session.selectQuestion(QuestionType.DEFAULT, 1, QUESTION_TEXT_INTRO);
+            answerAndProceed("답변 2");
 
             // then
             assertThat(session.getDefaultQuestions()).hasSize(originalSize - 1);
@@ -77,14 +99,14 @@ public class InterviewSessionTest {
         @Test
         void should_handle_empty_default_questions_gracefully() {
             // given - 모든 기본 질문 소진
-            session.getNextQuestions("답변 1");
-            session.selectQuestion(QuestionType.DEFAULT, 2, "지원동기는 무엇인가요");
-            session.getNextQuestions("답변 2");
-            session.selectQuestion(QuestionType.DEFAULT, 3, "장단점을 말해주세요");
-            session.getNextQuestions("답변 3");
+            answerAndProceed("답변 1");
+            session.selectQuestion(QuestionType.DEFAULT, 2, QUESTION_TEXT_MOTIVATION);
+            answerAndProceed("답변 2");
+            session.selectQuestion(QuestionType.DEFAULT, 3, QUESTION_TEXT_WEAKNESS);
+            answerAndProceed("답변 3");
 
             // when & then
-            assertThatCode(() -> session.getNextQuestions("마지막 답변"))
+            assertThatCode(() -> answerAndProceed("마지막 답변"))
                     .doesNotThrowAnyException();
         }
     }
@@ -97,10 +119,10 @@ public class InterviewSessionTest {
         @Test
         void should_update_both_parent_and_current_question_when_creating_custom_question() {
             // when
-            session.getNextQuestions("답변 1");
+            answerAndProceed("답변 1");
             int expected = session.getNewQuestionId();
             QuestionForm customQuestion = session.createCustomQuestion("커스텀 질문");
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 2");
 
             // then
             assertThat(session.getParentQuestion().getQuestionType()).isEqualTo(QuestionType.CUSTOM);
@@ -112,9 +134,9 @@ public class InterviewSessionTest {
         @Test
         void should_auto_increment_question_id_when_creating_custom_questions() {
             // when
-            session.getNextQuestions("답변 1");
+            answerAndProceed("답변 1");
             QuestionForm custom1 = session.createCustomQuestion("첫 번째 커스텀 질문");
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 2");
             QuestionForm custom2 = session.createCustomQuestion("두 번째 커스텀 질문");
 
             // then
@@ -131,9 +153,9 @@ public class InterviewSessionTest {
             int originalSize = session.getDefaultQuestions().size();
 
             // when
-            session.getNextQuestions("답변 1");
+            answerAndProceed("답변 1");
             session.createCustomQuestion("커스텀 질문");
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 2");
 
             // then
             assertThat(session.getDefaultQuestions()).hasSize(originalSize);
@@ -148,10 +170,10 @@ public class InterviewSessionTest {
         @Test
         void should_keep_parent_question_and_only_update_current_when_selecting_tail_question() {
             // given
-            session.getNextQuestions("답변 1");
-            session.selectQuestion(QuestionType.DEFAULT, 2, "지원동기는 무엇인가요");
+            answerAndProceed("답변 1");
+            session.selectQuestion(QuestionType.DEFAULT, 2, QUESTION_TEXT_MOTIVATION);
             QuestionForm originalParent = session.getParentQuestion();
-            session.getNextQuestions("답변 2");
+            answerAndProceed("답변 2");
 
             // when
             QuestionForm tailQuestion = session.selectQuestion(QuestionType.TAIL, 201, "구체적으로 어떤 경험이 있나요?");
@@ -167,10 +189,11 @@ public class InterviewSessionTest {
         void should_set_parent_info_correctly_for_tail_questions() {
             // given
             QuestionForm parentQuestion = session.createCustomQuestion("커스텀 질문");
-            QuestionForm nextQuestion = session.getNextQuestions("답변 1").getFirst();
+            QuestionForm nextQuestion = answerAndProceed("답변 1").getFirst();
 
             // when
-            QuestionForm tailQuestion = session.selectQuestion(nextQuestion.getQuestionType(), nextQuestion.getQuestionId(), nextQuestion.getQuestionText());
+            QuestionForm tailQuestion = session.selectQuestion(nextQuestion.getQuestionType(),
+                    nextQuestion.getQuestionId(), nextQuestion.getQuestionText());
 
             // then
             assertThat(tailQuestion.getParentQuestionType()).isEqualTo(QuestionType.CUSTOM);
@@ -184,9 +207,9 @@ public class InterviewSessionTest {
             int originalSize = session.getDefaultQuestions().size();
 
             // when
-            session.getNextQuestions("답변 1");
+            answerAndProceed("답변 1");
             session.selectQuestion(QuestionType.TAIL, 201, "꼬리 질문");
-            session.getNextQuestions("답변 3");
+            answerAndProceed("답변 3");
 
             // then
             assertThat(session.getDefaultQuestions()).hasSize(originalSize);
@@ -201,7 +224,7 @@ public class InterviewSessionTest {
         @Test
         void should_provide_next_questions_after_saving_answer() {
             // given & when
-            List<QuestionForm> nextQuestions = session.getNextQuestions("저는 개발자입니다");
+            List<QuestionForm> nextQuestions = answerAndProceed("저는 개발자입니다");
 
             // then
             assertThat(nextQuestions).hasSize(3); // 꼬리질문 2개 + 다음 기본질문 1개
@@ -211,8 +234,8 @@ public class InterviewSessionTest {
                     .filter(q -> q.getQuestionType() == QuestionType.TAIL)
                     .toList();
             assertThat(tailQuestions).hasSize(2);
-            assertThat(tailQuestions.get(0).getQuestionText()).contains("꼬리질문 1번");
-            assertThat(tailQuestions.get(1).getQuestionText()).contains("꼬리질문 2번");
+            assertThat(tailQuestions.get(0).getQuestionText()).contains("1번 꼬리질문 입니다");
+            assertThat(tailQuestions.get(1).getQuestionText()).contains("2번 꼬리질문 입니다");
 
             // 다음 기본질문 확인
             List<QuestionForm> defaultQuestion = nextQuestions.stream()
@@ -229,7 +252,7 @@ public class InterviewSessionTest {
             String answer = "저는 5년차 개발자입니다";
 
             // when
-            session.getNextQuestions(answer);
+            answerAndProceed(answer);
 
             // then
             assertThat(session.getQuestionAnswer()).containsKey(question);
@@ -240,14 +263,14 @@ public class InterviewSessionTest {
         @Test
         void should_save_answers_for_multiple_questions() {
             // given & when
-            session.getNextQuestions("저는 개발자입니다");
+            answerAndProceed("저는 개발자입니다");
             QuestionForm q1 = session.getCurrentQuestion();
 
             QuestionForm q2 = session.createCustomQuestion("커스텀 질문");
-            session.getNextQuestions("커스텀 답변입니다");
+            answerAndProceed("커스텀 답변입니다");
 
             QuestionForm q3 = session.selectQuestion(QuestionType.TAIL, 201, "꼬리 질문");
-            session.getNextQuestions("꼬리 답변입니다");
+            answerAndProceed("꼬리 답변입니다");
 
             // then
             assertThat(session.getQuestionAnswer()).hasSize(3);
@@ -266,7 +289,7 @@ public class InterviewSessionTest {
         void should_complete_full_interview_flow_from_default_to_tail_and_custom_questions() {
             // 1. 첫 번째 기본질문에 답변
             QuestionForm firstQuestion = session.getCurrentQuestion();
-            List<QuestionForm> nextOptions1 = session.getNextQuestions("저는 5년차 백엔드 개발자입니다");
+            List<QuestionForm> nextOptions1 = answerAndProceed("저는 5년차 백엔드 개발자입니다");
 
             // 2. 꼬리질문 선택 및 답변
             QuestionForm tailQuestion = nextOptions1.stream()
@@ -275,11 +298,11 @@ public class InterviewSessionTest {
                     .orElseThrow();
             session.selectQuestion(tailQuestion.getQuestionType(), tailQuestion.getQuestionId(),
                     tailQuestion.getQuestionText());
-            List<QuestionForm> nextOptions2 = session.getNextQuestions("주로 Spring Boot와 JPA를 사용합니다");
+            List<QuestionForm> nextOptions2 = answerAndProceed("주로 Spring Boot와 JPA를 사용합니다");
 
             // 3. 커스텀질문 생성 및 답변
             QuestionForm customQuestion = session.createCustomQuestion("가장 어려웠던 프로젝트는?");
-            List<QuestionForm> nextOptions3 = session.getNextQuestions("대용량 트래픽 처리 프로젝트였습니다");
+            List<QuestionForm> nextOptions3 = answerAndProceed("대용량 트래픽 처리 프로젝트였습니다");
 
             // 4. 다시 꼬리질문 선택
             QuestionForm tailQuestion2 = nextOptions3.stream()
@@ -288,7 +311,7 @@ public class InterviewSessionTest {
                     .orElseThrow();
             session.selectQuestion(tailQuestion2.getQuestionType(), tailQuestion2.getQuestionId(),
                     tailQuestion2.getQuestionText());
-            session.getNextQuestions("Redis와 ElasticSearch를 활용했습니다");
+            answerAndProceed("Redis와 ElasticSearch를 활용했습니다");
 
             // then - 최종 상태 검증
             assertThat(session.getQuestionAnswer()).hasSize(4);
