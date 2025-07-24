@@ -4,7 +4,7 @@ import PairPracticePage from '../pages/pairPracticePage/index';
 import SoloPracticePage from '../pages/soloPracticePage/index';
 import InterviewQuestionsPage from '../pages/interviewQuestionsPage/index';
 import HomePage from '../pages/homePage/index';
-
+import PracticePage from '../pages/PracticePage/index';
 interface Route {
   path: string;
   element: React.ReactNode;
@@ -29,6 +29,11 @@ const mainLayoutRoutes: readonly Route[] = Object.freeze([
     path: '/interview-questions',
     element: <InterviewQuestionsPage />,
     label: 'interview-questions-page',
+  },
+  {
+    path: '/practice',
+    element: <PracticePage />,
+    label: 'practice-page',
   },
 ]);
 
