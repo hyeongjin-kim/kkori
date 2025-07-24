@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.config.GMSConfig;
 import java.io.File;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -18,44 +17,55 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Transcriber {
 
+    private static final MediaType AUDIO_M4A = MediaType.parse("audio/m4a");
+    private static final String WHISPER_MODEL = "whisper-1";
+
     private final GMSConfig config;
+    private final OkHttpClient client = new OkHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String transcribe(String filePath) {
-        OkHttpClient client = new OkHttpClient();
+        try {
+            MultipartBody requestBody = buildRequestBody(filePath);
+            Request request = buildRequest(requestBody);
+            return executeTranscriptionRequest(request);
+        } catch (Exception e) {
+            throw new RuntimeException("음성 변환 실패", e);
+        }
+    }
 
+    private MultipartBody buildRequestBody(String filePath) {
         File audioFile = new File(filePath);
+        RequestBody fileBody = RequestBody.create(audioFile, AUDIO_M4A);
 
-        RequestBody fileBody = RequestBody.create(audioFile, MediaType.parse("audio/m4a"));
-
-        MultipartBody requestBody = new MultipartBody.Builder()
+        return new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.getName(), fileBody)
-                .addFormDataPart("model", "whisper-1")
+                .addFormDataPart("model", WHISPER_MODEL)
                 .build();
+    }
 
-        Request request = new Request.Builder()
+    private Request buildRequest(MultipartBody requestBody) {
+        return new Request.Builder()
                 .url(config.getWhisperUrl())
-                .addHeader("Authorization",
-                        "Bearer " + config.getApiKey())
+                .addHeader("Authorization", "Bearer " + config.getApiKey())
                 .addHeader("Content-Type", "multipart/form-data")
                 .post(requestBody)
                 .build();
+    }
 
+    private String executeTranscriptionRequest(Request request) throws Exception {
         try (Response response = client.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(response.body().string());
-                String transcript = jsonNode.get("text").asText();
-                System.out.println(transcript);
-                return transcript;
-            } else {
-                String failMessage = "Request failed: " + response.code() + " " + response.message();
-                System.err.println(failMessage);
-                return failMessage;
+            if (!response.isSuccessful()) {
+                throw new RuntimeException("API 호출 실패: " + response.code() + " " + response.message());
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
+
+            return parseTranscriptionResponse(response.body().string());
         }
+    }
+
+    private String parseTranscriptionResponse(String responseBody) throws Exception {
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        return jsonNode.get("text").asText();
     }
 }
