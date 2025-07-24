@@ -1,5 +1,7 @@
-function InterviewQuestionsPage(){ 
-    return <div>InterviewQuestionsPage</div>
+function InterviewQuestionsPage() {
+  return (
+    <main aria-label="interview-questions-page">InterviewQuestionsPage</main>
+  );
 }
 
 export default InterviewQuestionsPage;

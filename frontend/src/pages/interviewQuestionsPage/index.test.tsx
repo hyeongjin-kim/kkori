@@ -1,15 +1,15 @@
-import { render, screen } from "@testing-library/react";
-import BrowserRouterWrapped from "../../components/common/BrowserRouterWrapped";
-import InterviewQuestionsPage from "./index";
+import { render, screen } from '@testing-library/react';
+import MemoryRouterWrapped from '../../components/common/MemoryRouterWrapped';
+import InterviewQuestionsPage from './index';
 
-test("InterviewQuestionsPage 페이지가 렌더링 된다.", () => {
-    render(<BrowserRouterWrapped component={<InterviewQuestionsPage />} />);
-    expect(screen.getByText("InterviewQuestionsPage")).toBeInTheDocument();
+describe('InterviewQuestionsPage', () => {
+  beforeEach(() => {
+    render(<MemoryRouterWrapped component={<InterviewQuestionsPage />} />);
+  });
+
+  test('InterviewQuestionsPage 페이지가 렌더링 된다.', () => {
+    expect(
+      screen.getByRole('main', { name: 'interview-questions-page' }),
+    ).toBeInTheDocument();
+  });
 });
-
-
-
-
-
-
-    
