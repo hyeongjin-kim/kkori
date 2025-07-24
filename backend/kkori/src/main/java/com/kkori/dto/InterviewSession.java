@@ -28,9 +28,8 @@ public class InterviewSession {
         this.parentQuestion = this.currentQuestion;
     }
 
-    public List<QuestionForm> getNextQuestions(String answerText) {
-        saveAnswer(answerText);
-        List<QuestionForm> nextQuestions = generateTailQuestions(answerText);
+    public List<QuestionForm> getNextQuestions(List<String> tailQuestions) {
+        List<QuestionForm> nextQuestions = generateTailQuestions(tailQuestions);
         if (!defaultQuestions.isEmpty()) {
             nextQuestions.add(defaultQuestions.getFirst());
         }
@@ -74,17 +73,16 @@ public class InterviewSession {
         return newCustomQuestion;
     }
 
-    private void saveAnswer(String answerText) {
+    public void saveAnswer(String answerText) {
         questionAnswer.put(currentQuestion, answerText);
     }
 
 
-    private List<QuestionForm> generateTailQuestions(String answerText) {
-        String currentText = currentQuestion.getQuestionText();
+    private List<QuestionForm> generateTailQuestions(List<String> tailQuestions) {
         List<QuestionForm> newTailQuestions = new ArrayList<>();
 
-        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, "꼬리질문 1번 입니다."));
-        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, "꼬리질문 2번 입니다."));
+        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, tailQuestions.getFirst()));
+        newTailQuestions.add(new QuestionForm(QuestionType.TAIL, newQuestionId++, tailQuestions.get(1)));
 
         return newTailQuestions;
     }
