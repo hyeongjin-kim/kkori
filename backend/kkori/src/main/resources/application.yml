@@ -18,3 +18,6 @@ gms:
   api-key:
   whisper-url: "https://gms.ssafy.io/gmsapi/api.openai.com/v1/audio/transcriptions"
   gpt-url: "https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions"
+
+  config:
+    import: classpath:application-secret.yml
