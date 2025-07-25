@@ -12,6 +12,10 @@ public class TailQuestionException extends CustomRuntimeException {
         return new TailQuestionException(ExceptionCode.TAIL_QUESTION_GENERATION_FAILED);
     }
 
+    public static TailQuestionException tailQuestionApiCallFailed() {
+        return new TailQuestionException(ExceptionCode.TAIL_QUESTION_API_CALL_FAILED);
+    }
+
     public static TailQuestionException jsonConversionFailed() {
         return new TailQuestionException(ExceptionCode.JSON_CONVERSION_FAILED);
     }

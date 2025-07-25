@@ -8,15 +8,11 @@ public class AudioProcessingException extends CustomRuntimeException {
         super(exceptionCode);
     }
 
-    public static AudioProcessingException audioProcessingFailed() {
-        return new AudioProcessingException(ExceptionCode.AUDIO_PROCESSING_FAILED);
-    }
-
     public static AudioProcessingException audioTranscriptionFailed() {
         return new AudioProcessingException(ExceptionCode.AUDIO_TRANSCRIPTION_FAILED);
     }
 
-    public static AudioProcessingException apiCallFailed() {
-        return new AudioProcessingException(ExceptionCode.API_CALL_FAILED);
+    public static AudioProcessingException audioApiCallFailed() {
+        return new AudioProcessingException(ExceptionCode.AUDIO_API_CALL_FAILED);
     }
 }

@@ -8,5 +8,4 @@ import lombok.Getter;
 public class ExceptionResponse {
     private final int code;
     private final String message;
-    private final String redirectPath;
 }

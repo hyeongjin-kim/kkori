@@ -55,7 +55,7 @@ public class TailQuestionGenerator {
     private List<String> executeGenerationRequest(Request request) throws Exception {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw TailQuestionException.tailQuestionGenerationFailed();
+                throw TailQuestionException.tailQuestionApiCallFailed();
             }
             return parseTailQuestionResponse(response.body().string());
         }

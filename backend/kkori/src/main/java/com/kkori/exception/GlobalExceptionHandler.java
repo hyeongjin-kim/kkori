@@ -1,5 +1,6 @@
 package com.kkori.exception;
 
+import com.kkori.exception.ExceptionResponse;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
@@ -35,8 +36,7 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ExceptionResponse> buildResponse(ExceptionCode code) {
         ExceptionResponse response = new ExceptionResponse(
                 code.getCode(),
-                code.getMessage(),
-                code.getRedirectPath()
+                code.getMessage()
         );
         return ResponseEntity.status(code.getStatus()).body(response);
     }

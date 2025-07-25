@@ -58,7 +58,7 @@ public class Transcriber {
     private String executeTranscriptionRequest(Request request) throws Exception {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw AudioProcessingException.apiCallFailed();
+                throw AudioProcessingException.audioApiCallFailed();
             }
 
             return parseTranscriptionResponse(response.body().string());
