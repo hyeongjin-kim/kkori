@@ -39,7 +39,7 @@ const mainLayoutRoutes: readonly Route[] = [
     element: <PracticePage />,
     label: 'practice-page',
   },
-]);
+];
 
 const appRoutes: AppRoutes = Object.freeze({ mainLayout: mainLayoutRoutes });
 
