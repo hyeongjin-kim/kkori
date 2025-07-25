@@ -6,7 +6,7 @@ function AppRouter() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        {appRoutes.mainLayout.map((route) => (
+        {appRoutes.mainLayout.map(route => (
           <Route key={route.path} path={route.path} element={route.element} />
         ))}
       </Route>
