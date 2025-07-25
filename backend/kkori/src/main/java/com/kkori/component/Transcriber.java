@@ -3,6 +3,7 @@ package com.kkori.component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.config.GMSConfig;
+import com.kkori.exception.audio.AudioProcessingException;
 import java.io.File;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
@@ -30,7 +31,7 @@ public class Transcriber {
             Request request = buildRequest(requestBody);
             return executeTranscriptionRequest(request);
         } catch (Exception e) {
-            throw new RuntimeException("음성 변환 실패", e);
+            throw AudioProcessingException.audioTranscriptionFailed();
         }
     }
 
@@ -57,7 +58,7 @@ public class Transcriber {
     private String executeTranscriptionRequest(Request request) throws Exception {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new RuntimeException("API 호출 실패: " + response.code() + " " + response.message());
+                throw AudioProcessingException.apiCallFailed();
             }
 
             return parseTranscriptionResponse(response.body().string());
