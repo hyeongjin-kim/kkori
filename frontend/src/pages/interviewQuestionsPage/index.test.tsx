@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../../components/common/MemoryRouterWrapped';
-import InterviewQuestionsPage from './index';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import InterviewQuestionsPage from '@pages/interviewQuestionsPage/index';
 
 describe('InterviewQuestionsPage', () => {
   beforeEach(() => {

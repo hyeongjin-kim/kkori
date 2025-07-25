@@ -1,10 +1,10 @@
-import LoginPage from '../pages/loginPage/index';
-import MyPage from '../pages/myPage/index';
-import PairPracticePage from '../pages/pairPracticePage/index';
-import SoloPracticePage from '../pages/soloPracticePage/index';
-import InterviewQuestionsPage from '../pages/interviewQuestionsPage/index';
-import HomePage from '../pages/homePage/index';
-import PracticePage from '../pages/PracticePage/index';
+import LoginPage from '@pages/loginPage/index';
+import MyPage from '@pages/myPage/index';
+import PairPracticePage from '@pages/pairPracticePage/index';
+import SoloPracticePage from '@pages/soloPracticePage/index';
+import InterviewQuestionsPage from '@pages/interviewQuestionsPage/index';
+import HomePage from '@pages/homePage/index';
+import PracticePage from '@pages/PracticePage/index';
 interface Route {
   path: string;
   element: React.ReactNode;
@@ -39,7 +39,7 @@ const mainLayoutRoutes: readonly Route[] = [
     element: <PracticePage />,
     label: 'practice-page',
   },
-]);
+];
 
 const appRoutes: AppRoutes = Object.freeze({ mainLayout: mainLayoutRoutes });
 

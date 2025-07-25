@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import Header from './Header';
-import MemoryRouterWrapped from './MemoryRouterWrapped';
+import Header from '@components/common/Header';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 
 describe('헤더', () => {
   beforeEach(() => {

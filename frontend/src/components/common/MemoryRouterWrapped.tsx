@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { mainLayoutRoutes } from '../../constants/routes';
+import { mainLayoutRoutes } from '@constants/routes';
 
 interface MemoryRouterWrappedProps {
   component: React.ReactNode;
@@ -17,7 +17,7 @@ function MemoryRouterWrapped({
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
         <Route path={path} element={component} />
-        {routes.map((route) => (
+        {routes.map(route => (
           <Route key={route.path} path={route.path} element={route.element} />
         ))}
       </Routes>
