@@ -1,6 +1,7 @@
 export default {
   testEnvironment: 'jsdom',
   preset: 'ts-jest',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
     '^.+\\.svg$': 'jest-svg-transformer',
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',

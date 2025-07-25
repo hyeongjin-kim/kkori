@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../common/MemoryRouterWrapped';
-import CurrentQuestionDisplay from './CurrentQuestionDisplay';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import CurrentQuestionDisplay from '@components/practicePage/CurrentQuestionDisplay';
 import { CurrentQuestionDisplayProps } from '@customTypes/CurrentQuestionDisplayProps';
 
 describe('CurrentQuestionDisplay', () => {

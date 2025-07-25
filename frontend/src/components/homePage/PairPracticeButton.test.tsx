@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import PairPracticeButton from './PairPracticeButton';
-import BrowserRouterWrapped from '../common/BrowserRouterWrapped';
+import PairPracticeButton from '@components/homePage/PairPracticeButton';
+import BrowserRouterWrapped from '@components/common/BrowserRouterWrapped';
 
 test('같이 연습하기 버튼이 렌더링 된다', () => {
   render(<BrowserRouterWrapped component={<PairPracticeButton />} />);

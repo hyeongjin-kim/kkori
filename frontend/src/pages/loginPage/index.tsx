@@ -1,6 +1,6 @@
-import LoginButton from '../../components/loginPage/LoginButton';
+import LoginButton from '@components/loginPage/LoginButton';
 
-import { SOCIAL_LOGIN_REQUEST_PATHS } from '../../constants';
+import { SOCIAL_LOGIN_REQUEST_PATHS } from '@constants/index';
 
 function LoginPage() {
   return (

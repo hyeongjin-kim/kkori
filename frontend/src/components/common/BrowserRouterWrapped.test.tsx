@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import BrowserRouterWrapped from './BrowserRouterWrapped';
+import BrowserRouterWrapped from '@components/common/BrowserRouterWrapped';
 
 test('어떤 컴포넌트를 전달하면 이를 BrowserRouter로 감싼 컴포넌트가 렌더링 된다.', () => {
   const Component = () => {

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import BrowserRouterWrapped from '../../components/common/BrowserRouterWrapped';
-import MyPage from './index';
+import BrowserRouterWrapped from '@components/common/BrowserRouterWrapped';
+import MyPage from '@pages/myPage/index';
 
 describe('MyPage', () => {
   beforeEach(() => {

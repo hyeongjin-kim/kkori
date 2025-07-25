@@ -1,5 +1,5 @@
-import SoloPracticeButton from '../../components/homePage/SoloPracticeButton';
-import PairPracticeButton from '../../components/homePage/PairPracticeButton';
+import SoloPracticeButton from '@components/homePage/SoloPracticeButton';
+import PairPracticeButton from '@components/homePage/PairPracticeButton';
 
 function HomePage() {
   return (

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import SoloPracticeButton from './SoloPracticeButton';
-import BrowserRouterWrapped from '../common/BrowserRouterWrapped';
+import SoloPracticeButton from '@components/homePage/SoloPracticeButton';
+import BrowserRouterWrapped from '@components/common/BrowserRouterWrapped';
 
 test('혼자 연습하기 버튼이 렌더링 된다', () => {
   render(<BrowserRouterWrapped component={<SoloPracticeButton />} />);

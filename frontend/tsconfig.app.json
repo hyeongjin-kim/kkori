@@ -7,7 +7,8 @@
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
       "@constants/*": ["src/constants/*"],
-      "@customTypes/*": ["src/customTypes/*"],
+      "@customTypes/*": ["src/types/*"],
+      "@layouts/*": ["src/layouts/*"],
       "@pages/*": ["src/pages/*"],
       "@utils/*": ["src/utils/*"],
       "@hooks/*": ["src/hooks/*"]
