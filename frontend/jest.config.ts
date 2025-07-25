@@ -4,6 +4,16 @@ export default {
   moduleNameMapper: {
     '^.+\\.svg$': 'jest-svg-transformer',
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
+    '@/(.*)': '<rootDir>/src/$1',
+    '@app/(.*)': '<rootDir>/src/App.tsx',
+    '@assets/(.*)': '<rootDir>/src/assets/$1',
+    '@components/(.*)': '<rootDir>/src/components/$1',
+    '@constants/(.*)': '<rootDir>/src/constants/$1',
+    '@customTypes/(.*)': '<rootDir>/src/customTypes/$1',
+    '@layouts/(.*)': '<rootDir>/src/layouts/$1',
+    '@pages/(.*)': '<rootDir>/src/pages/$1',
+    '@utils/(.*)': '<rootDir>/src/utils/$1',
+    '@hooks/(.*)': '<rootDir>/src/hooks/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
