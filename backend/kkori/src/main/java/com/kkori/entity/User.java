@@ -7,8 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "users")
 public class User extends BaseEntity {
 
@@ -16,13 +18,10 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(length = 100, nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false, unique = true)
+    private String sub;
 
     @Column(length = 50, nullable = false)
-    private String name;
-
-    @Column(length = 50, nullable = false)
-    private String password;
+    private String nickname;
 
 }
