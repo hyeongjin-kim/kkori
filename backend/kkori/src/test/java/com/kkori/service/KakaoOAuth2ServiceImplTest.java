@@ -57,10 +57,10 @@ class KakaoOAuth2ServiceImplTest {
     private RequestBodySpec requestBodySpec;
 
     @Mock
-    private RequestHeadersSpec<?> requestHeadersSpec;
+    private RequestHeadersUriSpec requestHeadersUriSpec;
 
     @Mock
-    private RequestHeadersUriSpec requestHeadersUriSpec;
+    private RequestHeadersSpec<?> requestHeadersSpec;
 
     @Mock
     private ResponseSpec responseSpec;
@@ -82,49 +82,25 @@ class KakaoOAuth2ServiceImplTest {
 
         given(requestBodySpec.body(any(BodyInserter.class))).willAnswer(invocation -> requestBodySpec);
         given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
-
     }
 
     @Test
-    @DisplayName("정상 인가코드로 로그인 성공")
+    @DisplayName("정상 인가코드면 신규 사용자 로그인 후 LoginResponse 반환")
     void loginWithValidAuthorizationCode_shouldReturnLoginResponse() {
-
-        KakaoTokenResponse tokenResponse = new KakaoTokenResponse();
-        setField(tokenResponse, "tokenType", "Bearer");
-        setField(tokenResponse, "accessToken", "access-token");
-        setField(tokenResponse, "refreshToken", "refresh-token");
-        setField(tokenResponse, "idToken", VALID_ID_TOKEN);
-        setField(tokenResponse, "expiresIn", 3600);
-
-        KakaoProfileResponse.Properties props = new KakaoProfileResponse.Properties();
-        setField(props, "nickname", "홍길동");
-        KakaoProfileResponse profileResponse = new KakaoProfileResponse();
-        setField(profileResponse, "properties", props);
-
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse("홍길동");
         User savedUser = new User("sub123", "홍길동");
 
-        given(webClient.post()).willReturn(requestBodyUriSpec);
-        given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
-        given(requestBodySpec.contentType(any())).willReturn(requestBodySpec);
-        given(requestBodySpec.retrieve()).willReturn(responseSpec);
-        given(responseSpec.bodyToMono(KakaoTokenResponse.class)).willReturn(Mono.just(tokenResponse));
-
-        given(webClient.get()).willReturn(requestHeadersUriSpec);
-        given(requestHeadersUriSpec.uri(anyString())).willReturn(requestHeadersSpec);
-        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
-        given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.just(profileResponse));
-
+        mockKakaoTokenRequest(tokenResponse);
+        mockKakaoProfileRequest(profileResponse);
         given(httpSession.getAttribute("oauth2_kakao_nonce")).willReturn(VALID_NONCE);
-
         given(userRepository.findBySub(anyString())).willReturn(Optional.empty());
         given(userRepository.save(any())).willReturn(savedUser);
 
-        try (MockedStatic<IdTokenValidator> mocked =
-                     mockStatic(com.kkori.util.IdTokenValidator.class)) {
-            mocked.when(() -> com.kkori.util.IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+        try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
+            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
                     .thenReturn(true);
-            mocked.when(() -> com.kkori.util.IdTokenValidator.getSub(anyString()))
-                    .thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
             LoginResponse response = kakaoOAuth2Service.loginWithKakao("valid-code", httpSession);
 
@@ -136,13 +112,35 @@ class KakaoOAuth2ServiceImplTest {
     }
 
     @Test
-    @DisplayName("Nonce 검증 실패 시 IllegalArgumentException 예외 발생")
-    void loginWithInvalidNonce_shouldThrowIllegalArgumentException() {
-        KakaoTokenResponse tokenResponse = new KakaoTokenResponse();
-        setField(tokenResponse, "accessToken", "access-token");
-        setField(tokenResponse, "refreshToken", "refresh-token");
-        setField(tokenResponse, "idToken", INVALID_ID_TOKEN);
+    @DisplayName("정상 인가코드면 기존 사용자 로그인 후 LoginResponse 반환")
+    void loginWithExistingUser_shouldReturnExistingUser() {
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse("기존사용자");
+        User existingUser = new User("sub123", "기존사용자");
 
+        mockKakaoTokenRequest(tokenResponse);
+        mockKakaoProfileRequest(profileResponse);
+        given(httpSession.getAttribute("oauth2_kakao_nonce")).willReturn(VALID_NONCE);
+        given(userRepository.findBySub(anyString())).willReturn(Optional.of(existingUser));
+
+        try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
+            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+                    .thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+
+            LoginResponse response = kakaoOAuth2Service.loginWithKakao("valid-code", httpSession);
+
+            assertNotNull(response);
+            assertEquals("기존사용자", response.getNickname());
+            assertEquals("jwt-accesstoken-sample", response.getAccessToken().getToken());
+            assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
+        }
+    }
+
+    @Test
+    @DisplayName("nonce 검증 실패 시 IllegalArgumentException 발생")
+    void loginWithInvalidNonce_shouldThrowIllegalArgumentException() {
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(INVALID_ID_TOKEN);
         given(webClient.post()).willReturn(requestBodyUriSpec);
         given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
         given(requestBodySpec.contentType(any())).willReturn(requestBodySpec);
@@ -157,4 +155,107 @@ class KakaoOAuth2ServiceImplTest {
 
         assertEquals("Nonce 검증 실패", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("카카오 토큰 요청 실패 시 RuntimeException 발생")
+    void requestKakaoToken_failure_shouldThrowRuntimeException() {
+        given(webClient.post()).willReturn(requestBodyUriSpec);
+        given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
+        given(requestBodySpec.contentType(any())).willReturn(requestBodySpec);
+        given(requestBodySpec.body(any(BodyInserter.class))).willReturn(requestBodySpec);
+        given(requestBodySpec.retrieve()).willReturn(responseSpec);
+        given(responseSpec.bodyToMono(KakaoTokenResponse.class)).willReturn(Mono.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> kakaoOAuth2Service.loginWithKakao("code", httpSession));
+
+        assertEquals("카카오 토큰 발급 실패", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("카카오 프로필 조회 실패 시 RuntimeException 발생")
+    void requestKakaoNickname_failure_shouldThrowRuntimeException() {
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
+
+        mockKakaoTokenRequest(tokenResponse);
+
+        given(webClient.get()).willReturn(requestHeadersUriSpec);
+        given(requestHeadersUriSpec.uri(anyString())).willReturn(requestHeadersSpec);
+        given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
+        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
+        given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.empty());
+
+        try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
+            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+                    .thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                    () -> kakaoOAuth2Service.loginWithKakao("valid-code", httpSession));
+            assertEquals("카카오 프로필 조회 실패", exception.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("카카오 프로필 닉네임 누락 시 RuntimeException 발생")
+    void requestKakaoNickname_missingNickname_shouldThrowRuntimeException() {
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
+
+        KakaoProfileResponse profileResponse = new KakaoProfileResponse();
+        setField(profileResponse, "properties", null);
+
+        mockKakaoTokenRequest(tokenResponse);
+
+        given(webClient.get()).willReturn(requestHeadersUriSpec);
+        given(requestHeadersUriSpec.uri(anyString())).willReturn(requestHeadersSpec);
+        given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
+        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
+        given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.just(profileResponse));
+
+        try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
+            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+                    .thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                    () -> kakaoOAuth2Service.loginWithKakao("valid-code", httpSession));
+            assertEquals("카카오 닉네임 조회 실패", exception.getMessage());
+        }
+    }
+
+    private KakaoTokenResponse createKakaoTokenResponse(String idToken) {
+        KakaoTokenResponse tokenResponse = new KakaoTokenResponse();
+        setField(tokenResponse, "tokenType", "Bearer");
+        setField(tokenResponse, "accessToken", "access-token");
+        setField(tokenResponse, "refreshToken", "refresh-token");
+        setField(tokenResponse, "idToken", idToken);
+        setField(tokenResponse, "expiresIn", 3600);
+        return tokenResponse;
+    }
+
+    private KakaoProfileResponse createKakaoProfileResponse(String nickname) {
+        KakaoProfileResponse profileResponse = new KakaoProfileResponse();
+        KakaoProfileResponse.Properties props = new KakaoProfileResponse.Properties();
+        setField(props, "nickname", nickname);
+        setField(profileResponse, "properties", props);
+        return profileResponse;
+    }
+
+    private void mockKakaoTokenRequest(KakaoTokenResponse tokenResponse) {
+        given(webClient.post()).willReturn(requestBodyUriSpec);
+        given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
+        given(requestBodySpec.contentType(any())).willReturn(requestBodySpec);
+        given(requestBodySpec.body(any(BodyInserter.class))).willReturn(requestBodySpec);
+        given(requestBodySpec.retrieve()).willReturn(responseSpec);
+        given(responseSpec.bodyToMono(KakaoTokenResponse.class)).willReturn(Mono.just(tokenResponse));
+    }
+
+    private void mockKakaoProfileRequest(KakaoProfileResponse profileResponse) {
+        given(webClient.get()).willReturn(requestHeadersUriSpec);
+        given(requestHeadersUriSpec.uri(anyString())).willReturn(requestHeadersSpec);
+        given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
+        given(requestHeadersSpec.retrieve()).willReturn(responseSpec);
+        given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.just(profileResponse));
+    }
+
 }

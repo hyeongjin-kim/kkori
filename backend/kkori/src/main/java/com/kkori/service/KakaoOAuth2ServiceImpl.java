@@ -1,5 +1,9 @@
 package com.kkori.service;
 
+import static com.kkori.util.NonceUtil.generateNonce;
+import static com.kkori.util.NonceUtil.saveNonce;
+import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
+
 import com.kkori.dto.response.KakaoProfileResponse;
 import com.kkori.dto.response.KakaoTokenResponse;
 import com.kkori.dto.response.LoginResponse;
@@ -34,6 +38,21 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     private final WebClient webClient;
 
     private final UserRepository userRepository;
+
+    @Override
+    public String createAuthorizationUrl(HttpSession session) {
+        String nonce = generateNonce();
+
+        saveNonce(session, nonce);
+
+        return fromUriString("https://kauth.kakao.com/oauth/authorize")
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .queryParam("nonce", nonce)
+                .build()
+                .toUriString();
+    }
 
     @Override
     public LoginResponse loginWithKakao(String authorizationCode, HttpSession session) {

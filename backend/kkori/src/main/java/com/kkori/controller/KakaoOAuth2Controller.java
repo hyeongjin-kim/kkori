@@ -19,6 +19,12 @@ public class KakaoOAuth2Controller {
 
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
+    @GetMapping
+    public ResponseEntity<String> getKakaoAuthorizationUrl(HttpSession session) {
+        String authorizationUrl = kakaoOAuth2Service.createAuthorizationUrl(session);
+        return ResponseEntity.ok(authorizationUrl);
+    }
+
     @GetMapping("/callback")
     public ResponseEntity<LoginResponse> handleKakaoCallback(
             @RequestParam("code") String code, HttpSession session) {
