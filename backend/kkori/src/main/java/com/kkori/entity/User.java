@@ -24,4 +24,9 @@ public class User extends BaseEntity {
     @Column(length = 50, nullable = false)
     private String nickname;
 
+    public User(String sub, String nickname) {
+        this.sub = sub;
+        this.nickname = nickname;
+    }
+
 }

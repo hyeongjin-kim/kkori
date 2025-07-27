@@ -2,6 +2,7 @@ package com.kkori.controller;
 
 import com.kkori.dto.response.LoginResponse;
 import com.kkori.service.KakaoOAuth2Service;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,15 @@ public class KakaoOAuth2Controller {
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
     @GetMapping("/callback")
-    public ResponseEntity<LoginResponse> handleKakaoCallback(@RequestParam("code") String code) {
+    public ResponseEntity<LoginResponse> handleKakaoCallback(
+            @RequestParam("code") String code, HttpSession session) {
+
         if (code == null || code.trim().isEmpty()) {
             throw new IllegalArgumentException("인가코드가 필요합니다");
         }
 
-        LoginResponse authResponse = kakaoOAuth2Service.loginWithKakao(code);
-        return ResponseEntity.ok(authResponse);
+        LoginResponse response = kakaoOAuth2Service.loginWithKakao(code, session);
+        return ResponseEntity.ok(response);
     }
 
 }

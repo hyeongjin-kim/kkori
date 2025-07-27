@@ -1,12 +1,12 @@
 package com.kkori.jwt;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class Token {
 
-    private final String token;
+    private String token;
 
 }

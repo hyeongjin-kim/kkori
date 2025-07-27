@@ -1,5 +1,7 @@
 package com.kkori.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,7 +39,7 @@ class KakaoOAuth2ControllerTest {
     void shouldReturnAuthResponse_whenValidAuthorizationCodeProvided() throws Exception {
         String validCode = "valid-auth-code";
         LoginResponse mockResponse = new LoginResponse(accessToken, refreshToken, "홍길동");
-        given(kakaoOAuth2Service.loginWithKakao(validCode)).willReturn(mockResponse);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(mockResponse);
 
         mockMvc.perform(get("/oauth2/authorization/kakao/callback")
                         .param("code", validCode)
@@ -64,7 +66,7 @@ class KakaoOAuth2ControllerTest {
     void shouldReturnBadRequest_whenInvalidAuthorizationCode() throws Exception {
 
         String invalidCode = "invalid-auth-code";
-        given(kakaoOAuth2Service.loginWithKakao(invalidCode))
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
                 .willThrow(new IllegalArgumentException("Invalid authorization code"));
 
         mockMvc.perform(get("/oauth2/authorization/kakao/callback")
@@ -79,7 +81,7 @@ class KakaoOAuth2ControllerTest {
     void shouldReturnInternalServerError_whenKakaoApiFails() throws Exception {
 
         String code = "valid-kakao-code";
-        given(kakaoOAuth2Service.loginWithKakao(code))
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
                 .willThrow(new RuntimeException("카카오 서버 장애"));
 
         mockMvc.perform(get("/oauth2/authorization/kakao/callback")
