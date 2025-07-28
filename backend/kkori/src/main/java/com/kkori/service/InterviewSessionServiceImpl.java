@@ -304,10 +304,6 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 답변 저장
      */
     private Answer saveAnswer(Question question, User user, String answerText) {
-        if (answerText == null || answerText.trim().isEmpty()) {
-            return null;
-        }
-
         Answer answer = Answer.builder()
                 .question(question)
                 .user(user)
