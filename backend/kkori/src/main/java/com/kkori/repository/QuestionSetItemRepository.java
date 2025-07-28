@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface QuestionSetItemRepository extends JpaRepository<QuestionSetItem, Long> {
 
-    List<QuestionSetItem> findByQuestionSet_SetIdOrderBySortOrderAsc(Long questionSetId);
+    List<QuestionSetItem> findByQuestionSetSetIdOrderBySortOrderAsc(Long questionSetId);
 
 }
