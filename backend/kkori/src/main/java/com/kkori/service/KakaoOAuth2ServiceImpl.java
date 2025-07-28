@@ -70,8 +70,9 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         KakaoTokenResponse tokenResponse = requestKakaoToken(authorizationCode);
         String idToken = tokenResponse.getIdToken();
 
-        if (idToken == null || !IdTokenValidator.validateNonce(idToken, session)) {
-            throw new IllegalArgumentException("Nonce 검증 실패");
+        boolean valid = IdTokenValidator.validateIdTokenClaims(idToken, session, clientId);
+        if (!valid) {
+            throw new IllegalArgumentException("id_token 검증 실패");
         }
 
         String sub = IdTokenValidator.getSub(idToken);

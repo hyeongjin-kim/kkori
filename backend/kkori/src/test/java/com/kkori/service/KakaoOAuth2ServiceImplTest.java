@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -114,7 +115,9 @@ class KakaoOAuth2ServiceImplTest {
         given(userRepository.save(any())).willReturn(savedUser);
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+            mockedIdToken.when(
+                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                                    eq(DUMMY_CLIENT_ID)))
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
@@ -140,7 +143,9 @@ class KakaoOAuth2ServiceImplTest {
         given(userRepository.findBySubAndDeletedFalse(anyString())).willReturn(Optional.of(existingUser));
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+            mockedIdToken.when(
+                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                                    eq(DUMMY_CLIENT_ID)))
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
@@ -169,7 +174,7 @@ class KakaoOAuth2ServiceImplTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> kakaoOAuth2Service.loginWithKakao("some-code", httpSession));
 
-        assertEquals("Nonce 검증 실패", exception.getMessage());
+        assertEquals("id_token 검증 실패", exception.getMessage());
     }
 
     @Test
@@ -202,7 +207,9 @@ class KakaoOAuth2ServiceImplTest {
         given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.empty());
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+            mockedIdToken.when(
+                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                                    eq(DUMMY_CLIENT_ID)))
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
@@ -229,7 +236,9 @@ class KakaoOAuth2ServiceImplTest {
         given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.just(profileResponse));
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+            mockedIdToken.when(
+                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                                    eq(DUMMY_CLIENT_ID)))
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
@@ -279,7 +288,9 @@ class KakaoOAuth2ServiceImplTest {
         given(httpSession.getAttribute(anyString())).willReturn(VALID_NONCE);
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+            mockedIdToken.when(
+                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                                    eq(DUMMY_CLIENT_ID)))
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
