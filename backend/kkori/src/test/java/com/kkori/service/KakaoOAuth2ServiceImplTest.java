@@ -7,16 +7,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.kkori.dto.response.KakaoProfileResponse;
 import com.kkori.dto.response.KakaoTokenResponse;
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.entity.RefreshToken;
 import com.kkori.entity.User;
+import com.kkori.jwt.Token;
+import com.kkori.jwt.TokenProvider;
+import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
 import com.kkori.util.IdTokenValidator;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
@@ -67,6 +74,12 @@ class KakaoOAuth2ServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TokenProvider tokenProvider;
+
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
     private HttpSession httpSession;
@@ -221,6 +234,30 @@ class KakaoOAuth2ServiceImplTest {
                     () -> kakaoOAuth2Service.loginWithKakao("valid-code", httpSession));
             assertEquals("카카오 닉네임 조회 실패", exception.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("리프레시 토큰이 유효할 때 새로운 액세스 토큰을 반환")
+    void refreshAccessToken_ValidToken_ReturnsToken() {
+        String validRefreshToken = "valid-refresh-token";
+        User user = new User("sub", "nickname");
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        RefreshToken refreshToken = new RefreshToken();
+        ReflectionTestUtils.setField(refreshToken, "refreshToken", validRefreshToken);
+        ReflectionTestUtils.setField(refreshToken, "user", user);
+        ReflectionTestUtils.setField(refreshToken, "expirationDate", LocalDateTime.now().plusDays(1));
+
+        when(tokenProvider.validateToken(validRefreshToken)).thenReturn(true);
+        when(refreshTokenRepository.findByRefreshToken(validRefreshToken))
+                .thenReturn(Optional.of(refreshToken));
+        when(tokenProvider.generateToken(user, 30))
+                .thenReturn(new Token("new-access-token"));
+
+        Token result = kakaoOAuth2Service.refreshAccessToken(validRefreshToken);
+
+        assertNotNull(result);
+        assertEquals("new-access-token", result.getToken());
     }
 
     private KakaoTokenResponse createKakaoTokenResponse(String idToken) {

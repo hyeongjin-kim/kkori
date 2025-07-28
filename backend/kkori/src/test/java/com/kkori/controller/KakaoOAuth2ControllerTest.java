@@ -4,15 +4,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.kkori.dto.response.LoginResponse;
 import com.kkori.jwt.Token;
+import com.kkori.jwt.TokenProvider;
+import com.kkori.repository.RefreshTokenRepository;
+import com.kkori.repository.UserRepository;
 import com.kkori.service.KakaoOAuth2Service;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +47,15 @@ class KakaoOAuth2ControllerTest {
 
     @MockitoBean
     private KakaoOAuth2Service kakaoOAuth2Service;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private TokenProvider tokenProvider;
+
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
 
     private final Token accessToken = new Token(ACCESS_TOKEN_VALUE);
     private final Token refreshToken = new Token(REFRESH_TOKEN_VALUE);
@@ -117,6 +133,101 @@ class KakaoOAuth2ControllerTest {
                         .param("code", VALID_KAKAO_CODE)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("신규 사용자면 DB 저장 이후 로그인 응답 성공")
+    void loginCallback_NewUser_Success() throws Exception {
+        LoginResponse response = new LoginResponse(accessToken, refreshToken, "새사용자");
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(response);
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
+                        .param("code", "new-user-code")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value("새사용자"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("기존 사용자면 즉시 로그인 응답 성공")
+    void loginCallback_ExistingUser_Success() throws Exception {
+        LoginResponse response = new LoginResponse(accessToken, refreshToken, "기존사용자");
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(response);
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
+                        .param("code", "existing-user-code")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value("기존사용자"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("DB 저장 실패 시 500 에러 반환")
+    void loginCallback_SaveFailure_ShouldReturnInternalServerError() throws Exception {
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class)))
+                .willThrow(new RuntimeException("DB 저장 실패"));
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
+                        .param("code", "fail-code")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("DB 저장 실패")));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("리프레시 토큰 유효 시 액세스 토큰 재발급 성공")
+    public void refreshAccessToken_ValidRefreshToken_Success() throws Exception {
+        String validRefreshToken = "valid-refresh-token";
+        when(kakaoOAuth2Service.refreshAccessToken(validRefreshToken))
+                .thenReturn(new Token("new-access-token"));
+
+        mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
+                        .cookie(new Cookie("refreshToken", validRefreshToken))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("new-access-token"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("리프레시 토큰 없을 때 401 반환")
+    void refreshAccessToken_WithoutRefreshToken_ShouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("리프레시 토큰 위변조/만료 시 401 반환")
+    void refreshAccessToken_InvalidRefreshToken_ShouldReturnUnauthorized() throws Exception {
+        given(tokenProvider.validateToken(anyString())).willReturn(false);
+
+        mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
+                        .cookie(new Cookie("refreshToken", "invalid-refresh-token"))
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("리프레시 토큰 유효하지만 DB에 유저 없을 시 401 반환")
+    void refreshAccessToken_UserNotFound_ShouldReturnUnauthorized() throws Exception {
+        given(tokenProvider.validateToken(anyString())).willReturn(true);
+        given(tokenProvider.getUserIdFromToken(anyString())).willReturn(123L);
+        given(userRepository.findById(123L)).willReturn(Optional.empty());
+
+        mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
+                        .cookie(new Cookie("refreshToken", "valid-refresh-token"))
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
     }
 
 }

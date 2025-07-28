@@ -7,11 +7,15 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 import com.kkori.dto.response.KakaoProfileResponse;
 import com.kkori.dto.response.KakaoTokenResponse;
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.entity.RefreshToken;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
+import com.kkori.jwt.TokenProvider;
+import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
 import com.kkori.util.IdTokenValidator;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -38,6 +42,10 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     private final WebClient webClient;
 
     private final UserRepository userRepository;
+
+    private final TokenProvider tokenProvider;
+
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public String createAuthorizationUrl(HttpSession session) {
@@ -75,6 +83,25 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         Token refreshToken = new Token("jwt-refreshtoken-sample");
 
         return new LoginResponse(accessToken, refreshToken, user.getNickname());
+    }
+
+    public Token refreshAccessToken(String refreshTokenValue) {
+        if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+            return null;
+        }
+        if (!tokenProvider.validateToken(refreshTokenValue)) {
+            return null;
+        }
+        RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(refreshTokenValue)
+                .orElse(null);
+        if (refreshToken == null || refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            return null;
+        }
+        User user = refreshToken.getUser();
+        if (user == null) {
+            return null;
+        }
+        return tokenProvider.generateToken(user, 30);
     }
 
     private KakaoTokenResponse requestKakaoToken(String code) {

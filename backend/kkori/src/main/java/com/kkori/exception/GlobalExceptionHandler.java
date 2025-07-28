@@ -23,5 +23,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleServerError(Exception ex) {
         return ResponseEntity.internalServerError().body("Internal Server Error");
     }
-    
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntime(RuntimeException ex) {
+        return ResponseEntity.internalServerError().body(ex.getMessage());
+    }
+
 }
