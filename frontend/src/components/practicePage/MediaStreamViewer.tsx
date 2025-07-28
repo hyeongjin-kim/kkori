@@ -13,8 +13,8 @@ function MediaStreamViewer({ type }: MediaStreamType) {
       className="relative h-full w-full overflow-hidden rounded-xl bg-black"
     >
       <VideoStream type={type} />
-      <VideoPlaceholder visible={isVideoOn} />
-      <AudioOffDisplay visible={isAudioOn} />
+      <VideoPlaceholder visible={!isVideoOn} />
+      <AudioOffDisplay visible={!isAudioOn} />
     </div>
   );
 }

@@ -21,12 +21,12 @@ describe('MediaStreamViewer 스트림 없을 경우', () => {
     expect(video).toHaveClass('opacity-0');
   });
 
-  test('VideoPlaceholder가 렌더링 되지 않는다', () => {
-    expect(screen.queryByLabelText('video-placeholder')).toBeNull();
+  test('VideoPlaceholder가 렌더링된다', () => {
+    expect(screen.getByLabelText('video-placeholder')).toBeInTheDocument();
   });
 
-  test('AudioOffDisplay가 렌더링 되지 않는다', () => {
-    expect(screen.queryByLabelText('audio-off-display')).toBeNull();
+  test('AudioOffDisplay가 렌더링된다', () => {
+    expect(screen.getByLabelText('audio-off-display')).toBeInTheDocument();
   });
 });
 
@@ -49,11 +49,11 @@ describe('MediaStreamViewer 스트림 있을 경우', () => {
     expect(video).not.toHaveClass('opacity-0');
   });
 
-  test('VideoPlaceholder가 렌더링된다', () => {
-    expect(screen.getByLabelText('video-placeholder')).toBeInTheDocument();
+  test('VideoPlaceholder가 렌더링되지 않는다', () => {
+    expect(screen.queryByLabelText('video-placeholder')).toBeNull();
   });
 
-  test('AudioOffDisplay가 렌더링된다', () => {
-    expect(screen.getByLabelText('audio-off-display')).toBeInTheDocument();
+  test('AudioOffDisplay가 렌더링되지 않는다', () => {
+    expect(screen.queryByLabelText('audio-off-display')).toBeNull();
   });
 });
