@@ -1,6 +1,7 @@
 import { MediaStreamType } from '@customTypes/practicePage/MediaStreamType';
 import useBindMediaStream from '@hooks/practicePage/useBindMediaStream';
 import VideoStream from '@/components/practicePage/VideoStream';
+import VideoPlaceholder from '@/components/practicePage/VideoPlaceholder';
 
 function MediaStreamViewer({ type }: MediaStreamType) {
   const { videoRef, stream, isVideoOn, isAudioOn } = useBindMediaStream({
@@ -14,15 +15,7 @@ function MediaStreamViewer({ type }: MediaStreamType) {
     >
       <VideoStream type={type} />
 
-      {!isVideoOn && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
-          <img
-            src="/assets/video-off.png"
-            alt="video-off-image"
-            className="h-12 w-12"
-          />
-        </div>
-      )}
+      <VideoPlaceholder visible={!isVideoOn} />
 
       {!isAudioOn && (
         <div className="absolute right-2 bottom-2 rounded-full bg-red-600 p-1 text-white">
