@@ -11,3 +11,11 @@ global.MediaStream = class {
     return [];
   }
 } as any;
+
+HTMLFormElement.prototype.requestSubmit = function (submitter?: HTMLElement) {
+  const submitEvent = new Event('submit', {
+    bubbles: true,
+    cancelable: true,
+  });
+  this.dispatchEvent(submitEvent);
+};
