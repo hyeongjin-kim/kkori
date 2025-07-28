@@ -24,6 +24,20 @@ public class TokenProvider {
     @Value("${jwt.secret-key}")
     private String jwtSecretKey;
 
+    @Value("${jwt.ACCESS_TOKEN_MINUTE_TIME}")
+    private int accessTokenExpireMinutes;
+
+    @Value("${jwt.REFRESH_TOKEN_MINUTE_TIME}")
+    private int refreshTokenExpireMinutes;
+
+    public Token generateAccessToken(User user) {
+        return generateToken(user, accessTokenExpireMinutes);
+    }
+
+    public Token generateRefreshToken(User user) {
+        return generateToken(user, refreshTokenExpireMinutes);
+    }
+
     public Token generateToken(User user, int minutes) {
         Duration expiredAt = Duration.ofMinutes(minutes);
         Date now = new Date();
@@ -70,5 +84,5 @@ public class TokenProvider {
         }
         return token;
     }
-    
+
 }
