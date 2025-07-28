@@ -12,6 +12,7 @@ import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
+import com.kkori.exception.user.UserException;
 import com.kkori.repository.*;
 import com.kkori.service.InterviewSessionService;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +31,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class InterviewSessionServiceImpl implements InterviewSessionService {
-
-    // ==================== 의존성 주입 ====================
-
 
     private final InterviewRepository interviewRepository;
     private final QuestionRepository questionRepository;
@@ -296,15 +294,10 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 꼬리질문의 부모 질문 찾기
      */
     private Question findParentQuestion(QuestionForm questionForm) {
-        QuestionType parentType = questionForm.getParentQuestionType();
         int parentId = questionForm.getParentQuestionId();
 
-        if (parentType == QuestionType.DEFAULT) {
-            return questionRepository.findById(Long.valueOf(parentId))
-                    .orElseThrow(() -> InterviewSessionException.defaultQuestionNotFound());
-        } else {
-            throw InterviewSessionException.tailQuestionRequiresParent();
-        }
+        return questionRepository.findById(Long.valueOf(parentId))
+                .orElseThrow(() -> InterviewSessionException.parentQuestionNotFound());
     }
 
     /**
@@ -340,7 +333,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 질문셋 로딩
      */
     private List<QuestionForm> loadQuestionSet(Long questionSetId) {
-        List<QuestionSetItem> items = questionSetItemRepository.findByQuestionSet_SetIdOrderBySortOrderAsc(questionSetId);
+        List<QuestionSetItem> items = questionSetItemRepository.findByQuestionSetSetIdOrderBySortOrderAsc(questionSetId);
 
         return items.stream()
                 .map(item -> new QuestionForm(
@@ -389,7 +382,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> InterviewSessionException.intervieweeNotFound());
+                .orElseThrow(() -> UserException.userNotFound());
     }
 
     /**
