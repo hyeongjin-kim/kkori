@@ -4,15 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum RoomStatus {
-    WAITING("대기 중"),
-    STARTED("진행 중"),
-    COMPLETED("완료됨");
-
-    private final String description;
-
-    RoomStatus(String description) {
-        this.description = description;
-    }
+    WAITING, STARTED, COMPLETED;
 
     /**
      * 방에 참여할 수 있는 상태인지 확인

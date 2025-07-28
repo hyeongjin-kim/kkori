@@ -1,26 +1,26 @@
 package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Answer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long answerId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
     private Question question;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -28,6 +28,21 @@ public class Answer extends BaseEntity {
     private String content;
 
     @Column(length = 255)
-    private String videoUrl; // S3 or local file url
+    private String videoUrl;
 
+    @Builder
+    public Answer(Question question, User user, String content, String videoUrl) {
+        this.question = question;
+        this.user = user;
+        this.content = content;
+        this.videoUrl = videoUrl;
+    }
+
+    public boolean hasVideo() {
+        return videoUrl != null && !videoUrl.trim().isEmpty();
+    }
+
+    public boolean hasContent() {
+        return content != null && !content.trim().isEmpty();
+    }
 }
