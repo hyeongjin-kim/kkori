@@ -107,7 +107,7 @@ class InterviewSessionServiceImplTest {
 
             // then
             assertThat(roomId).isEqualTo(ROOM_ID);
-            verify(questionSetItemRepository).findByQuestionSet_SetIdOrderBySortOrderAsc(QUESTION_SET_ID);
+            verify(questionSetItemRepository).findByQuestionSetSetIdOrderBySortOrderAsc(QUESTION_SET_ID);
             verify(roomManager).createSoloRoom(eq(QUESTION_SET_ID), eq(CREATOR_ID), any(InterviewSession.class));
         }
 
@@ -123,13 +123,15 @@ class InterviewSessionServiceImplTest {
 
             // then
             assertThat(roomId).isEqualTo(ROOM_ID);
-            verify(questionSetItemRepository).findByQuestionSet_SetIdOrderBySortOrderAsc(QUESTION_SET_ID);
+            verify(questionSetItemRepository).findByQuestionSetSetIdOrderBySortOrderAsc(QUESTION_SET_ID);
             verify(roomManager).createPairRoom(eq(QUESTION_SET_ID), eq(CREATOR_ID), any(InterviewSession.class));
         }
 
         private void setupQuestionSetItems() {
             Question question1 = mock(Question.class);
             Question question2 = mock(Question.class);
+            when(question1.getQuestionId()).thenReturn(1L);
+            when(question2.getQuestionId()).thenReturn(2L);
             when(question1.getContent()).thenReturn(QUESTION_1_TEXT);
             when(question2.getContent()).thenReturn(QUESTION_2_TEXT);
 
@@ -139,7 +141,7 @@ class InterviewSessionServiceImplTest {
             when(item2.getQuestion()).thenReturn(question2);
 
             List<QuestionSetItem> questionSetItems = List.of(item1, item2);
-            when(questionSetItemRepository.findByQuestionSet_SetIdOrderBySortOrderAsc(QUESTION_SET_ID))
+            when(questionSetItemRepository.findByQuestionSetSetIdOrderBySortOrderAsc(QUESTION_SET_ID))
                     .thenReturn(questionSetItems);
         }
     }
@@ -147,8 +149,6 @@ class InterviewSessionServiceImplTest {
     @Nested
     @DisplayName("면접 시작 테스트")
     class StartInterviewTest {
-
-        // 공통 setUp 제거 - 각 테스트에서 필요한 것만 설정
 
         @Test
         @DisplayName("면접 시작 성공")
@@ -194,6 +194,13 @@ class InterviewSessionServiceImplTest {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.getCreatorId()).thenReturn(CREATOR_ID);
+            when(mockRoom.getInterviewerId()).thenReturn(CREATOR_ID);
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+            when(mockRoom.getQuestionSetId()).thenReturn(QUESTION_SET_ID);
+
+            when(userRepository.findById(CREATOR_ID)).thenReturn(Optional.of(mockCreator));
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(mockUser));
+            when(questionSetRepository.findById(QUESTION_SET_ID)).thenReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> service.startInterview(ROOM_ID, CREATOR_ID))
@@ -205,17 +212,16 @@ class InterviewSessionServiceImplTest {
     @DisplayName("음성 답변 처리 테스트")
     class AudioAnswerTest {
 
-        @BeforeEach
-        void setUp() {
-            // 음성 답변 테스트를 위한 설정
-            when(mockRoom.isStarted()).thenReturn(true);
-            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
-            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenReturn(TRANSCRIBED_TEXT);
-        }
-
         @Test
         @DisplayName("음성 답변 처리 성공")
         void processAudioAnswer_Success() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenReturn(TRANSCRIBED_TEXT);
+
             // when
             String result = service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH);
 
@@ -227,7 +233,12 @@ class InterviewSessionServiceImplTest {
         @Test
         @DisplayName("면접자가 아닌 사용자가 답변 시도 시 실패")
         void processAudioAnswer_Fail_NotInterviewee() {
-            // when & then
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);  // 면접자는 USER_ID
+            // isStarted() 설정 제거 - 첫 번째 검증에서 실패하므로 호출되지 않음
+
+            // when & then - CREATOR_ID가 답변 시도 (권한 없음)
             assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, CREATOR_ID, AUDIO_FILE_PATH))
                     .isInstanceOf(InterviewSessionException.class);
         }
@@ -236,7 +247,9 @@ class InterviewSessionServiceImplTest {
         @DisplayName("면접 시작 전 답변 시도 시 실패")
         void processAudioAnswer_Fail_InterviewNotStarted() {
             // given
-            when(mockRoom.isStarted()).thenReturn(false);
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+            when(mockRoom.isStarted()).thenReturn(false);  // 면접 시작 전
 
             // when & then
             assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH))
@@ -246,7 +259,12 @@ class InterviewSessionServiceImplTest {
         @Test
         @DisplayName("STT 처리 실패 시 예외 발생")
         void processAudioAnswer_Fail_TranscriptionError() {
-            // given
+            // given - 권한 검증은 통과하도록 설정
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+
+            // STT 처리 실패 설정
             when(transcriber.transcribe(AUDIO_FILE_PATH)).thenThrow(new RuntimeException("STT Error"));
 
             // when & then
@@ -259,9 +277,12 @@ class InterviewSessionServiceImplTest {
     @DisplayName("꼬리질문 생성 테스트")
     class TailQuestionTest {
 
-        @BeforeEach
-        void setUp() {
-            // 꼬리질문 테스트를 위한 설정
+        @Test
+        @DisplayName("꼬리질문 생성 성공")
+        void generateTailQuestions_Success() {
+            // given
+            when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
+
             List<String> gptQuestions = List.of(TAIL_QUESTION_1, TAIL_QUESTION_2);
             when(tailQuestionGenerator.generateTailQuestions(any())).thenReturn(gptQuestions);
 
@@ -271,11 +292,7 @@ class InterviewSessionServiceImplTest {
                     new QuestionForm(QuestionType.DEFAULT, 2, QUESTION_2_TEXT)
             );
             when(mockSession.getNextQuestions(gptQuestions)).thenReturn(expectedQuestions);
-        }
 
-        @Test
-        @DisplayName("꼬리질문 생성 성공")
-        void generateTailQuestions_Success() {
             // when
             List<QuestionForm> result = service.generateTailQuestions(ROOM_ID);
 
@@ -299,6 +316,7 @@ class InterviewSessionServiceImplTest {
         @DisplayName("꼬리질문 생성 실패 시 예외 발생")
         void generateTailQuestions_Fail() {
             // given
+            when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
             when(tailQuestionGenerator.generateTailQuestions(any())).thenThrow(new RuntimeException("GPT Error"));
 
             // when & then
@@ -315,6 +333,7 @@ class InterviewSessionServiceImplTest {
         @DisplayName("면접 시작 전 방 나가기 - DB 저장 없음")
         void exitRoom_BeforeInterview() {
             // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.isStarted()).thenReturn(false);
 
             // when
@@ -329,19 +348,49 @@ class InterviewSessionServiceImplTest {
         @DisplayName("면접 진행 중 방 나가기 - DB 저장됨")
         void exitRoom_DuringInterview() {
             // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
             when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
 
-            Map<QuestionForm, String> questionAnswers = new LinkedHashMap<>();
+            // 면접 진행 중 질문-답변 데이터 설정
+            QuestionForm question1 = new QuestionForm(QuestionType.DEFAULT, 1, QUESTION_1_TEXT);
+            QuestionForm question2 = new QuestionForm(QuestionType.CUSTOM, 2, CUSTOM_QUESTION_TEXT);
+            Map<QuestionForm, String> questionAnswers = Map.of(
+                    question1, "진행 중 답변 1",
+                    question2, "진행 중 답변 2"
+            );
             when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
+
+            // DB 저장 관련 Mock 설정
+            Question mockQuestion1 = mock(Question.class);
+            Question mockQuestion2 = mock(Question.class);
+            Answer mockAnswer1 = mock(Answer.class);
+            Answer mockAnswer2 = mock(Answer.class);
+
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockQuestion1));
+            when(questionRepository.save(any(Question.class))).thenReturn(mockQuestion2);
+            when(answerRepository.save(any(Answer.class)))
+                    .thenReturn(mockAnswer1)
+                    .thenReturn(mockAnswer2);
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
 
             // when
             service.exitRoom(ROOM_ID, USER_ID);
 
             // then
+            // 면접 완료 처리 검증
             verify(interviewRepository).findById(INTERVIEW_ID);
             verify(mockInterview).complete();
+
+            // DB 저장 로직 검증 (saveInterviewData 호출 결과)
+            verify(questionRepository).findById(1L); // 기본 질문 조회
+            verify(questionRepository, times(1)).save(any(Question.class)); // 커스텀 질문 저장
+            verify(answerRepository, times(2)).save(any(Answer.class)); // 답변 2개 저장
+            verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class)); // 면접 기록 2개 저장
+
+            // 마지막에 방에서 사용자 제거
             verify(roomManager).exitRoom(ROOM_ID, USER_ID);
         }
     }
@@ -350,37 +399,150 @@ class InterviewSessionServiceImplTest {
     @DisplayName("면접 완료 테스트")
     class CompleteInterviewTest {
 
-        @BeforeEach
-        void setUp() {
-            // 면접 완료 테스트를 위한 설정
+        @Test
+        @DisplayName("면접 완료 성공 - DB 저장까지 포함")
+        void completeInterview_Success() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
             when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
 
-            Map<QuestionForm, String> questionAnswers = new LinkedHashMap<>();
+            // 질문-답변 데이터 Mock 설정 (DB 저장 로직 테스트용)
+            QuestionForm defaultQuestion = new QuestionForm(QuestionType.DEFAULT, 1, QUESTION_1_TEXT);
+            QuestionForm customQuestion = new QuestionForm(QuestionType.CUSTOM, 2, CUSTOM_QUESTION_TEXT);
+            Map<QuestionForm, String> questionAnswers = Map.of(
+                    defaultQuestion, "기본 질문 답변",
+                    customQuestion, "커스텀 질문 답변"
+            );
             when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
-        }
 
-        @Test
-        @DisplayName("면접 완료 성공")
-        void completeInterview_Success() {
+            // DB 저장 관련 Mock 설정
+            Question mockDefaultQuestion = mock(Question.class);
+            Question mockCustomQuestion = mock(Question.class);
+            Answer mockDefaultAnswer = mock(Answer.class);
+            Answer mockCustomAnswer = mock(Answer.class);
+
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockDefaultQuestion));
+            when(questionRepository.save(any(Question.class))).thenReturn(mockCustomQuestion);
+            when(answerRepository.save(any(Answer.class)))
+                    .thenReturn(mockDefaultAnswer)
+                    .thenReturn(mockCustomAnswer);
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
+
             // when
             service.completeInterview(ROOM_ID);
 
             // then
             verify(mockInterview).complete();
             verify(roomManager).completeInterview(ROOM_ID);
+
+            // DB 저장 로직 검증
+            verify(questionRepository).findById(1L); // 기본 질문 조회
+            verify(questionRepository).save(any(Question.class)); // 커스텀 질문 저장
+            verify(answerRepository, times(2)).save(any(Answer.class)); // 답변 2개 저장
+            verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class)); // 면접 기록 2개 저장
         }
 
         @Test
         @DisplayName("면접 시작 전 완료 시도 시 실패")
         void completeInterview_Fail_NotStarted() {
             // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.isStarted()).thenReturn(false);
 
             // when & then
             assertThatThrownBy(() -> service.completeInterview(ROOM_ID))
                     .isInstanceOf(InterviewRoomException.class);
+
+            // DB 저장 로직이 호출되지 않았는지 확인
+            verify(interviewRepository, never()).findById(any());
+            verify(questionRepository, never()).save(any());
+            verify(answerRepository, never()).save(any());
+            verify(interviewRecordRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("빈 답변이 있을 때 Answer는 null로 처리되어야 함")
+        void completeInterview_WithEmptyAnswer() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
+            when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
+
+            // 빈 답변이 포함된 질문-답변 데이터
+            QuestionForm question1 = new QuestionForm(QuestionType.DEFAULT, 1, QUESTION_1_TEXT);
+            QuestionForm question2 = new QuestionForm(QuestionType.DEFAULT, 2, QUESTION_2_TEXT);
+            Map<QuestionForm, String> questionAnswers = Map.of(
+                    question1, "정상 답변",
+                    question2, ""  // 빈 답변
+            );
+            when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
+
+            Question mockQuestion1 = mock(Question.class);
+            Question mockQuestion2 = mock(Question.class);
+            Answer mockAnswer1 = mock(Answer.class);
+
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockQuestion1));
+            when(questionRepository.findById(2L)).thenReturn(Optional.of(mockQuestion2));
+            when(answerRepository.save(any(Answer.class))).thenReturn(mockAnswer1);
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
+
+            // when
+            service.completeInterview(ROOM_ID);
+
+            // then
+            // 빈 답변에 대해서는 Answer 저장이 1번만 호출되어야 함 (정상 답변만)
+            verify(answerRepository, times(1)).save(any(Answer.class));
+            // InterviewRecord는 2번 저장되어야 함 (Answer가 null이어도 기록은 저장)
+            verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class));
+        }
+
+        @Test
+        @DisplayName("꼬리질문 저장 시 부모 질문 정보가 올바르게 처리되어야 함")
+        void completeInterview_WithTailQuestion() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
+            when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
+
+            // 꼬리질문이 포함된 질문-답변 데이터
+            QuestionForm parentQuestion = new QuestionForm(QuestionType.DEFAULT, 1, QUESTION_1_TEXT);
+            QuestionForm tailQuestion = new QuestionForm(QuestionType.TAIL, 2, TAIL_QUESTION_1);
+            tailQuestion.setParentQuestion(parentQuestion);
+
+            Map<QuestionForm, String> questionAnswers = Map.of(
+                    parentQuestion, "부모 질문 답변",
+                    tailQuestion, "꼬리 질문 답변"
+            );
+            when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
+
+            Question mockParentQuestion = mock(Question.class);
+            Question mockTailQuestion = mock(Question.class);
+            Answer mockAnswer1 = mock(Answer.class);
+            Answer mockAnswer2 = mock(Answer.class);
+
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockParentQuestion));
+            when(questionRepository.save(any(Question.class))).thenReturn(mockTailQuestion);
+            when(answerRepository.save(any(Answer.class)))
+                    .thenReturn(mockAnswer1)
+                    .thenReturn(mockAnswer2);
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
+
+            // when
+            service.completeInterview(ROOM_ID);
+
+            // then
+            // findById(1L)이 2번 호출됨: 기본 질문 저장 시 + 꼬리질문의 부모 찾기 시
+            verify(questionRepository, times(2)).findById(1L);
+            verify(questionRepository, times(1)).save(any(Question.class)); // 꼬리질문 저장
+            verify(answerRepository, times(2)).save(any(Answer.class));
+            verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class));
         }
     }
 
@@ -427,7 +589,6 @@ class InterviewSessionServiceImplTest {
             // given
             QuestionForm customQuestion = new QuestionForm(QuestionType.CUSTOM, 1, CUSTOM_QUESTION_TEXT);
             when(mockSession.createCustomQuestion(CUSTOM_QUESTION_TEXT)).thenReturn(customQuestion);
-
 
             // when
             QuestionForm result = service.createCustomQuestion(ROOM_ID, CUSTOM_QUESTION_TEXT);
