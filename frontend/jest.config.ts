@@ -13,6 +13,7 @@ export default {
     '@customTypes/(.*)': '<rootDir>/src/customTypes/$1',
     '@layouts/(.*)': '<rootDir>/src/layouts/$1',
     '@pages/(.*)': '<rootDir>/src/pages/$1',
+    '@stores/(.*)': '<rootDir>/src/stores/$1',
     '@utils/(.*)': '<rootDir>/src/utils/$1',
     '@hooks/(.*)': '<rootDir>/src/hooks/$1',
   },

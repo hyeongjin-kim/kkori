@@ -4,7 +4,7 @@ import PairPracticePage from '@pages/pairPracticePage/index';
 import SoloPracticePage from '@pages/soloPracticePage/index';
 import InterviewQuestionsPage from '@pages/interviewQuestionsPage/index';
 import HomePage from '@pages/homePage/index';
-import PracticePage from '@pages/PracticePage/index';
+import PracticePage from '@/pages/practicePage/index';
 interface Route {
   path: string;
   element: React.ReactNode;
