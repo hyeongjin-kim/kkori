@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 import CurrentQuestionDisplay from '@components/practicePage/CurrentQuestionDisplay';
-import { CurrentQuestionDisplayProps } from '@customTypes/CurrentQuestionDisplayProps';
+import { CurrentQuestionDisplayProps } from '@/customTypes/practicePage/CurrentQuestionDisplayProps';
 
 describe('CurrentQuestionDisplay', () => {
   const mockQuestion: CurrentQuestionDisplayProps = {

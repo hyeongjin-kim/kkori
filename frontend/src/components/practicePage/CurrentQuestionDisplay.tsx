@@ -1,4 +1,4 @@
-import { CurrentQuestionDisplayProps } from '@customTypes/CurrentQuestionDisplayProps';
+import { CurrentQuestionDisplayProps } from '@/customTypes/practicePage/CurrentQuestionDisplayProps';
 
 function CurrentQuestionDisplay({ id, question }: CurrentQuestionDisplayProps) {
   return (
