@@ -2,15 +2,12 @@ import { render, screen } from '@testing-library/react';
 import MediaStreamViewer from '@/components/practicePage/MediaStreamViewer';
 import useMediaStreamStore from '@/stores/useMediaStreamStore';
 
-describe('MediaStreamViewer', () => {
+describe('MediaStreamViewer 스트림 없을 경우', () => {
   beforeEach(() => {
     useMediaStreamStore.setState({
       myStream: null,
-      peerStream: null,
       isMyVideoOn: false,
       isMyAudioOn: false,
-      isPeerVideoOn: false,
-      isPeerAudioOn: false,
     });
     render(<MediaStreamViewer type="my" />);
   });
@@ -19,19 +16,44 @@ describe('MediaStreamViewer', () => {
     expect(screen.getByLabelText('media-stream-viewer')).toBeInTheDocument();
   });
 
-  test('사용자가 비디오 스트림을 껐을 때 비디오 꺼짐 이미지가 렌더링 된다', () => {
-    const isVideoStreamOn = useMediaStreamStore(state => state.isMyVideoOn);
-    expect(isVideoStreamOn).toBe(false);
-    expect(
-      screen.getByRole('img', { name: 'video-off-image' }),
-    ).toBeInTheDocument();
+  test('VideoStream의 opacity가 0이다', () => {
+    const video = screen.getByLabelText('video-stream');
+    expect(video).toHaveClass('opacity-0');
   });
 
-  test('사용자가 오디오 스트림을 껐을 때 오디오 꺼짐 이미지가 렌더링 된다', () => {
-    const isAudioStreamOn = useMediaStreamStore(state => state.isMyAudioOn);
-    expect(isAudioStreamOn).toBe(false);
-    expect(
-      screen.getByRole('img', { name: 'audio-off-image' }),
-    ).toBeInTheDocument();
+  test('VideoPlaceholder가 렌더링 되지 않는다', () => {
+    expect(screen.queryByLabelText('video-placeholder')).toBeNull();
+  });
+
+  test('AudioOffDisplay가 렌더링 되지 않는다', () => {
+    expect(screen.queryByLabelText('audio-off-display')).toBeNull();
+  });
+});
+
+describe('MediaStreamViewer 스트림 있을 경우', () => {
+  beforeEach(() => {
+    useMediaStreamStore.setState({
+      myStream: new MediaStream(),
+      isMyVideoOn: true,
+      isMyAudioOn: true,
+    });
+    render(<MediaStreamViewer type="my" />);
+  });
+
+  test('MediaStreamViewer가 렌더링 된다', () => {
+    expect(screen.getByLabelText('media-stream-viewer')).toBeInTheDocument();
+  });
+
+  test('VideoStream의 opacity가 1이다', () => {
+    const video = screen.getByLabelText('video-stream');
+    expect(video).not.toHaveClass('opacity-0');
+  });
+
+  test('VideoPlaceholder가 렌더링된다', () => {
+    expect(screen.getByLabelText('video-placeholder')).toBeInTheDocument();
+  });
+
+  test('AudioOffDisplay가 렌더링된다', () => {
+    expect(screen.getByLabelText('audio-off-display')).toBeInTheDocument();
   });
 });
