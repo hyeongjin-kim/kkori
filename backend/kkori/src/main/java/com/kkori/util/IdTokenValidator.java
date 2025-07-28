@@ -3,12 +3,14 @@ package com.kkori.util;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpSession;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class IdTokenValidator {
 
-    private static final String NONCE_KEY = "oauth2_kakao_nonce";
+    private static final String ISSUER = "https://kauth.kakao.com";
 
     /**
      * id_token 안에서 sub (고유 사용자 ID) 추출
@@ -19,16 +21,14 @@ public class IdTokenValidator {
      */
     public static String getSub(String idToken) {
         try {
-            SignedJWT signedJWT = SignedJWT.parse(idToken);
-            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-            return claims.getSubject();
+            return parseClaims(idToken).getSubject();
         } catch (Exception e) {
             throw new RuntimeException("id_token에서 sub를 추출하지 못했습니다", e);
         }
     }
 
     /**
-     * OIDC 필수 클레임(iss, aud, exp, iat, nonce) 완전 검증 메서드 추가
+     * OIDC 필수 클레임(iss, aud, exp, iat, nonce) 완전 검증
      *
      * @param idToken          검증할 JWT id_token
      * @param session          HttpSession (nonce 확인용)
@@ -37,49 +37,72 @@ public class IdTokenValidator {
      */
     public static boolean validateIdTokenClaims(String idToken, HttpSession session, String expectedClientId) {
         try {
-            SignedJWT signedJWT = SignedJWT.parse(idToken);
-            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+            JWTClaimsSet claims = parseClaims(idToken);
 
-            // nonce 검증
-            String nonceInIdToken = claims.getStringClaim("nonce");
-            String storedNonce = NonceUtil.getNonce(session);
-            if (storedNonce == null || !storedNonce.equals(nonceInIdToken)) {
+            if (!isNonceValid(claims, session)) {
                 return false;
             }
 
-            // iss(issuer) 검증
-            String issuer = claims.getIssuer();
-            if (!"https://kauth.kakao.com".equals(issuer)) {
+            if (!isIssuerValid(claims)) {
                 return false;
             }
 
-            // aud(audience) 검증
-            Object audClaim = claims.getClaim("aud");
-            if (audClaim instanceof String) {
-                if (!expectedClientId.equals(audClaim)) {
-                    return false;
-                }
-            } else if (audClaim instanceof List<?>) {
-                if (!((List<?>) audClaim).contains(expectedClientId)) {
-                    return false;
-                }
-            } else {
-                return false; // aud 클레임 타입 불일치
-            }
-
-            // exp(expiration time) 검증
-            Date exp = claims.getExpirationTime();
-            if (exp == null || new Date().after(exp)) {
+            if (!isAudienceValid(claims, expectedClientId)) {
                 return false;
             }
 
-            // iat(issued at) 검증 (optional, 이보다 미래일 경우 false 처리)
-            Date iat = claims.getIssueTime();
-            return iat != null && !iat.after(new Date());
+            if (!isExpirationValid(claims)) {
+                return false;
+            }
 
+            if (!isIssuedAtValid(claims)) {
+                return false;
+            }
+
+            return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static JWTClaimsSet parseClaims(String idToken) throws Exception {
+        SignedJWT signedJWT = SignedJWT.parse(idToken);
+        return signedJWT.getJWTClaimsSet();
+    }
+
+    private static boolean isNonceValid(JWTClaimsSet claims, HttpSession session) throws ParseException {
+        String nonceInIdToken = claims.getStringClaim("nonce");
+        String storedNonce = NonceUtil.getNonce(session);
+        return Objects.equals(storedNonce, nonceInIdToken);
+    }
+
+    private static boolean isIssuerValid(JWTClaimsSet claims) {
+        return ISSUER.equals(claims.getIssuer());
+    }
+
+    private static boolean isAudienceValid(JWTClaimsSet claims, String expectedClientId) {
+        Object audClaim = claims.getClaim("aud");
+
+        if (audClaim instanceof String) {
+            return expectedClientId.equals(audClaim);
+        }
+
+        if (audClaim instanceof List<?>) {
+            return ((List<?>) audClaim).contains(expectedClientId);
+        }
+
+        // aud 클레임 타입 불일치
+        return false;
+    }
+
+    private static boolean isExpirationValid(JWTClaimsSet claims) {
+        Date exp = claims.getExpirationTime();
+        return exp != null && new Date().before(exp);
+    }
+
+    private static boolean isIssuedAtValid(JWTClaimsSet claims) {
+        Date iat = claims.getIssueTime();
+        return iat != null && !iat.after(new Date());
     }
 
 }
