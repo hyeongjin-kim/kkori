@@ -4,7 +4,7 @@ function CurrentQuestionDisplay({ id, question }: CurrentQuestionDisplayProps) {
   return (
     <div
       aria-label="current-question-display"
-      className="text-center text-lg font-bold text-white"
+      className="text-center text-lg font-bold text-black"
       key={id}
     >
       {question}
