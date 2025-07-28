@@ -1,5 +1,6 @@
 import { MediaStreamType } from '@customTypes/practicePage/MediaStreamType';
 import useBindMediaStream from '@hooks/practicePage/useBindMediaStream';
+import VideoStream from '@/components/practicePage/VideoStream';
 
 function MediaStreamViewer({ type }: MediaStreamType) {
   const { videoRef, stream, isVideoOn, isAudioOn } = useBindMediaStream({
@@ -11,12 +12,7 @@ function MediaStreamViewer({ type }: MediaStreamType) {
       aria-label="media-stream-viewer"
       className="relative h-full w-full overflow-hidden rounded-xl bg-black"
     >
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        className={`h-full w-full object-cover ${!isVideoOn ? 'opacity-0' : ''}`}
-      />
+      <VideoStream type={type} />
 
       {!isVideoOn && (
         <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
