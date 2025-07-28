@@ -1,5 +1,6 @@
-package com.kkori.component;
+package com.kkori.interview;
 
+import com.kkori.component.InterviewRoomManager;
 import com.kkori.component.interview.InterviewMode;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
@@ -226,21 +227,6 @@ class InterviewRoomManagerTest {
     class QueryTest {
 
         @Test
-        @DisplayName("방 상태 조회")
-        void getRoomStatus() {
-            // given
-            String roomId = roomManager.createSoloRoom(QUESTION_SET_ID, CREATOR_ID, mockSession);
-
-            // when
-            Map<String, Object> status = roomManager.getRoomStatus(roomId);
-
-            // then
-            assertThat(status.get("mode")).isEqualTo("SOLO_PRACTICE");
-            assertThat(status.get("status")).isEqualTo("WAITING");
-            assertThat(status.get("userCount")).isEqualTo(1);
-        }
-
-        @Test
         @DisplayName("사용자별 방 찾기")
         void findRoomByUser() {
             // given
@@ -278,6 +264,17 @@ class InterviewRoomManagerTest {
 
             roomManager.joinRoom(pairRoomId, USER_ID);
             assertThat(roomManager.canStartInterview(pairRoomId)).isTrue(); // 2명 완성
+        }
+
+        @Test
+        @DisplayName("활성 방 개수 조회")
+        void getActiveRoomCount() {
+            // given
+            roomManager.createSoloRoom(QUESTION_SET_ID, CREATOR_ID, mockSession);
+            roomManager.createPairRoom(QUESTION_SET_ID, USER_ID, mockSession);
+
+            // then
+            assertThat(roomManager.getActiveRoomCount()).isEqualTo(2);
         }
     }
 
