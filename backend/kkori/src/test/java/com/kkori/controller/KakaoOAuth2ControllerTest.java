@@ -19,12 +19,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.kkori.dto.response.LoginResponse;
 import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
-import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
 import com.kkori.service.KakaoOAuth2Service;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +34,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @ActiveProfiles("test")
 @WebMvcTest(KakaoOAuth2Controller.class)
@@ -46,6 +47,8 @@ class KakaoOAuth2ControllerTest {
     private static final String NICKNAME = "홍길동";
     private static final String ACCESS_TOKEN_VALUE = "jwt-accesstoken-sample";
     private static final String REFRESH_TOKEN_VALUE = "jwt-refreshtoken-sample";
+    private static final String NEW_USER_NICKNAME = "새사용자";
+    private static final String EXISTING_USER_NICKNAME = "기존사용자";
 
     @Autowired
     private MockMvc mockMvc;
@@ -59,11 +62,18 @@ class KakaoOAuth2ControllerTest {
     @MockitoBean
     private TokenProvider tokenProvider;
 
-    @MockitoBean
-    private RefreshTokenRepository refreshTokenRepository;
-
     private final Token accessToken = new Token(ACCESS_TOKEN_VALUE);
     private final Token refreshToken = new Token(REFRESH_TOKEN_VALUE);
+
+    private ResultActions performLoginCallbackWithCode(String code) throws Exception {
+        return mockMvc.perform(get("/oauth2/authorization/kakao/callback")
+                .param("code", code)
+                .accept(MediaType.APPLICATION_JSON));
+    }
+
+    private LoginResponse createLoginResponse(String nickname) {
+        return new LoginResponse(accessToken, refreshToken, nickname);
+    }
 
     @Test
     @WithMockUser
@@ -93,12 +103,9 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("유효한 인가코드로 로그인 요청 시 200 OK와 JWT 토큰, 닉네임 반환")
     void loginWithValidAuthorizationCode_ShouldReturnTokensAndNickname() throws Exception {
-        LoginResponse mockResponse = new LoginResponse(accessToken, refreshToken, NICKNAME);
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(mockResponse);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(createLoginResponse(NICKNAME));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", VALID_CODE)
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode(VALID_CODE)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken.token").value(ACCESS_TOKEN_VALUE))
                 .andExpect(jsonPath("$.refreshToken.token").value(REFRESH_TOKEN_VALUE))
@@ -121,9 +128,7 @@ class KakaoOAuth2ControllerTest {
         given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
                 .willThrow(new IllegalArgumentException("Invalid authorization code"));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", INVALID_CODE)
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode(INVALID_CODE)
                 .andExpect(status().isBadRequest());
     }
 
@@ -134,9 +139,7 @@ class KakaoOAuth2ControllerTest {
         given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
                 .willThrow(new RuntimeException("카카오 서버 장애"));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", VALID_KAKAO_CODE)
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode(VALID_KAKAO_CODE)
                 .andExpect(status().isInternalServerError());
     }
 
@@ -144,57 +147,52 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("신규 사용자면 DB 저장 이후 로그인 응답 성공")
     void loginCallback_NewUser_Success() throws Exception {
-        LoginResponse response = new LoginResponse(accessToken, refreshToken, "새사용자");
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(response);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(
+                createLoginResponse(NEW_USER_NICKNAME));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", "new-user-code")
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode("new-user-code")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value("새사용자"));
+                .andExpect(jsonPath("$.nickname").value(NEW_USER_NICKNAME));
     }
 
     @Test
     @WithMockUser
     @DisplayName("기존 사용자면 즉시 로그인 응답 성공")
     void loginCallback_ExistingUser_Success() throws Exception {
-        LoginResponse response = new LoginResponse(accessToken, refreshToken, "기존사용자");
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(response);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(
+                createLoginResponse(EXISTING_USER_NICKNAME));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", "existing-user-code")
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode("existing-user-code")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value("기존사용자"));
+                .andExpect(jsonPath("$.nickname").value(EXISTING_USER_NICKNAME));
     }
 
     @Test
     @WithMockUser
     @DisplayName("DB 저장 실패 시 500 에러 반환")
     void loginCallback_SaveFailure_ShouldReturnInternalServerError() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class)))
-                .willThrow(new RuntimeException("DB 저장 실패"));
+        String errMsg = "DB 저장 실패";
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willThrow(
+                new RuntimeException(errMsg));
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", "fail-code")
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode("fail-code")
                 .andExpect(status().isInternalServerError())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("DB 저장 실패")));
+                .andExpect(content().string(Matchers.containsString(errMsg)));
     }
 
     @Test
     @WithMockUser
     @DisplayName("리프레시 토큰 유효 시 액세스 토큰 재발급 성공")
-    public void refreshAccessToken_ValidRefreshToken_Success() throws Exception {
+    void refreshAccessToken_ValidRefreshToken_Success() throws Exception {
         String validRefreshToken = "valid-refresh-token";
-        when(kakaoOAuth2Service.refreshAccessToken(validRefreshToken))
-                .thenReturn(new Token("new-access-token"));
+        Token newAccessToken = new Token("new-access-token");
+        when(kakaoOAuth2Service.refreshAccessToken(validRefreshToken)).thenReturn(newAccessToken);
 
         mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
                         .cookie(new Cookie("refreshToken", validRefreshToken))
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("new-access-token"));
+                .andExpect(jsonPath("$.token").value(newAccessToken.getToken()));
     }
 
     @Test
@@ -239,19 +237,16 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("유효한 인가코드로 로그인 요청 시 쿠키에 JWT 토큰이 포함되어 반환")
     void loginWithValidCode_ShouldSetCookies() throws Exception {
-        LoginResponse mockResponse = new LoginResponse(accessToken, refreshToken, NICKNAME);
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
-                .willReturn(mockResponse);
+        LoginResponse mockResponse = createLoginResponse(NICKNAME);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(mockResponse);
 
-        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
-                        .param("code", VALID_CODE)
-                        .accept(MediaType.APPLICATION_JSON))
+        performLoginCallbackWithCode(VALID_CODE)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value(NICKNAME))
                 .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("accessToken="))))
+                        Matchers.hasItem(Matchers.containsString("accessToken="))))
                 .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("refreshToken="))));
+                        Matchers.hasItem(Matchers.containsString("refreshToken="))));
     }
 
     @Test
@@ -261,8 +256,7 @@ class KakaoOAuth2ControllerTest {
         Long mockUserId = 1L;
         doNothing().when(kakaoOAuth2Service).withdrawUser(mockUserId);
 
-        mockMvc.perform(delete("/oauth2/authorization/kakao/users/withdraw")
-                        .with(csrf()))
+        mockMvc.perform(delete("/oauth2/authorization/kakao/users/withdraw").with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(kakaoOAuth2Service, times(1)).withdrawUser(mockUserId);
