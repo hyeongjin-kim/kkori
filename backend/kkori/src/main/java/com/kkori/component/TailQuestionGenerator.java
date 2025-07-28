@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.config.GMSConfig;
-import com.kkori.dto.QuestionForm;
+import com.kkori.component.interview.QuestionForm;
 import com.kkori.exception.interview.TailQuestionException;
 import com.kkori.message.InterviewMessages;
 import java.util.ArrayList;

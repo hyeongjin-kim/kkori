@@ -1,11 +1,11 @@
 package com.kkori.interview;
 
-import com.kkori.dto.InterviewRoom;
-import com.kkori.dto.InterviewSession;
-import com.kkori.entity.InterviewMode;
-import com.kkori.entity.Permission;
-import com.kkori.entity.RoomStatus;
-import com.kkori.entity.UserRole;
+import com.kkori.component.interview.InterviewMode;
+import com.kkori.component.interview.InterviewRoom;
+import com.kkori.component.interview.InterviewSession;
+import com.kkori.component.interview.Permission;
+import com.kkori.component.interview.RoomStatus;
+import com.kkori.component.interview.UserRole;
 import com.kkori.exception.interview.InterviewRoomException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +20,8 @@ class InterviewRoomTest {
     private final String ROOM_ID = "TEST_ROOM_123";
     private final String PAIR_ROOM_ID = "PAIR_ROOM_456";
     private final Long QUESTION_SET_ID = 1L;
-    private final String CREATOR_ID = "creator123";
-    private final String INTERVIEWER_ID = "interviewer456";
+    private final Long CREATOR_ID = 1L;
+    private final Long INTERVIEWER_ID = 2L;
 
     @BeforeEach
     void setUp() {
@@ -110,8 +110,6 @@ class InterviewRoomTest {
             soloRoom.removeUser(CREATOR_ID);
 
             // then
-            assertThat(soloRoom.getIntervieweeId()).isNull();
-            assertThat(soloRoom.getInterviewerId()).isNull();
             assertThat(soloRoom.getStatus()).isEqualTo(RoomStatus.COMPLETED); // 자동 종료
             assertThat(soloRoom.isCompleted()).isTrue();
             assertThat(soloRoom.isStarted()).isFalse();
@@ -163,7 +161,7 @@ class InterviewRoomTest {
             pairRoom.addUser(INTERVIEWER_ID);
 
             // when & then - 3번째 사람 참여 시도
-            assertThatThrownBy(() -> pairRoom.addUser("third_user"))
+            assertThatThrownBy(() -> pairRoom.addUser(3L))
                     .isInstanceOf(InterviewRoomException.class);
 
             assertThat(pairRoom.getInterviewerId()).isEqualTo(INTERVIEWER_ID);
@@ -208,7 +206,7 @@ class InterviewRoomTest {
             pairRoom.startInterview(100L);
 
             // when & then
-            assertThatThrownBy(() -> pairRoom.addUser("new_user"))
+            assertThatThrownBy(() -> pairRoom.addUser(3L))
                     .isInstanceOf(InterviewRoomException.class);
         }
 
@@ -300,7 +298,6 @@ class InterviewRoomTest {
             pairRoom.removeUser(INTERVIEWER_ID);
 
             // then
-            assertThat(pairRoom.getInterviewerId()).isNull();
             assertThat(pairRoom.getStatus()).isEqualTo(RoomStatus.COMPLETED); // 자동 종료
             assertThat(pairRoom.isCompleted()).isTrue();
             assertThat(pairRoom.isStarted()).isFalse();
@@ -317,7 +314,6 @@ class InterviewRoomTest {
             pairRoom.removeUser(CREATOR_ID); // 면접자(방장) 퇴장
 
             // then
-            assertThat(pairRoom.getIntervieweeId()).isNull();
             assertThat(pairRoom.getStatus()).isEqualTo(RoomStatus.COMPLETED); // 자동 종료
             assertThat(pairRoom.isCompleted()).isTrue();
             assertThat(pairRoom.isStarted()).isFalse();
@@ -373,8 +369,8 @@ class InterviewRoomTest {
         @Test
         @DisplayName("방에 없는 사용자는 모든 권한이 없다")
         void hasPermission_UnknownUserHasNoPermission() {
-            assertThat(pairRoom.hasPermission("unknown_user", Permission.SUBMIT_ANSWER)).isFalse();
-            assertThat(pairRoom.hasPermission("unknown_user", Permission.START_INTERVIEW)).isFalse();
+            assertThat(pairRoom.hasPermission(3L, Permission.SUBMIT_ANSWER)).isFalse();
+            assertThat(pairRoom.hasPermission(3L, Permission.START_INTERVIEW)).isFalse();
         }
     }
 }

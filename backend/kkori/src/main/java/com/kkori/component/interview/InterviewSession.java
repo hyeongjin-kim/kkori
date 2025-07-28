@@ -1,4 +1,4 @@
-package com.kkori.dto;
+package com.kkori.component.interview;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

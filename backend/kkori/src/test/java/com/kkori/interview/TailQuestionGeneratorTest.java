@@ -3,8 +3,8 @@ package com.kkori.interview;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.kkori.component.TailQuestionGenerator;
-import com.kkori.dto.QuestionForm;
-import com.kkori.dto.QuestionType;
+import com.kkori.component.interview.QuestionForm;
+import com.kkori.component.interview.QuestionType;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
