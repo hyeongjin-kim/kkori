@@ -5,3 +5,9 @@ Object.assign(global, {
   TextEncoder,
   TextDecoder,
 });
+
+global.MediaStream = class {
+  getTracks() {
+    return [];
+  }
+} as any;
