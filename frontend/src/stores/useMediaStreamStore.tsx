@@ -16,6 +16,7 @@ interface MediaStreamActions {
   setIsMyAudioOn: (isMyAudioOn: boolean) => void;
   setIsPeerVideoOn: (isPeerVideoOn: boolean) => void;
   setIsPeerAudioOn: (isPeerAudioOn: boolean) => void;
+  reset: () => void;
 }
 
 const initialState: MediaStreamState = {
@@ -36,6 +37,7 @@ const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
     setIsMyAudioOn: isMyAudioOn => set({ isMyAudioOn }),
     setIsPeerVideoOn: isPeerVideoOn => set({ isPeerVideoOn }),
     setIsPeerAudioOn: isPeerAudioOn => set({ isPeerAudioOn }),
+    reset: () => set(initialState),
   }),
 );
 

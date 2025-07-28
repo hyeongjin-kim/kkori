@@ -4,14 +4,7 @@ import useMediaStreamStore from '@/stores/useMediaStreamStore';
 
 describe('VideoStream', () => {
   beforeEach(() => {
-    useMediaStreamStore.setState({
-      myStream: null,
-      peerStream: null,
-      isMyVideoOn: false,
-      isMyAudioOn: false,
-      isPeerVideoOn: false,
-      isPeerAudioOn: false,
-    });
+    useMediaStreamStore.getState().reset();
     render(<VideoStream type="my" />);
   });
 
