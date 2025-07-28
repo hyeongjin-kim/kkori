@@ -26,7 +26,7 @@ class UserRepositoryTest {
 
         assertNotNull(savedUser.getUserId());
 
-        Optional<User> found = userRepository.findBySub("test-sub");
+        Optional<User> found = userRepository.findBySubAndDeletedFalse("test-sub");
         assertTrue(found.isPresent());
         assertEquals("테스트유저", found.get().getNickname());
     }
@@ -43,8 +43,8 @@ class UserRepositoryTest {
 
     @Test
     @DisplayName("없는 사용자 조회 시 Optional.empty 반환 테스트")
-    void findBySubNotExist() {
-        Optional<User> userOpt = userRepository.findBySub("nonexistent");
+    void findBySubAndDeletedFalseNotExist() {
+        Optional<User> userOpt = userRepository.findBySubAndDeletedFalse("nonexistent");
         assertTrue(userOpt.isEmpty());
     }
 

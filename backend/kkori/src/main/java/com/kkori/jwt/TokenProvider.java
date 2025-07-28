@@ -10,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import java.time.Duration;
 import java.util.Date;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,7 @@ public class TokenProvider {
     @Value("${jwt.ACCESS_TOKEN_MINUTE_TIME}")
     private int accessTokenExpireMinutes;
 
+    @Getter
     @Value("${jwt.REFRESH_TOKEN_MINUTE_TIME}")
     private int refreshTokenExpireMinutes;
 

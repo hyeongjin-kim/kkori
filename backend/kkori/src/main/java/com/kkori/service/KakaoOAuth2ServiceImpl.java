@@ -16,6 +16,8 @@ import com.kkori.repository.UserRepository;
 import com.kkori.util.IdTokenValidator;
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -64,8 +66,8 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
 
     @Override
     public LoginResponse loginWithKakao(String authorizationCode, HttpSession session) {
-        KakaoTokenResponse tokenResponse = requestKakaoToken(authorizationCode);
 
+        KakaoTokenResponse tokenResponse = requestKakaoToken(authorizationCode);
         String idToken = tokenResponse.getIdToken();
 
         if (idToken == null || !IdTokenValidator.validateNonce(idToken, session)) {
@@ -73,16 +75,44 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         }
 
         String sub = IdTokenValidator.getSub(idToken);
-
         String nickname = requestKakaoNickname(tokenResponse.getAccessToken());
 
-        User user = userRepository.findBySub(sub)
-                .orElseGet(() -> userRepository.save(new User(sub, nickname)));
+        Optional<User> optionalUser = userRepository.findBySubAndDeletedFalse(sub);
+        User user;
+        if (optionalUser.isPresent()) {
+            user = optionalUser.get();
+            if (user.isDeleted()) {
+                throw new IllegalStateException("탈퇴한 사용자입니다.");
+            }
+        } else {
+            user = userRepository.save(new User(sub, nickname));
+        }
 
         Token accessToken = tokenProvider.generateAccessToken(user);
         Token refreshToken = tokenProvider.generateRefreshToken(user);
 
+        int expireMinutes = tokenProvider.getRefreshTokenExpireMinutes();
+
+        RefreshToken newRefreshToken = RefreshToken.builder()
+                .refreshToken(refreshToken.getToken())
+                .user(user)
+                .expirationDate(LocalDateTime.now().plusMinutes(expireMinutes))
+                .build();
+        refreshTokenRepository.save(newRefreshToken);
+
         return new LoginResponse(accessToken, refreshToken, user.getNickname());
+    }
+
+    @Override
+    public void withdrawUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        user.softDelete();
+        userRepository.save(user);
+
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUser(user);
+        refreshTokenRepository.deleteAll(tokens);
     }
 
     @Override

@@ -3,11 +3,16 @@ package com.kkori.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -228,6 +233,39 @@ class KakaoOAuth2ControllerTest {
                         .with(csrf())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("유효한 인가코드로 로그인 요청 시 쿠키에 JWT 토큰이 포함되어 반환")
+    void loginWithValidCode_ShouldSetCookies() throws Exception {
+        LoginResponse mockResponse = new LoginResponse(accessToken, refreshToken, NICKNAME);
+        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
+                .willReturn(mockResponse);
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/callback")
+                        .param("code", VALID_CODE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value(NICKNAME))
+                .andExpect(header().stringValues("Set-Cookie",
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("accessToken="))))
+                .andExpect(header().stringValues("Set-Cookie",
+                        org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("refreshToken="))));
+    }
+
+    @Test
+    @WithMockUser(username = "1")
+    @DisplayName("로그아웃(탈퇴) 요청 시 서비스 호출 및 204 반환")
+    void withdrawUser_ShouldCallServiceAndReturnNoContent() throws Exception {
+        Long mockUserId = 1L;
+        doNothing().when(kakaoOAuth2Service).withdrawUser(mockUserId);
+
+        mockMvc.perform(delete("/oauth2/authorization/kakao/users/withdraw")
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(kakaoOAuth2Service, times(1)).withdrawUser(mockUserId);
     }
 
 }

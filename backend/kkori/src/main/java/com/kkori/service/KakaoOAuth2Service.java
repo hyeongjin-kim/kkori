@@ -11,4 +11,6 @@ public interface KakaoOAuth2Service {
     LoginResponse loginWithKakao(String authorizationCode, HttpSession session);
 
     Token refreshAccessToken(String refreshTokenValue);
+
+    void withdrawUser(Long userId);
 }

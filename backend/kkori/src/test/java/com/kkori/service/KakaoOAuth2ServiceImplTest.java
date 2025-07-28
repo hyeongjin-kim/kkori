@@ -110,7 +110,7 @@ class KakaoOAuth2ServiceImplTest {
         mockKakaoTokenRequest(tokenResponse);
         mockKakaoProfileRequest(profileResponse);
         given(httpSession.getAttribute("oauth2_kakao_nonce")).willReturn(VALID_NONCE);
-        given(userRepository.findBySub(anyString())).willReturn(Optional.empty());
+        given(userRepository.findBySubAndDeletedFalse(anyString())).willReturn(Optional.empty());
         given(userRepository.save(any())).willReturn(savedUser);
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
@@ -137,7 +137,7 @@ class KakaoOAuth2ServiceImplTest {
         mockKakaoTokenRequest(tokenResponse);
         mockKakaoProfileRequest(profileResponse);
         given(httpSession.getAttribute("oauth2_kakao_nonce")).willReturn(VALID_NONCE);
-        given(userRepository.findBySub(anyString())).willReturn(Optional.of(existingUser));
+        given(userRepository.findBySubAndDeletedFalse(anyString())).willReturn(Optional.of(existingUser));
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
             mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
@@ -261,6 +261,32 @@ class KakaoOAuth2ServiceImplTest {
 
         assertNotNull(result);
         assertEquals("new-access-token", result.getToken());
+    }
+
+    @Test
+    @DisplayName("soft deleted 상태 사용자 로그인 시 IllegalStateException 발생")
+    void loginWithSoftDeletedUser_shouldThrowIllegalStateException() {
+        User softDeletedUser = new User("sub123", "탈퇴사용자");
+        softDeletedUser.softDelete();
+
+        KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse("탈퇴사용자");
+
+        mockKakaoTokenRequest(tokenResponse);
+        mockKakaoProfileRequest(profileResponse);
+
+        given(userRepository.findBySubAndDeletedFalse(anyString())).willReturn(Optional.of(softDeletedUser));
+        given(httpSession.getAttribute(anyString())).willReturn(VALID_NONCE);
+
+        try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
+            mockedIdToken.when(() -> IdTokenValidator.validateNonce(anyString(), any(HttpSession.class)))
+                    .thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+
+            IllegalStateException exception = assertThrows(IllegalStateException.class,
+                    () -> kakaoOAuth2Service.loginWithKakao("code", httpSession));
+            assertEquals("탈퇴한 사용자입니다.", exception.getMessage());
+        }
     }
 
     private KakaoTokenResponse createKakaoTokenResponse(String idToken) {
