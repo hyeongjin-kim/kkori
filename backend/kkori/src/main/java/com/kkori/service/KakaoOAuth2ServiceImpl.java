@@ -39,12 +39,6 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     @Value("${kakao.token-url}")
     private String tokenUrl;
 
-    @Value("${jwt.ACCESS_TOKEN_MINUTE_TIME}")
-    private int accessTokenExpireMinutes;
-
-    @Value("${jwt.REFRESH_TOKEN_MINUTE_TIME}")
-    private int refreshTokenExpireMinutes;
-
     private final WebClient webClient;
 
     private final UserRepository userRepository;
@@ -85,8 +79,8 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         User user = userRepository.findBySub(sub)
                 .orElseGet(() -> userRepository.save(new User(sub, nickname)));
 
-        Token accessToken = tokenProvider.generateToken(user, accessTokenExpireMinutes);
-        Token refreshToken = tokenProvider.generateToken(user, refreshTokenExpireMinutes);
+        Token accessToken = tokenProvider.generateAccessToken(user);
+        Token refreshToken = tokenProvider.generateRefreshToken(user);
 
         return new LoginResponse(accessToken, refreshToken, user.getNickname());
     }
@@ -108,7 +102,8 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         if (user == null) {
             return null;
         }
-        return tokenProvider.generateToken(user, accessTokenExpireMinutes);
+
+        return tokenProvider.generateAccessToken(user);
     }
 
     private KakaoTokenResponse requestKakaoToken(String code) {

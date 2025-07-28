@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -94,15 +93,11 @@ class KakaoOAuth2ServiceImplTest {
         setField(kakaoOAuth2Service, "redirectUri", DUMMY_REDIRECT_URI);
         setField(kakaoOAuth2Service, "tokenUrl", DUMMY_TOKEN_URL);
 
-        setField(kakaoOAuth2Service, "accessTokenExpireMinutes", 30);
-        setField(kakaoOAuth2Service, "refreshTokenExpireMinutes", 10080);
-
         given(requestBodySpec.body(any(BodyInserter.class))).willAnswer(invocation -> requestBodySpec);
         given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
 
-        when(tokenProvider.generateToken(any(User.class), eq(30))).thenReturn(new Token("jwt-accesstoken-sample"));
-        when(tokenProvider.generateToken(any(User.class), eq(10080))).thenReturn(new Token("jwt-refreshtoken-sample"));
-
+        when(tokenProvider.generateAccessToken(any(User.class))).thenReturn(new Token("jwt-accesstoken-sample"));
+        when(tokenProvider.generateRefreshToken(any(User.class))).thenReturn(new Token("jwt-refreshtoken-sample"));
     }
 
     @Test
@@ -259,7 +254,7 @@ class KakaoOAuth2ServiceImplTest {
         when(tokenProvider.validateToken(validRefreshToken)).thenReturn(true);
         when(refreshTokenRepository.findByRefreshToken(validRefreshToken))
                 .thenReturn(Optional.of(refreshToken));
-        when(tokenProvider.generateToken(user, 30))
+        when(tokenProvider.generateAccessToken(user))
                 .thenReturn(new Token("new-access-token"));
 
         Token result = kakaoOAuth2Service.refreshAccessToken(validRefreshToken);
