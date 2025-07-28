@@ -464,7 +464,7 @@ class InterviewSessionServiceImplTest {
         }
 
         @Test
-        @DisplayName("빈 답변이 있을 때 Answer는 null로 처리되어야 함")
+        @DisplayName("빈 답변이 있을 때도 Answer와 InterviewRecord가 저장되어야 함")
         void completeInterview_WithEmptyAnswer() {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
@@ -495,9 +495,8 @@ class InterviewSessionServiceImplTest {
             service.completeInterview(ROOM_ID);
 
             // then
-            // 빈 답변에 대해서는 Answer 저장이 1번만 호출되어야 함 (정상 답변만)
-            verify(answerRepository, times(1)).save(any(Answer.class));
-            // InterviewRecord는 2번 저장되어야 함 (Answer가 null이어도 기록은 저장)
+            // 빈 답변에 대해서도 Answer 저장이 2번 호출되어야 함
+            verify(answerRepository, times(2)).save(any(Answer.class));
             verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class));
         }
 
