@@ -39,4 +39,7 @@ public class InterviewSessionException extends CustomRuntimeException {
     public static InterviewSessionException permissionDenied() {
         return new InterviewSessionException(ExceptionCode.PERMISSION_DENIED);
     }
+    public static InterviewSessionException parentQuestionNotFound() {
+        return new InterviewSessionException(ExceptionCode.PARENT_QUESTION_NOT_FOUND);
+    }
 }

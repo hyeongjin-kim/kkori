@@ -27,6 +27,8 @@ public enum ExceptionCode {
     INTERVIEW_NOT_FOUND(3004, "면접 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     DEFAULT_QUESTION_NOT_FOUND(3005, "기본 질문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     TAIL_QUESTION_REQUIRES_PARENT(3006, "꼬리질문은 부모 질문이 필요합니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    PARENT_QUESTION_NOT_FOUND(3007, "부모 질문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
 
     // ==== Audio Processing 관련 ====
     AUDIO_FILE_TOO_LARGE(4001, "음성 파일이 25MB를 초과합니다.", HttpStatus.PAYLOAD_TOO_LARGE),
@@ -36,7 +38,10 @@ public enum ExceptionCode {
     // ==== Tail Question Generation 관련 ====
     TAIL_QUESTION_GENERATION_FAILED(5001, "꼬리 질문 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     TAIL_QUESTION_API_CALL_FAILED(5002, "꼬리 질문 생성 API 호출에 실패했습니다.", HttpStatus.BAD_GATEWAY),
-    JSON_CONVERSION_FAILED(5003, "JSON 변환에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    JSON_CONVERSION_FAILED(5003, "JSON 변환에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // ==== User 관련 ====
+    USER_NOT_FOUND(6001, "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final String message;
