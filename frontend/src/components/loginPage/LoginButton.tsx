@@ -1,5 +1,5 @@
-import SocialLoginRequestProps from './SocialLoginRequestProps';
-import loginProvider from './loginProvider';
+import SocialLoginRequestProps from '@components/loginPage/SocialLoginRequestProps';
+import loginProvider from '@components/loginPage/loginProvider';
 
 function LoginButton({
   socialLoginRequestPath,
@@ -7,7 +7,7 @@ function LoginButton({
 }: SocialLoginRequestProps) {
   return (
     <button
-      className="w-full px-4 py-2 rounded border text-sm font-medium text-black bg-white hover:bg-gray-100 active:bg-gray-200"
+      className="w-full rounded border bg-white px-4 py-2 text-sm font-medium text-black hover:bg-gray-100 active:bg-gray-200"
       onClick={() => {
         loginProvider(socialLoginRequestPath);
       }}

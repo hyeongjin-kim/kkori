@@ -1,21 +1,23 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import PracticeButton from './PracticeButton';
-import BrowserRouterWrapped from '../common/BrowserRouterWrapped';
+import PracticeButton from '@components/homePage/PracticeButton';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 
 test('버튼을 누르면 어떤 페이지로 이동한다', () => {
   render(
-    <BrowserRouterWrapped
-      component={<PracticeButton text="테스트" path="/test" />}
+    <MemoryRouterWrapped
+      component={<PracticeButton text="연습하기" path="/practice" />}
     />,
   );
-  fireEvent.click(screen.getByRole('button', { name: /테스트/i }));
-  expect(window.location.pathname).toBe('/test');
+  fireEvent.click(screen.getByRole('button', { name: /연습하기/i }));
+  expect(
+    screen.getByRole('main', { name: 'practice-page' }),
+  ).toBeInTheDocument();
 });
 
 test('버튼에 내가 원하는 텍스트를 넣을 수 있다.', () => {
   const text = '테스트';
   render(
-    <BrowserRouterWrapped
+    <MemoryRouterWrapped
       component={<PracticeButton text={text} path="/test" />}
     />,
   );

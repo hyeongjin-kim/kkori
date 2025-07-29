@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import AppRouter from './AppRouter';
-import { appRoutes } from '../../constants/routes';
+import AppRouter from '@components/common/AppRouter';
+import { appRoutes } from '@constants/routes';
 import { MemoryRouter } from 'react-router-dom';
 
 describe('AppRouter', () => {
   test('appRoutes의 모든 경로가 렌더링 된다.', () => {
-    Object.values(appRoutes).forEach((routes) => {
-      routes.forEach((route) => {
+    Object.values(appRoutes).forEach(routes => {
+      routes.forEach(route => {
         render(
           <MemoryRouter initialEntries={[route.path]}>
             <AppRouter />

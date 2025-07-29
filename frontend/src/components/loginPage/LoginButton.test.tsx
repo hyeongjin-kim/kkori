@@ -1,10 +1,10 @@
 jest.mock('./loginProvider');
 
 import { render, screen } from '@testing-library/react';
-import LoginButton from './LoginButton';
-import MemoryRouterWrapped from '../common/MemoryRouterWrapped';
+import LoginButton from '@components/loginPage/LoginButton';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 import userEvent from '@testing-library/user-event';
-import loginProvider from './loginProvider';
+import loginProvider from '@components/loginPage/loginProvider';
 const mockLoginProvider = loginProvider as jest.Mock;
 
 describe('LoginButton', () => {

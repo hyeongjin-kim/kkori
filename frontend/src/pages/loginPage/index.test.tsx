@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../../components/common/MemoryRouterWrapped';
-import LoginPage from './index';
-import { SOCIAL_LOGIN_REQUEST_PATHS } from '../../constants';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import LoginPage from '@pages/loginPage/index';
+import { SOCIAL_LOGIN_REQUEST_PATHS } from '@constants/index';
 
 describe('LoginPage', () => {
   beforeEach(() => {

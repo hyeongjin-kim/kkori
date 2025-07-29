@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../common/MemoryRouterWrapped';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 import Logo from './Logo';
 
 test('logo 컴포넌트가 렌더링 된다.', () => {

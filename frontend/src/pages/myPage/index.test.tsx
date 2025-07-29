@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import BrowserRouterWrapped from '../../components/common/BrowserRouterWrapped';
-import MyPage from './index';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import MyPage from '@pages/myPage/index';
 
 describe('MyPage', () => {
   beforeEach(() => {
-    render(<BrowserRouterWrapped component={<MyPage />} />);
+    render(<MemoryRouterWrapped component={<MyPage />} />);
   });
 
   test('MyPage 페이지가 렌더링 된다.', () => {
