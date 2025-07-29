@@ -5,12 +5,18 @@ import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
+import com.kkori.exception.user.UserException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ExceptionResponse> handleUserException(UserException e) {
+        return buildResponse(e.getExceptionCode());
+    }
 
     @ExceptionHandler(InterviewRoomException.class)
     public ResponseEntity<ExceptionResponse> handleInterviewRoomException(InterviewRoomException e) {

@@ -1,4 +1,4 @@
-package com.kkori.dto;
+package com.kkori.component.interview;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

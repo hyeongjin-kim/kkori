@@ -10,23 +10,27 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class QuestionSetFavorite extends BaseEntity {
+public class QuestionSetItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long favoriteId;
+    private Long itemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "set_id")
+    @JoinColumn(name = "question_set_id")
     private QuestionSet questionSet;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id")
+    private Question question;
+
+    @Column(nullable = false)
+    private Integer sortOrder;
+
     @Builder
-    public QuestionSetFavorite(User user, QuestionSet questionSet) {
-        this.user = user;
+    public QuestionSetItem(QuestionSet questionSet, Question question, Integer sortOrder) {
         this.questionSet = questionSet;
+        this.question = question;
+        this.sortOrder = sortOrder;
     }
 }
