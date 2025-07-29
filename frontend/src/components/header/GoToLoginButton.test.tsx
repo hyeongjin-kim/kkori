@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../common/MemoryRouterWrapped';
-import GoToLoginButton from './GoToLoginButton';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import GoToLoginButton from '@components/header/GoToLoginButton';
 import userEvent from '@testing-library/user-event';
 
 describe('로그인 버튼', () => {

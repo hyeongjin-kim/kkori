@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import MemoryRouterWrapped from '../common/MemoryRouterWrapped';
-import NavigationBar from './NavigationBar';
-import { NAVIGATION_BAR_LINKS } from '../../constants';
+import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
+import NavigationBar from '@components/header/NavigationBar';
+import { NAVIGATION_BAR_LINKS } from '@constants/index';
 import userEvent from '@testing-library/user-event';
 
 describe('네비게이션 바', () => {
