@@ -55,11 +55,7 @@ public class IdTokenValidator {
                 return false;
             }
 
-            if (!isIssuedAtValid(claims)) {
-                return false;
-            }
-
-            return true;
+            return isIssuedAtValid(claims);
         } catch (Exception e) {
             return false;
         }
