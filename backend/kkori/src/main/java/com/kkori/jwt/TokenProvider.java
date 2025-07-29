@@ -13,7 +13,6 @@ import java.util.Date;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -77,14 +76,6 @@ public class TokenProvider {
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token).getBody();
         return claims.get("userId", Long.class);
-    }
-
-    public String getToken(HttpHeaders headers) {
-        String token = headers.getFirst(HttpHeaders.AUTHORIZATION);
-        if (token != null && token.startsWith("Bearer")) {
-            token = token.substring(7);
-        }
-        return token;
     }
 
 }

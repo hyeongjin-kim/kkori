@@ -25,30 +25,53 @@ public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
 
+    private static final List<String> ALLOWED_ORIGINS = List.of(
+            "http://localhost:5173",
+            "http://localhost:8080"
+    );
+
+    private static final List<String> ALLOWED_METHODS = List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+    );
+
+    private static final List<String> ALLOWED_HEADERS = List.of(
+            "Authorization", "Content-Type"
+    );
+
+    private static final String[] PERMIT_ALL_PATHS = {
+            "/",
+            "/oauth2/authorization/kakao",
+            "/oauth2/authorization/kakao/callback"
+    };
+
+    private static final long HSTS_MAX_AGE_IN_SECONDS = 31536000L;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/oauth2/authorization/kakao",
-                                "/oauth2/authorization/kakao/callback"
-                        ).permitAll()
+                        .requestMatchers(PERMIT_ALL_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
-//                .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // 모든 요청 HTTPS 강제
+
+//                // 모든 요청 HTTPS 강제 적용
+//                .requiresChannel(channel -> channel.anyRequest().requiresSecure())
+
+                // 보안 헤더 설정
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp ->
                                 csp.policyDirectives("default-src 'self'"))
+                        // HSTS 정책 적용
                         .httpStrictTransportSecurity(hsts ->
-                                hsts.includeSubDomains(true).maxAgeInSeconds(31536000)) // HSTS 1년
-                        .frameOptions(FrameOptionsConfig::sameOrigin) // clickjacking 방지
+                                hsts.includeSubDomains(true).maxAgeInSeconds(HSTS_MAX_AGE_IN_SECONDS)) // HSTS 1년
+                        .frameOptions(FrameOptionsConfig::sameOrigin)
                         .referrerPolicy(referrer ->
                                 referrer.policy(
                                         org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                 )
+
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
 
@@ -58,11 +81,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173", "http://localhost:8080")
-        );
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedOrigins(ALLOWED_ORIGINS);
+        configuration.setAllowedMethods(ALLOWED_METHODS);
+        configuration.setAllowedHeaders(ALLOWED_HEADERS);
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
