@@ -6,7 +6,7 @@ import Header from '@components/common/Header';
 // 1. 헤더
 function MainLayout() {
   return (
-    <div>
+    <div className="bg-background flex h-full min-h-screen flex-col">
       <Header />
       <Outlet />
     </div>
