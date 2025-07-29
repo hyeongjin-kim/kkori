@@ -1,23 +1,19 @@
 package com.kkori.exception;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import com.kkori.exception.ExceptionResponse;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
 import com.kkori.exception.user.UserException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-@ExceptionHandler(MissingServletRequestParameterException.class)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
         String message = ex.getParameterName() + " parameter is missing";
         return ResponseEntity.badRequest().body(message);
@@ -37,7 +33,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleRuntime(RuntimeException ex) {
         return ResponseEntity.internalServerError().body(ex.getMessage());
     }
-    
+
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ExceptionResponse> handleUserException(UserException e) {
         return buildResponse(e.getExceptionCode());

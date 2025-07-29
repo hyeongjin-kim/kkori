@@ -15,18 +15,21 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 @DataJpaTest
 class UserRepositoryTest {
 
+    private static final String DUPLICATE_SUB = "duplicate-sub";
+    private static final String TEST_SUB = "test-sub";
+
     @Autowired
     private UserRepository userRepository;
 
     @Test
     @DisplayName("신규 사용자 저장 및 조회 테스트")
     void saveAndFindUserBySub() {
-        User user = new User("test-sub", "테스트유저");
+        User user = new User(TEST_SUB, "테스트유저");
         User savedUser = userRepository.save(user);
 
         assertNotNull(savedUser.getUserId());
 
-        Optional<User> found = userRepository.findBySubAndDeletedFalse("test-sub");
+        Optional<User> found = userRepository.findBySubAndDeletedFalse(TEST_SUB);
         assertTrue(found.isPresent());
         assertEquals("테스트유저", found.get().getNickname());
     }
@@ -34,10 +37,10 @@ class UserRepositoryTest {
     @Test
     @DisplayName("중복 sub 저장 시 예외 발생 테스트")
     void duplicateSubShouldThrowException() {
-        User user1 = new User("duplicate-sub", "유저1");
+        User user1 = new User(DUPLICATE_SUB, "유저1");
         userRepository.save(user1);
 
-        User user2 = new User("duplicate-sub", "유저2");
+        User user2 = new User(DUPLICATE_SUB, "유저2");
         assertThrows(Exception.class, () -> userRepository.saveAndFlush(user2));
     }
 
@@ -47,5 +50,5 @@ class UserRepositoryTest {
         Optional<User> userOpt = userRepository.findBySubAndDeletedFalse("nonexistent");
         assertTrue(userOpt.isEmpty());
     }
-
+    
 }
