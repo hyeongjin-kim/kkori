@@ -1,5 +1,6 @@
 package com.kkori.controller;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -244,9 +245,9 @@ class KakaoOAuth2ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nickname").value(NICKNAME))
                 .andExpect(header().stringValues("Set-Cookie",
-                        Matchers.hasItem(Matchers.containsString("accessToken="))))
+                        hasItem(Matchers.containsString("accessToken="))))
                 .andExpect(header().stringValues("Set-Cookie",
-                        Matchers.hasItem(Matchers.containsString("refreshToken="))));
+                        hasItem(Matchers.containsString("refreshToken="))));
     }
 
     @Test
