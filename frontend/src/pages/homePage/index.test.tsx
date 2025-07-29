@@ -24,4 +24,10 @@ describe('HomePage', () => {
       screen.getByRole('button', { name: /같이 연습하기/i }),
     ).toBeInTheDocument();
   });
+
+  test('메인 페이지에 썸네일 컨테이너가 렌더링 된다', () => {
+    expect(
+      screen.getByRole('img', { name: 'thumbnail-container' }),
+    ).toBeInTheDocument();
+  });
 });

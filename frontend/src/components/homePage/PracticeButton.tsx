@@ -4,19 +4,22 @@ import { useNavigate } from 'react-router-dom';
 interface PracticeButtonProps {
   text: string;
   path: string;
+  className?: string;
 }
 
-export default function PracticeButton({ text, path }: PracticeButtonProps) {
+export default function PracticeButton({
+  text,
+  path,
+  className,
+}: PracticeButtonProps) {
   const navigate = useNavigate();
 
   return (
     <button
       onClick={() => navigate(path)}
-      className="flex h-[56px] min-w-[140px] items-center justify-center rounded-lg border border-[#2f3036] bg-[#1e1f22] px-4 py-3 shadow-sm transition hover:opacity-90"
+      className={`hover:bg-hover-gray bg-background flex h-[56px] max-w-[320px] min-w-[140px] items-center justify-center rounded-lg px-8 py-6 shadow-sm transition ${className} `}
     >
-      <span className="text-sm font-medium text-[var(--color-text-white)]">
-        {text}
-      </span>
+      <span className="text-lg font-semibold">{text}</span>
     </button>
   );
 }
