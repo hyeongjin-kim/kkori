@@ -52,17 +52,13 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     private String tokenUrl;
 
     private final WebClient webClient;
-
     private final UserRepository userRepository;
-
     private final TokenProvider tokenProvider;
-
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public String buildKakaoAuthorizeUrlAndSaveNonceInSession(HttpSession session) {
         String nonce = generateNonce();
-
         saveNonce(session, nonce);
 
         return fromUriString(KAKAO_AUTHORIZE_BASE_URL)
@@ -77,71 +73,90 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     @Override
     public LoginResponse exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(String authorizationCode,
                                                                                 HttpSession session) {
-
-        KakaoTokenResponse kakaoTokenResponse = fetchKakaoTokenByAuthorizationCode(authorizationCode);
-        String idToken = kakaoTokenResponse.getIdToken();
-
-        if (!IdTokenValidator.validateIdTokenClaims(idToken, session, clientId)) {
-            throw new IllegalArgumentException(ERROR_IDTOKEN_INVALID);
-        }
-
-        String kakaoSub = IdTokenValidator.getSub(idToken);
-        String nickname = fetchNicknameFromKakaoProfile(kakaoTokenResponse.getAccessToken());
-
-        User user = userRepository.findBySubAndDeletedFalse(kakaoSub)
-                .map(existingUser -> {
-                    if (existingUser.isDeleted()) {
-                        throw new IllegalStateException(ERROR_DELETED_USER);
-                    }
-                    return existingUser;
-                })
-                .orElseGet(() -> userRepository.save(new User(kakaoSub, nickname)));
-
-        Token accessToken = tokenProvider.generateAccessToken(user);
-        Token refreshToken = tokenProvider.generateRefreshToken(user);
-
-        int refreshTokenExpireMinutes = tokenProvider.getRefreshTokenExpireMinutes();
-
-        refreshTokenRepository.save(RefreshToken.builder()
-                .refreshToken(refreshToken.getToken())
-                .user(user)
-                .expirationDate(LocalDateTime.now().plusMinutes(refreshTokenExpireMinutes))
-                .build());
-
-        return new LoginResponse(accessToken, refreshToken, user.getNickname());
+        String kakaoSub = validateAndGetKakaoSub(authorizationCode, session);
+        String accessToken = fetchKakaoTokenByAuthorizationCode(authorizationCode).getAccessToken();
+        String nickname = fetchNicknameFromKakaoProfile(accessToken);
+        User user = findOrCreateUserByKakaoSub(kakaoSub, nickname);
+        Token accessJwtToken = tokenProvider.generateAccessToken(user);
+        Token refreshJwtToken = tokenProvider.generateRefreshToken(user);
+        saveRefreshTokenForUser(user, refreshJwtToken);
+        return new LoginResponse(accessJwtToken, refreshJwtToken, user.getNickname());
     }
 
     @Override
     public void softDeleteUserAndRemoveAllRefreshTokens(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException(ERROR_USER_NOT_FOUND));
-
         user.softDelete();
         userRepository.save(user);
-
-        List<RefreshToken> tokens = refreshTokenRepository.findAllByUser(user);
-        refreshTokenRepository.deleteAll(tokens);
+        deleteAllRefreshTokensByUser(user);
     }
 
     @Override
     public Token issueAccessTokenByValidRefreshToken(String refreshTokenValue) {
-        if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+        if (!isValidRefreshToken(refreshTokenValue)) {
             return null;
+        }
+        return refreshTokenRepository.findByRefreshToken(refreshTokenValue)
+                .filter(rt -> tokenProvider.validateToken(refreshTokenValue))
+                .filter(rt -> rt.getExpirationDate().isAfter(LocalDateTime.now()))
+                .filter(rt -> rt.getUser() != null)
+                .map(RefreshToken::getUser)
+                .map(tokenProvider::generateAccessToken)
+                .orElse(null);
+    }
+
+    private String validateAndGetKakaoSub(String authorizationCode, HttpSession session) {
+        KakaoTokenResponse kakaoTokenResponse = fetchKakaoTokenByAuthorizationCode(authorizationCode);
+        String idToken = kakaoTokenResponse.getIdToken();
+
+        if (!IdTokenValidator.validateIdTokenClaims(idToken, session, clientId)) {
+            throw new IllegalArgumentException(ERROR_IDTOKEN_INVALID);
+        }
+        return IdTokenValidator.getSub(idToken);
+    }
+
+    private User findOrCreateUserByKakaoSub(String kakaoSub, String nickname) {
+        return userRepository.findBySubAndDeletedFalse(kakaoSub)
+                .map(user -> {
+                    if (user.isDeleted()) {
+                        throw new IllegalStateException(ERROR_DELETED_USER);
+                    }
+                    return user;
+                })
+                .orElseGet(() -> userRepository.save(new User(kakaoSub, nickname)));
+    }
+
+    private void saveRefreshTokenForUser(User user, Token refreshToken) {
+        int expireMinutes = tokenProvider.getRefreshTokenExpireMinutes();
+        refreshTokenRepository.save(RefreshToken.builder()
+                .refreshToken(refreshToken.getToken())
+                .user(user)
+                .expirationDate(LocalDateTime.now().plusMinutes(expireMinutes))
+                .build());
+    }
+
+    private boolean isValidRefreshToken(String refreshTokenValue) {
+        if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+            return false;
         }
         if (!tokenProvider.validateToken(refreshTokenValue)) {
-            return null;
+            return false;
         }
-        RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(refreshTokenValue)
-                .orElse(null);
-        if (refreshToken == null || refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
-            return null;
+        var refreshTokenOpt = refreshTokenRepository.findByRefreshToken(refreshTokenValue);
+        if (refreshTokenOpt.isEmpty()) {
+            return false;
         }
-        User user = refreshToken.getUser();
-        if (user == null) {
-            return null;
+        RefreshToken refreshToken = refreshTokenOpt.get();
+        if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            return false;
         }
+        return refreshToken.getUser() != null;
+    }
 
-        return tokenProvider.generateAccessToken(user);
+    private void deleteAllRefreshTokensByUser(User user) {
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUser(user);
+        refreshTokenRepository.deleteAll(tokens);
     }
 
     private KakaoTokenResponse fetchKakaoTokenByAuthorizationCode(String code) {
@@ -171,7 +186,6 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         if (profileResponse.getProperties() == null || profileResponse.getProperties().getNickname() == null) {
             throw new RuntimeException(ERROR_NICKNAME_FAIL);
         }
-
         return profileResponse.getProperties().getNickname();
     }
 
