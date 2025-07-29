@@ -94,11 +94,11 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
 
     @Override
     public Token issueAccessTokenByValidRefreshToken(String refreshTokenValue) {
-        if (!isValidRefreshToken(refreshTokenValue)) {
+        if (!isValidRefreshTokenInput(refreshTokenValue)) {
             return null;
         }
+
         return refreshTokenRepository.findByRefreshToken(refreshTokenValue)
-                .filter(rt -> tokenProvider.validateToken(refreshTokenValue))
                 .filter(rt -> rt.getExpirationDate().isAfter(LocalDateTime.now()))
                 .filter(rt -> rt.getUser() != null)
                 .map(RefreshToken::getUser)
@@ -136,22 +136,9 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
                 .build());
     }
 
-    private boolean isValidRefreshToken(String refreshTokenValue) {
-        if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
-            return false;
-        }
-        if (!tokenProvider.validateToken(refreshTokenValue)) {
-            return false;
-        }
-        var refreshTokenOpt = refreshTokenRepository.findByRefreshToken(refreshTokenValue);
-        if (refreshTokenOpt.isEmpty()) {
-            return false;
-        }
-        RefreshToken refreshToken = refreshTokenOpt.get();
-        if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
-            return false;
-        }
-        return refreshToken.getUser() != null;
+    private boolean isValidRefreshTokenInput(String refreshTokenValue) {
+        return refreshTokenValue != null && !refreshTokenValue.isBlank() && tokenProvider.validateToken(
+                refreshTokenValue);
     }
 
     private void deleteAllRefreshTokensByUser(User user) {
