@@ -46,7 +46,7 @@ public class InterviewRoomManager {
     public void joinRoom(String roomId, Long userId) {
         InterviewRoom room = getRoom(roomId);
 
-        // 이미 방에 있는지 확인
+        // 이미 방에 해당 사용자가 있는지 확인
         if (room.getUserIds().contains(userId)) {
             return;
         }
