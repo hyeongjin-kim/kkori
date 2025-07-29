@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.config.GMSConfig;
 import com.kkori.dto.QuestionForm;
+import com.kkori.exception.interview.TailQuestionException;
 import com.kkori.message.InterviewMessages;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +29,7 @@ public class TailQuestionGenerator {
 
     private static final String DEFAULT_MODEL_NAME = "gpt-4o";
 
-    public List<String>
-    generateTailQuestions(Map<QuestionForm, String> questionAnswer) {
+    public List<String> generateTailQuestions(Map<QuestionForm, String> questionAnswer) {
         try {
             String json = makeMessageJson(questionAnswer);
             RequestBody requestBody = RequestBody.create(
@@ -38,7 +38,7 @@ public class TailQuestionGenerator {
             Request request = buildRequest(requestBody);
             return executeGenerationRequest(request);
         } catch (Exception e) {
-            throw new RuntimeException("꼬리 질문 생성 실패", e);
+            throw TailQuestionException.tailQuestionGenerationFailed();
         }
     }
 
@@ -55,7 +55,7 @@ public class TailQuestionGenerator {
     private List<String> executeGenerationRequest(Request request) throws Exception {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                System.out.println("API 호출 실패: " + response.code() + " " + response.message());
+                throw TailQuestionException.tailQuestionApiCallFailed();
             }
             return parseTailQuestionResponse(response.body().string());
         }
@@ -93,8 +93,7 @@ public class TailQuestionGenerator {
             String json = objectMapper.writeValueAsString(jsonMap);
             return json;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            throw new RuntimeException("JSON 변환 실패!", e);
+            throw TailQuestionException.jsonConversionFailed();
         }
     }
 }
