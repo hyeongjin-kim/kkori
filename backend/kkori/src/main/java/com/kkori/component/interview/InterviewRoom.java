@@ -74,7 +74,7 @@ public class InterviewRoom {
             throw InterviewRoomException.cannotJoinRoom();
         }
 
-        // 빈 자리에 배정 (면접관 우선)
+        // 빈 자리에 배정 (면접관 우선), 결국 빈 자리에 들어가게 됨
         if (interviewerId == null) {
             interviewerId = userId;
             return;
@@ -150,9 +150,10 @@ public class InterviewRoom {
     private void validateUsersForStart() {
         if (mode == InterviewMode.SOLO_PRACTICE) {
             validateSoloModeUsers();
-        } else {
-            validatePairModeUsers();
+            return;
         }
+
+        validatePairModeUsers();
     }
 
     /**
