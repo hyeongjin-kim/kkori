@@ -26,6 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/oauth2/authorization/kakao")
 public class KakaoOAuth2Controller {
 
+    private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
+    private static final int ACCESS_TOKEN_EXPIRE_SECONDS = 60 * 60;
+    private static final int REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 7;
+    private static final String AUTHORIZATION_CODE_PARAM = "code";
+    private static final String ERROR_MISSING_CODE = "인가코드가 필요합니다";
+    private static final String ERROR_UNSUPPORTED_PRINCIPAL_TYPE = "지원하지 않는 principal 타입: ";
+
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
     @GetMapping
@@ -36,22 +44,24 @@ public class KakaoOAuth2Controller {
 
     @GetMapping("/callback")
     public ResponseEntity<LoginResponse> handleKakaoCallback(
-            @RequestParam("code") String code, HttpSession session, HttpServletResponse response) {
+            @RequestParam(AUTHORIZATION_CODE_PARAM) String code, HttpSession session, HttpServletResponse response) {
 
         if (code == null || code.trim().isEmpty()) {
-            throw new IllegalArgumentException("인가코드가 필요합니다");
+            throw new IllegalArgumentException(ERROR_MISSING_CODE);
         }
         LoginResponse loginResponse = kakaoOAuth2Service.loginWithKakao(code, session);
 
-        CookieUtil.addJwtCookie(response, "accessToken", loginResponse.getAccessToken().getToken(), 60 * 60);
-        CookieUtil.addJwtCookie(response, "refreshToken", loginResponse.getRefreshToken().getToken(), 60 * 60 * 24 * 7);
+        CookieUtil.addJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, loginResponse.getAccessToken().getToken(),
+                ACCESS_TOKEN_EXPIRE_SECONDS);
+        CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
+                REFRESH_TOKEN_EXPIRE_SECONDS);
 
         return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/token/refresh")
     public ResponseEntity<Token> refreshAccessToken(
-            @CookieValue(value = "refreshToken", required = false) String refreshTokenValue) {
+            @CookieValue(value = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshTokenValue) {
 
         Token newAccessToken = kakaoOAuth2Service.refreshAccessToken(refreshTokenValue);
         if (newAccessToken == null) {
@@ -68,7 +78,7 @@ public class KakaoOAuth2Controller {
             case User userDetails -> Long.parseLong(userDetails.getUsername());
             case String str -> Long.parseLong(str);
             case Long id -> id;
-            default -> throw new IllegalArgumentException("지원하지 않는 principal 타입: " + principal.getClass());
+            default -> throw new IllegalArgumentException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
         };
 
         kakaoOAuth2Service.withdrawUser(userId);
