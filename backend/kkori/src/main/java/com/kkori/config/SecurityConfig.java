@@ -38,7 +38,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // 모든 요청 HTTPS 강제
+//                .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // 모든 요청 HTTPS 강제
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp ->
                                 csp.policyDirectives("default-src 'self'"))
