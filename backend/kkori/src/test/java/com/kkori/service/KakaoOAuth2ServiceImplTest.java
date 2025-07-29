@@ -68,7 +68,7 @@ class KakaoOAuth2ServiceImplTest {
     private RequestHeadersUriSpec requestHeadersUriSpec;
 
     @Mock
-    private RequestHeadersSpec<?> requestHeadersSpec;
+    private RequestHeadersSpec requestHeadersSpec;
 
     @Mock
     private ResponseSpec responseSpec;
