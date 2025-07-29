@@ -42,23 +42,24 @@ public class IdTokenValidator {
             if (!isNonceValid(claims, session)) {
                 return false;
             }
-
             if (!isIssuerValid(claims)) {
                 return false;
             }
-
             if (!isAudienceValid(claims, expectedClientId)) {
                 return false;
             }
-
             if (!isExpirationValid(claims)) {
                 return false;
             }
+            if (!isIssuedAtValid(claims)) {
+                return false;
+            }
 
-            return isIssuedAtValid(claims);
+            return true;
         } catch (Exception e) {
             return false;
         }
+
     }
 
     private static JWTClaimsSet parseClaims(String idToken) throws Exception {
@@ -79,10 +80,12 @@ public class IdTokenValidator {
     private static boolean isAudienceValid(JWTClaimsSet claims, String expectedClientId) {
         Object audClaim = claims.getClaim("aud");
 
+        if (audClaim == null) {
+            return false;
+        }
         if (audClaim instanceof String) {
             return expectedClientId.equals(audClaim);
         }
-
         if (audClaim instanceof List<?>) {
             return ((List<?>) audClaim).contains(expectedClientId);
         }
