@@ -13,19 +13,30 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 class TokenProviderTest {
 
+    private static final String JWT_SECRET = "test-jwt-secret-key-test-jwt-secret-key";
+    private static final String SUB = "sub";
+    private static final String NICKNAME = "nickname";
+    private static final String MALFORMED_TOKEN = "thisIsNotAJwt";
+    private static final String FAKE_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjF9.KqwwyicjgR53bZj4CDV80lZoZdADoWDd6E9a-2o7ZOg";
+
     private TokenProvider tokenProvider;
 
     @BeforeEach
     void setUp() {
         tokenProvider = new TokenProvider();
-        ReflectionTestUtils.setField(tokenProvider, "jwtSecretKey", "test-jwt-secret-key-test-jwt-secret-key");
+        ReflectionTestUtils.setField(tokenProvider, "jwtSecretKey", JWT_SECRET);
+    }
+
+    private User createUser(Long id) {
+        User user = new User(SUB, NICKNAME);
+        ReflectionTestUtils.setField(user, "userId", id);
+        return user;
     }
 
     @Test
     @DisplayName("JWT 생성 및 파싱 성공")
     void testGenerateAndParseToken() {
-        User user = new User("sub", "nickname");
-        ReflectionTestUtils.setField(user, "userId", 42L);
+        User user = createUser(42L);
 
         Token token = tokenProvider.generateToken(user, 60);
 
@@ -41,27 +52,23 @@ class TokenProviderTest {
     @Test
     @DisplayName("만료된 JWT 검증 시 예외 발생")
     void testExpiredTokenThrowsException() throws InterruptedException {
-        User user = new User("sub", "nickname");
-        ReflectionTestUtils.setField(user, "userId", 1L);
+        User user = createUser(1L);
 
         Token token = tokenProvider.generateToken(user, 0); // 0분 → 즉시 만료
-
         Thread.sleep(1000);
-
         assertThrows(Exception.class, () -> tokenProvider.validateToken(token.getToken()));
     }
 
     @Test
     @DisplayName("위변조된 JWT 검증시 SignatureException 발생")
     void testInvalidSignature() {
-        String fakeToken = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjF9.KqwwyicjgR53bZj4CDV80lZoZdADoWDd6E9a-2o7ZOg";
-        assertThrows(Exception.class, () -> tokenProvider.validateToken(fakeToken));
+        assertThrows(RuntimeException.class, () -> tokenProvider.validateToken(FAKE_TOKEN));
     }
 
     @Test
     @DisplayName("Malformed JWT 검증시 예외 발생")
     void testMalformedToken() {
-        String malformedToken = "thisIsNotAJwt";
-        assertThrows(Exception.class, () -> tokenProvider.validateToken(malformedToken));
+        assertThrows(RuntimeException.class, () -> tokenProvider.validateToken(MALFORMED_TOKEN));
     }
+
 }
