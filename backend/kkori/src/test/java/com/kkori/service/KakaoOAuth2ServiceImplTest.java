@@ -121,7 +121,8 @@ class KakaoOAuth2ServiceImplTest {
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
-            LoginResponse response = kakaoOAuth2Service.loginWithKakao("valid-code", httpSession);
+            LoginResponse response = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(
+                    "valid-code", httpSession);
 
             assertNotNull(response);
             assertEquals("홍길동", response.getNickname());
@@ -149,7 +150,8 @@ class KakaoOAuth2ServiceImplTest {
                     .thenReturn(true);
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
-            LoginResponse response = kakaoOAuth2Service.loginWithKakao("valid-code", httpSession);
+            LoginResponse response = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(
+                    "valid-code", httpSession);
 
             assertNotNull(response);
             assertEquals("기존사용자", response.getNickname());
@@ -172,14 +174,15 @@ class KakaoOAuth2ServiceImplTest {
         given(httpSession.getAttribute("oauth2_kakao_nonce")).willReturn(INVALID_NONCE);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> kakaoOAuth2Service.loginWithKakao("some-code", httpSession));
+                () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("some-code",
+                        httpSession));
 
         assertEquals("id_token 검증 실패", exception.getMessage());
     }
 
     @Test
     @DisplayName("카카오 토큰 요청 실패 시 RuntimeException 발생")
-    void requestKakaoToken_failure_shouldThrowRuntimeException() {
+    void fetchKakaoToken_ByAuthorizationCode_failure_shouldThrowRuntimeException() {
         given(webClient.post()).willReturn(requestBodyUriSpec);
         given(requestBodyUriSpec.uri(anyString())).willReturn(requestBodySpec);
         given(requestBodySpec.contentType(any())).willReturn(requestBodySpec);
@@ -188,14 +191,14 @@ class KakaoOAuth2ServiceImplTest {
         given(responseSpec.bodyToMono(KakaoTokenResponse.class)).willReturn(Mono.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> kakaoOAuth2Service.loginWithKakao("code", httpSession));
+                () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("code", httpSession));
 
         assertEquals("카카오 토큰 발급 실패", exception.getMessage());
     }
 
     @Test
     @DisplayName("카카오 프로필 조회 실패 시 RuntimeException 발생")
-    void requestKakaoNickname_failure_shouldThrowRuntimeException() {
+    void fetchNickname_FromKakaoProfile_failure_shouldThrowRuntimeException() {
         KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
 
         mockKakaoTokenRequest(tokenResponse);
@@ -214,14 +217,15 @@ class KakaoOAuth2ServiceImplTest {
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
             RuntimeException exception = assertThrows(RuntimeException.class,
-                    () -> kakaoOAuth2Service.loginWithKakao("valid-code", httpSession));
+                    () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("valid-code",
+                            httpSession));
             assertEquals("카카오 프로필 조회 실패", exception.getMessage());
         }
     }
 
     @Test
     @DisplayName("카카오 프로필 닉네임 누락 시 RuntimeException 발생")
-    void requestKakaoNickname_missingNickname_shouldThrowRuntimeException() {
+    void fetchNickname_missingNickname_FromKakaoProfile_shouldThrowRuntimeException() {
         KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
 
         KakaoProfileResponse profileResponse = new KakaoProfileResponse();
@@ -243,14 +247,15 @@ class KakaoOAuth2ServiceImplTest {
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
             RuntimeException exception = assertThrows(RuntimeException.class,
-                    () -> kakaoOAuth2Service.loginWithKakao("valid-code", httpSession));
+                    () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("valid-code",
+                            httpSession));
             assertEquals("카카오 닉네임 조회 실패", exception.getMessage());
         }
     }
 
     @Test
     @DisplayName("리프레시 토큰이 유효할 때 새로운 액세스 토큰을 반환")
-    void refreshAccessToken_ValidToken_ReturnsToken() {
+    void issueAccessToken_ValidToken_ReturnsTokenByValidRefreshToken() {
         String validRefreshToken = "valid-refresh-token";
         User user = new User("sub", "nickname");
         ReflectionTestUtils.setField(user, "userId", 1L);
@@ -266,7 +271,7 @@ class KakaoOAuth2ServiceImplTest {
         when(tokenProvider.generateAccessToken(user))
                 .thenReturn(new Token("new-access-token"));
 
-        Token result = kakaoOAuth2Service.refreshAccessToken(validRefreshToken);
+        Token result = kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(validRefreshToken);
 
         assertNotNull(result);
         assertEquals("new-access-token", result.getToken());
@@ -295,7 +300,8 @@ class KakaoOAuth2ServiceImplTest {
             mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
 
             IllegalStateException exception = assertThrows(IllegalStateException.class,
-                    () -> kakaoOAuth2Service.loginWithKakao("code", httpSession));
+                    () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("code",
+                            httpSession));
             assertEquals("탈퇴한 사용자입니다.", exception.getMessage());
         }
     }

@@ -38,7 +38,7 @@ public class KakaoOAuth2Controller {
 
     @GetMapping
     public ResponseEntity<String> getKakaoAuthorizationUrl(HttpSession session) {
-        String authorizationUrl = kakaoOAuth2Service.createAuthorizationUrl(session);
+        String authorizationUrl = kakaoOAuth2Service.buildKakaoAuthorizeUrlAndSaveNonceInSession(session);
         return ResponseEntity.ok(authorizationUrl);
     }
 
@@ -49,7 +49,8 @@ public class KakaoOAuth2Controller {
         if (code == null || code.trim().isEmpty()) {
             throw new IllegalArgumentException(ERROR_MISSING_CODE);
         }
-        LoginResponse loginResponse = kakaoOAuth2Service.loginWithKakao(code, session);
+        LoginResponse loginResponse = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(code,
+                session);
 
         CookieUtil.addJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, loginResponse.getAccessToken().getToken(),
                 ACCESS_TOKEN_EXPIRE_SECONDS);
@@ -63,7 +64,7 @@ public class KakaoOAuth2Controller {
     public ResponseEntity<Token> refreshAccessToken(
             @CookieValue(value = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshTokenValue) {
 
-        Token newAccessToken = kakaoOAuth2Service.refreshAccessToken(refreshTokenValue);
+        Token newAccessToken = kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(refreshTokenValue);
         if (newAccessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -81,7 +82,7 @@ public class KakaoOAuth2Controller {
             default -> throw new IllegalArgumentException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
         };
 
-        kakaoOAuth2Service.withdrawUser(userId);
+        kakaoOAuth2Service.softDeleteUserAndRemoveAllRefreshTokens(userId);
         return ResponseEntity.noContent().build();
     }
 

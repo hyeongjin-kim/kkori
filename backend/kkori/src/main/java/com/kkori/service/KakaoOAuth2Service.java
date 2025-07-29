@@ -6,11 +6,11 @@ import jakarta.servlet.http.HttpSession;
 
 public interface KakaoOAuth2Service {
 
-    String createAuthorizationUrl(HttpSession session);
+    String buildKakaoAuthorizeUrlAndSaveNonceInSession(HttpSession session);
 
-    LoginResponse loginWithKakao(String authorizationCode, HttpSession session);
+    LoginResponse exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(String authorizationCode, HttpSession session);
 
-    Token refreshAccessToken(String refreshTokenValue);
+    Token issueAccessTokenByValidRefreshToken(String refreshTokenValue);
 
-    void withdrawUser(Long userId);
+    void softDeleteUserAndRemoveAllRefreshTokens(Long userId);
 }

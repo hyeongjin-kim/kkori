@@ -80,7 +80,8 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("인가 URL 생성 요청 시 200 OK와 인가 URL 반환")
     void createAuthorizationUrl_ShouldReturnOkWithUrl() throws Exception {
-        when(kakaoOAuth2Service.createAuthorizationUrl(any(HttpSession.class))).thenReturn(KAKAO_AUTH_URL);
+        when(kakaoOAuth2Service.buildKakaoAuthorizeUrlAndSaveNonceInSession(any(HttpSession.class))).thenReturn(
+                KAKAO_AUTH_URL);
 
         mockMvc.perform(get("/oauth2/authorization/kakao")
                         .accept(MediaType.APPLICATION_JSON))
@@ -92,7 +93,7 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("인가 URL 생성 중 서비스 예외 발생 시 500 Internal Server Error 반환")
     void createAuthorizationUrl_WhenServiceThrows_ShouldReturnInternalServerError() throws Exception {
-        when(kakaoOAuth2Service.createAuthorizationUrl(any(HttpSession.class)))
+        when(kakaoOAuth2Service.buildKakaoAuthorizeUrlAndSaveNonceInSession(any(HttpSession.class)))
                 .thenThrow(new RuntimeException("내부 서버 오류"));
 
         mockMvc.perform(get("/oauth2/authorization/kakao")
@@ -104,7 +105,8 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("유효한 인가코드로 로그인 요청 시 200 OK와 JWT 토큰, 닉네임 반환")
     void loginWithValidAuthorizationCode_ShouldReturnTokensAndNickname() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(createLoginResponse(NICKNAME));
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any())).willReturn(
+                createLoginResponse(NICKNAME));
 
         performLoginCallbackWithCode(VALID_CODE)
                 .andExpect(status().isOk())
@@ -126,7 +128,7 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("잘못된 인가코드로 로그인 요청 시 400 Bad Request 반환")
     void loginWithInvalidAuthorizationCode_ShouldReturnBadRequest() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any()))
                 .willThrow(new IllegalArgumentException("Invalid authorization code"));
 
         performLoginCallbackWithCode(INVALID_CODE)
@@ -137,7 +139,7 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("카카오 API 서버 장애로 로그인 실패 시 500 Internal Server Error 반환")
     void loginWhenKakaoApiFails_ShouldReturnInternalServerError() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any()))
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any()))
                 .willThrow(new RuntimeException("카카오 서버 장애"));
 
         performLoginCallbackWithCode(VALID_KAKAO_CODE)
@@ -148,7 +150,8 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("신규 사용자면 DB 저장 이후 로그인 응답 성공")
     void loginCallback_NewUser_Success() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(),
+                any(HttpSession.class))).willReturn(
                 createLoginResponse(NEW_USER_NICKNAME));
 
         performLoginCallbackWithCode("new-user-code")
@@ -160,7 +163,8 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser
     @DisplayName("기존 사용자면 즉시 로그인 응답 성공")
     void loginCallback_ExistingUser_Success() throws Exception {
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willReturn(
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(),
+                any(HttpSession.class))).willReturn(
                 createLoginResponse(EXISTING_USER_NICKNAME));
 
         performLoginCallbackWithCode("existing-user-code")
@@ -173,7 +177,8 @@ class KakaoOAuth2ControllerTest {
     @DisplayName("DB 저장 실패 시 500 에러 반환")
     void loginCallback_SaveFailure_ShouldReturnInternalServerError() throws Exception {
         String errMsg = "DB 저장 실패";
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any(HttpSession.class))).willThrow(
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(),
+                any(HttpSession.class))).willThrow(
                 new RuntimeException(errMsg));
 
         performLoginCallbackWithCode("fail-code")
@@ -187,7 +192,7 @@ class KakaoOAuth2ControllerTest {
     void refreshAccessToken_ValidRefreshToken_Success() throws Exception {
         String validRefreshToken = "valid-refresh-token";
         Token newAccessToken = new Token("new-access-token");
-        when(kakaoOAuth2Service.refreshAccessToken(validRefreshToken)).thenReturn(newAccessToken);
+        when(kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(validRefreshToken)).thenReturn(newAccessToken);
 
         mockMvc.perform(post("/oauth2/authorization/kakao/token/refresh")
                         .cookie(new Cookie("refreshToken", validRefreshToken))
@@ -239,7 +244,8 @@ class KakaoOAuth2ControllerTest {
     @DisplayName("유효한 인가코드로 로그인 요청 시 쿠키에 JWT 토큰이 포함되어 반환")
     void loginWithValidCode_ShouldSetCookies() throws Exception {
         LoginResponse mockResponse = createLoginResponse(NICKNAME);
-        given(kakaoOAuth2Service.loginWithKakao(anyString(), any())).willReturn(mockResponse);
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any())).willReturn(
+                mockResponse);
 
         performLoginCallbackWithCode(VALID_CODE)
                 .andExpect(status().isOk())
@@ -255,12 +261,12 @@ class KakaoOAuth2ControllerTest {
     @DisplayName("로그아웃(탈퇴) 요청 시 서비스 호출 및 204 반환")
     void withdrawUser_ShouldCallServiceAndReturnNoContent() throws Exception {
         Long mockUserId = 1L;
-        doNothing().when(kakaoOAuth2Service).withdrawUser(mockUserId);
+        doNothing().when(kakaoOAuth2Service).softDeleteUserAndRemoveAllRefreshTokens(mockUserId);
 
         mockMvc.perform(delete("/oauth2/authorization/kakao/users/withdraw").with(csrf()))
                 .andExpect(status().isNoContent());
 
-        verify(kakaoOAuth2Service, times(1)).withdrawUser(mockUserId);
+        verify(kakaoOAuth2Service, times(1)).softDeleteUserAndRemoveAllRefreshTokens(mockUserId);
     }
 
 }
