@@ -1,5 +1,9 @@
-function loginProvider(socialLoginRequestPath: string) {
-  fetch(`${process.env.REACT_APP_API_URL}${socialLoginRequestPath}`);
+import { get } from '@api/api';
+
+async function loginProvider(socialLoginRequestPath: string) {
+  const response = await get<string>(socialLoginRequestPath);
+  window.location.href = response;
+  console.log(response);
 }
 
 export default loginProvider;

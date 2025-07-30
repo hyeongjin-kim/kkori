@@ -7,6 +7,7 @@ export default {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '@/(.*)': '<rootDir>/src/$1',
     '@app/(.*)': '<rootDir>/src/App.tsx',
+    '@api/(.*)': '<rootDir>/src/api/$1',
     '@assets/(.*)': '<rootDir>/src/assets/$1',
     '@components/(.*)': '<rootDir>/src/components/$1',
     '@constants/(.*)': '<rootDir>/src/constants/$1',

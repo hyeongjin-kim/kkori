@@ -45,7 +45,6 @@ public class KakaoOAuth2Controller {
     @GetMapping("/callback")
     public ResponseEntity<LoginResponse> handleKakaoCallback(
             @RequestParam(AUTHORIZATION_CODE_PARAM) String code, HttpSession session, HttpServletResponse response) {
-
         if (code == null || code.trim().isEmpty()) {
             throw new IllegalArgumentException(ERROR_MISSING_CODE);
         }
@@ -56,7 +55,6 @@ public class KakaoOAuth2Controller {
                 ACCESS_TOKEN_EXPIRE_SECONDS);
         CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);
-
         return ResponseEntity.ok(loginResponse);
     }
 
