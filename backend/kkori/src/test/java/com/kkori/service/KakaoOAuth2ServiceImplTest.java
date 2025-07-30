@@ -128,7 +128,6 @@ class KakaoOAuth2ServiceImplTest {
 
             assertNotNull(response);
             assertEquals("홍길동", response.getNickname());
-            assertEquals("jwt-accesstoken-sample", response.getAccessToken().getToken());
             assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
         }
     }
@@ -157,7 +156,6 @@ class KakaoOAuth2ServiceImplTest {
 
             assertNotNull(response);
             assertEquals("기존사용자", response.getNickname());
-            assertEquals("jwt-accesstoken-sample", response.getAccessToken().getToken());
             assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
         }
     }

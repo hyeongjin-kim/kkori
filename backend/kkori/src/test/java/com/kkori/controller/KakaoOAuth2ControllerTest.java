@@ -75,7 +75,7 @@ class KakaoOAuth2ControllerTest {
     }
 
     private LoginResponse createLoginResponse(String nickname) {
-        return new LoginResponse(accessToken, refreshToken, nickname);
+        return new LoginResponse(refreshToken, nickname);
     }
 
     @Test
@@ -105,16 +105,13 @@ class KakaoOAuth2ControllerTest {
 
     @Test
     @WithMockUser
-    @DisplayName("유효한 인가코드로 로그인 요청 시 200 OK와 JWT 토큰, 닉네임 반환")
+    @DisplayName("유효한 인가코드로 로그인 요청 시 302와 JWT 토큰, 닉네임 반환")
     void loginWithValidAuthorizationCode_ShouldReturnTokensAndNickname() throws Exception {
         given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any())).willReturn(
                 createLoginResponse(NICKNAME));
 
         performLoginCallbackWithCode(VALID_CODE)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken.token").value(ACCESS_TOKEN_VALUE))
-                .andExpect(jsonPath("$.refreshToken.token").value(REFRESH_TOKEN_VALUE))
-                .andExpect(jsonPath("$.nickname").value(NICKNAME));
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -157,8 +154,7 @@ class KakaoOAuth2ControllerTest {
                 createLoginResponse(NEW_USER_NICKNAME));
 
         performLoginCallbackWithCode("new-user-code")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value(NEW_USER_NICKNAME));
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -170,8 +166,7 @@ class KakaoOAuth2ControllerTest {
                 createLoginResponse(EXISTING_USER_NICKNAME));
 
         performLoginCallbackWithCode("existing-user-code")
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value(EXISTING_USER_NICKNAME));
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -250,10 +245,7 @@ class KakaoOAuth2ControllerTest {
                 mockResponse);
 
         performLoginCallbackWithCode(VALID_CODE)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nickname").value(NICKNAME))
-                .andExpect(header().stringValues("Set-Cookie",
-                        hasItem(Matchers.containsString("accessToken="))))
+                .andExpect(status().is3xxRedirection())
                 .andExpect(header().stringValues("Set-Cookie",
                         hasItem(Matchers.containsString("refreshToken="))));
     }

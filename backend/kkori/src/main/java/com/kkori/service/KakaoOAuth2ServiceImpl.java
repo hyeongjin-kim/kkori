@@ -93,12 +93,11 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
 
         User user = findOrCreateUserByKakaoSub(kakaoSub, nickname);
 
-        Token accessJwtToken = tokenProvider.generateAccessToken(user);
         Token refreshJwtToken = tokenProvider.generateRefreshToken(user);
 
         saveRefreshTokenForUser(user, refreshJwtToken);
 
-        return new LoginResponse(accessJwtToken, refreshJwtToken, user.getNickname());
+        return new LoginResponse(refreshJwtToken, user.getNickname());
     }
 
     @Override

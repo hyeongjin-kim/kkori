@@ -28,13 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/oauth2/authorization/kakao")
 public class KakaoOAuth2Controller {
 
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final int ACCESS_TOKEN_EXPIRE_SECONDS = 60 * 60;
     private static final int REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 7;
     private static final String AUTHORIZATION_CODE_PARAM = "code";
     private static final String ERROR_MISSING_CODE = "인가코드가 필요합니다";
     private static final String ERROR_UNSUPPORTED_PRINCIPAL_TYPE = "지원하지 않는 principal 타입: ";
+    public static final String LOGIN_SUCCESS_REDIRECT = "http://localhost:5173/"; // 우리 도메인 쓰기
 
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
@@ -58,17 +57,16 @@ public class KakaoOAuth2Controller {
         LoginResponse loginResponse = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(code,
                 session);
 
-        log.info("로그인 응답: accessToken={}, refreshToken={}, nickname={}",
-                loginResponse.getAccessToken().getToken(),
+        log.info("로그인 응답: refreshToken={}, nickname={}",
                 loginResponse.getRefreshToken().getToken(),
                 loginResponse.getNickname());
 
-        CookieUtil.addJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, loginResponse.getAccessToken().getToken(),
-                ACCESS_TOKEN_EXPIRE_SECONDS);
         CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);
 
-        return ResponseEntity.ok(loginResponse);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", LOGIN_SUCCESS_REDIRECT)
+                .build();
     }
 
     @PostMapping("/token/refresh")
