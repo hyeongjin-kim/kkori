@@ -13,7 +13,7 @@ describe('MediaStreamViewer 스트림 없을 경우', () => {
   });
 
   test('MediaStreamViewer가 렌더링 된다', () => {
-    expect(screen.getByLabelText('media-stream-viewer')).toBeInTheDocument();
+    expect(screen.getByLabelText('my-media-stream-viewer')).toBeInTheDocument();
   });
 
   test('VideoStream의 opacity가 0이다', () => {
@@ -41,7 +41,7 @@ describe('MediaStreamViewer 스트림 있을 경우', () => {
   });
 
   test('MediaStreamViewer가 렌더링 된다', () => {
-    expect(screen.getByLabelText('media-stream-viewer')).toBeInTheDocument();
+    expect(screen.getByLabelText('my-media-stream-viewer')).toBeInTheDocument();
   });
 
   test('VideoStream의 opacity가 1이다', () => {
