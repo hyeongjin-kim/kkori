@@ -35,4 +35,17 @@ public class KakaoTokenResponse {
     @JsonProperty("scope")
     public String scope;
 
+    @Override
+    public String toString() {
+        return "KakaoTokenResponse{" +
+                "tokenType='" + tokenType + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", idToken='" + idToken + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", refreshTokenExpiresIn=" + refreshTokenExpiresIn +
+                ", scope='" + scope + '\'' +
+                '}';
+    }
+
 }
