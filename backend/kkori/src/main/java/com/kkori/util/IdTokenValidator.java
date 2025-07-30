@@ -7,7 +7,9 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class IdTokenValidator {
 
     private static final String ISSUER = "https://kauth.kakao.com";
@@ -70,6 +72,7 @@ public class IdTokenValidator {
     private static boolean isNonceValid(JWTClaimsSet claims, HttpSession session) throws ParseException {
         String nonceInIdToken = claims.getStringClaim("nonce");
         String storedNonce = NonceUtil.getNonce(session);
+        log.info("id_token nonce = {}, session nonce = {}", nonceInIdToken, storedNonce);
         return Objects.equals(storedNonce, nonceInIdToken);
     }
 
