@@ -170,6 +170,9 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
                 .block();
 
         log.info("토큰 응답: {}", response);
+        if (response == null) {
+            throw new RuntimeException(ERROR_TOKEN_ISSUE_FAIL);
+        }
         return response;
     }
 
