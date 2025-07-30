@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-
+import { MediaStreamType } from '@/customTypes/practicePage/MediaStreamType';
 interface MediaStreamState {
   myStream: MediaStream | null;
   peerStream: MediaStream | null;
@@ -7,6 +7,8 @@ interface MediaStreamState {
   isMyAudioOn: boolean;
   isPeerVideoOn: boolean;
   isPeerAudioOn: boolean;
+  mainStreamType: MediaStreamType['type'];
+  subStreamType: MediaStreamType['type'];
 }
 
 interface MediaStreamActions {
@@ -17,6 +19,8 @@ interface MediaStreamActions {
   setIsPeerVideoOn: (isPeerVideoOn: boolean) => void;
   setIsPeerAudioOn: (isPeerAudioOn: boolean) => void;
   reset: () => void;
+  setMainStreamType: (mainStreamType: MediaStreamType['type']) => void;
+  setSubStreamType: (subStreamType: MediaStreamType['type']) => void;
 }
 
 const initialState: MediaStreamState = {
@@ -26,6 +30,8 @@ const initialState: MediaStreamState = {
   isMyAudioOn: false,
   isPeerVideoOn: false,
   isPeerAudioOn: false,
+  mainStreamType: 'my',
+  subStreamType: 'peer',
 };
 
 const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
@@ -38,6 +44,8 @@ const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
     setIsPeerVideoOn: isPeerVideoOn => set({ isPeerVideoOn }),
     setIsPeerAudioOn: isPeerAudioOn => set({ isPeerAudioOn }),
     reset: () => set(initialState),
+    setMainStreamType: mainStreamType => set({ mainStreamType }),
+    setSubStreamType: subStreamType => set({ subStreamType }),
   }),
 );
 
