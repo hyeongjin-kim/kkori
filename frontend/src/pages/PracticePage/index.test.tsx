@@ -12,4 +12,14 @@ describe('PracticePage', () => {
       screen.getByRole('main', { name: 'practice-page' }),
     ).toBeInTheDocument();
   });
+  test('LeftSection이 렌더링 되어야 한다.', () => {
+    const leftSection = screen.getByLabelText('left-section');
+    expect(leftSection).toBeInTheDocument();
+  });
+  test('ChattingWindowContainer가 렌더링 되어야 한다.', () => {
+    const chattingWindowContainer = screen.getByLabelText(
+      'chatting-window-container',
+    );
+    expect(chattingWindowContainer).toBeInTheDocument();
+  });
 });
