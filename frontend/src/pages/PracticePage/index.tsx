@@ -1,11 +1,8 @@
 import ChattingWindowContainer from '@/components/chattingWindow/ChattingWindowContainer';
 import LeftSection from '@/components/practicePage/LeftSection';
 import useInitMediaStream from '@/hooks/practicePage/useInitMediaStream';
-<<<<<<< HEAD
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useEffect } from 'react';
-=======
->>>>>>> develop
 
 function PracticePage() {
   const { error } = useInitMediaStream();
