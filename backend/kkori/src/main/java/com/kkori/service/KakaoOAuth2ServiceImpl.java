@@ -7,6 +7,7 @@ import static org.springframework.web.util.UriComponentsBuilder.fromUriString;
 import com.kkori.dto.response.KakaoProfileResponse;
 import com.kkori.dto.response.KakaoTokenResponse;
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.dto.response.UserProfileResponse;
 import com.kkori.entity.RefreshToken;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
@@ -90,6 +91,19 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         user.softDelete();
         userRepository.save(user);
         deleteAllRefreshTokensByUser(user);
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(Long userId) {
+
+        if (userId == null) {
+            throw new NullPointerException("userId가 null입니다.");
+        }
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        return new UserProfileResponse(user.getNickname());
     }
 
     @Override

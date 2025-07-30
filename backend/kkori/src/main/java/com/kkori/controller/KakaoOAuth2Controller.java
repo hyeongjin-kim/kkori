@@ -1,6 +1,8 @@
 package com.kkori.controller;
 
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.dto.response.UserProfileResponse;
+import com.kkori.exception.user.UnsupportedPrincipalException;
 import com.kkori.jwt.Token;
 import com.kkori.service.KakaoOAuth2Service;
 import com.kkori.util.CookieUtil;
@@ -73,17 +75,40 @@ public class KakaoOAuth2Controller {
 
     @DeleteMapping("/users/withdraw")
     public ResponseEntity<Void> withdrawUser(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-        long userId = switch (principal) {
-            case User userDetails -> Long.parseLong(userDetails.getUsername());
-            case String str -> Long.parseLong(str);
-            case Long id -> id;
-            default -> throw new IllegalArgumentException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
-        };
+        long userId = extractUserIdFromAuthentication(authentication);
 
         kakaoOAuth2Service.softDeleteUserAndRemoveAllRefreshTokens(userId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/userinfo")
+    public ResponseEntity<UserProfileResponse> getUserInfo(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        long userId = extractUserIdFromAuthentication(authentication);
+
+        UserProfileResponse response = kakaoOAuth2Service.getUserProfile(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    private long extractUserIdFromAuthentication(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+
+        return switch (principal) {
+            case User userDetails -> Long.parseLong(userDetails.getUsername());
+            case String str -> Long.parseLong(str);
+            case Long id -> id;
+            default -> throw new UnsupportedPrincipalException("지원하지 않는 principal 타입: " + principal.getClass());
+        };
     }
 
 }

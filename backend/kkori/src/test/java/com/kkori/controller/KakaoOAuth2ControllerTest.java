@@ -2,6 +2,7 @@ package com.kkori.controller;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.dto.response.UserProfileResponse;
 import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.repository.UserRepository;
@@ -267,6 +269,44 @@ class KakaoOAuth2ControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(kakaoOAuth2Service, times(1)).softDeleteUserAndRemoveAllRefreshTokens(mockUserId);
+    }
+
+    @Test
+    @WithMockUser(username = "1")
+    @DisplayName("인증된 사용자는 사용자 정보 조회에 성공")
+    void getUserInfo_Success() throws Exception {
+        UserProfileResponse userProfileResponse = new UserProfileResponse("홍길동");
+
+        given(kakaoOAuth2Service.getUserProfile(1L)).willReturn(userProfileResponse);
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/userinfo").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value("홍길동"));
+    }
+
+    @Test
+    @DisplayName("인증되지 않은 사용자 정보 조회 시 401 Unauthorized 반환")
+    void getUserInfo_Unauthorized() throws Exception {
+        mockMvc.perform(get("/oauth2/authorization/kakao/userinfo").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "1")
+    @DisplayName("지원하지 않는 principal 타입으로 예외 발생")
+    void getUserInfo_UnsupportedPrincipalType_ShouldReturnServerError() throws Exception {
+
+        given(kakaoOAuth2Service.getUserProfile(anyLong())).willThrow(
+                new IllegalArgumentException("지원하지 않는 principal 타입: java.lang.Integer"));
+
+        mockMvc.perform(get("/oauth2/authorization/kakao/userinfo").with(request -> {
+                            request.setUserPrincipal(() -> "user");
+                            return request;
+                        })
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(
+                                "1")))
+                .andExpect(status().isBadRequest());
     }
 
 }

@@ -4,7 +4,9 @@ import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
+import com.kkori.exception.user.UnsupportedPrincipalException;
 import com.kkori.exception.user.UserException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,6 +59,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TailQuestionException.class)
     public ResponseEntity<ExceptionResponse> handleTailQuestionException(TailQuestionException e) {
         return buildResponse(e.getExceptionCode());
+    }
+
+    @ExceptionHandler(UnsupportedPrincipalException.class)
+    public ResponseEntity<String> handleUnsupportedPrincipalException(UnsupportedPrincipalException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     // 공통 응답 생성 메서드
