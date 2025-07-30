@@ -3,7 +3,7 @@ import Header from '@components/common/Header';
 
 function MainLayout() {
   return (
-    <div className="bg-background flex h-full min-h-screen flex-col">
+    <div className="bg-background relative flex h-full min-h-screen flex-col">
       <Header />
       <Outlet />
     </div>
