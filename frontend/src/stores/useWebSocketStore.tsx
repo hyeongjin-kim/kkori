@@ -30,14 +30,18 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
+        onConnect: () => {
+          set({ client, isConnected: true });
+        },
+        onDisconnect: () => {
+          set({ client: null, isConnected: false });
+        },
       });
       client.activate();
-      set({ client, isConnected: true });
     },
     disconnect: () => {
       if (!get().client || !get().isConnected) return;
       get().client?.deactivate();
-      set({ client: null, isConnected: false });
     },
   }),
 );
