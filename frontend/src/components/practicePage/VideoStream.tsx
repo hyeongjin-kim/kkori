@@ -10,7 +10,7 @@ function VideoStream({ type }: MediaStreamType) {
       autoPlay
       playsInline
       aria-label="video-stream"
-      className={`h-full w-full object-cover ${!isVideoOn ? 'opacity-0' : ''}`}
+      className={`h-full w-auto object-contain ${!isVideoOn ? 'opacity-0' : ''}`}
     />
   );
 }

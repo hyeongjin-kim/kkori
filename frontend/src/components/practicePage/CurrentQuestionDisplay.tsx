@@ -4,10 +4,10 @@ function CurrentQuestionDisplay({ id, question }: CurrentQuestionDisplayProps) {
   return (
     <div
       aria-label="current-question-display"
-      className="text-center text-lg font-bold text-black"
       key={id}
+      className="text-md inline-block rounded-full border border-blue-500 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-sm"
     >
-      {question}
+      ❓ {question}
     </div>
   );
 }

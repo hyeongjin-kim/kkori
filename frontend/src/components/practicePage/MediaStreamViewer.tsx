@@ -9,8 +9,8 @@ function MediaStreamViewer({ type }: MediaStreamType) {
 
   return (
     <div
-      aria-label="media-stream-viewer"
-      className="relative h-full w-full overflow-hidden rounded-xl bg-black"
+      aria-label={`${type}-media-stream-viewer`}
+      className="flex aspect-video h-full w-full items-center justify-center overflow-hidden rounded-xl bg-black"
     >
       <VideoStream type={type} />
       <VideoPlaceholder visible={!isVideoOn} />

@@ -4,6 +4,6 @@ import Logo from '@components/common/Logo';
 describe('Logo', () => {
   test('Logo가 렌더링 된다', () => {
     render(<Logo />);
-    expect(screen.getByLabelText('logo')).toBeInTheDocument();
+    expect(screen.getByLabelText('logo-image')).toBeInTheDocument();
   });
 });
