@@ -5,7 +5,11 @@ import useChattingWindowStore from '@/stores/useChattingWindowStore';
 function ScrollableList() {
   const messages = useChattingWindowStore(state => state.messages);
   return (
-    <div role="list" aria-label="scrollable-list">
+    <div
+      role="list"
+      aria-label="scrollable-list"
+      className="relative h-full w-full"
+    >
       <ul>
         {messages.map(message => (
           <NameTaggedMessage
