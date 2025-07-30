@@ -8,7 +8,7 @@ describe('헤더', () => {
   });
 
   test('헤더에 로고가 렌더링 된다.', () => {
-    expect(screen.getByRole('img', { name: '꼬리' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'logo-image' })).toBeInTheDocument();
   });
 
   describe('네비게이션 바', () => {
