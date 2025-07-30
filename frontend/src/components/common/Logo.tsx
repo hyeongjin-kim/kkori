@@ -15,6 +15,7 @@ function Logo({ textClassName, imgClassName }: LogoProps) {
         src="/fox-tail.png"
         alt="꼬리"
         className={`inline-block ${imgClassName}`}
+        aria-label="logo-image"
       />
     </div>
   );
