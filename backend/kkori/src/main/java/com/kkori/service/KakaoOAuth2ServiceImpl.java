@@ -116,7 +116,7 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         if (userId == null) {
             throw new NullPointerException("userId가 null입니다.");
         }
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -174,7 +174,7 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         KakaoTokenResponse response = webClient.post()
                 .uri(tokenUrl)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("grant_type", "authorization_code")
+                .body(BodyInserters.fromFormData("grant_type", QUERY_PARAM_GRANT_TYPE)
                         .with("client_id", clientId)
                         .with("redirect_uri", redirectUri)
                         .with("code", code)

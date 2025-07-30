@@ -116,7 +116,7 @@ public class KakaoOAuth2Controller {
             case User userDetails -> Long.parseLong(userDetails.getUsername());
             case String str -> Long.parseLong(str);
             case Long id -> id;
-            default -> throw new UnsupportedPrincipalException("지원하지 않는 principal 타입: " + principal.getClass());
+            default -> throw new UnsupportedPrincipalException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
         };
     }
 
