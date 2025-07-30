@@ -4,25 +4,25 @@ export const mockMessageExamples = [
   {
     id: '1',
     type: CHAT_TYPES.QUESTION,
-    sender: 'tester',
-    message: 'test',
+    sender: '질문',
+    message: '명령형 프로그래밍과 선언형 프로그래밍이 무엇인가요?',
   },
   {
     id: '2',
     type: CHAT_TYPES.ANSWER,
-    sender: 'tester2',
-    message: 'test2',
+    sender: '답변',
+    message: `명령형 프로그래밍은 컴퓨터에게 어떻게 동작할 지 명령하는 절차 중심의 프로그래밍 방식입니다. 선언형 프로그래밍은 무엇을 얻고 싶은지를 선언하는 결과 중심의 프로그래밍 방식입니다.`,
   },
   {
     id: '3',
     type: CHAT_TYPES.OPPONENT,
-    sender: 'tester3',
-    message: 'test3',
+    sender: '면접관',
+    message: '두 가지 개념을 잘 나눠서 설명하셨네요. 좋습니다.',
   },
   {
     id: '4',
     type: CHAT_TYPES.USER,
-    sender: 'tester4',
-    message: 'test4',
+    sender: '면접자',
+    message: '감사합니다. 그러면 다음 꼬리 질문으로 넘어가겠습니다.',
   },
 ];
