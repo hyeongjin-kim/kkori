@@ -45,16 +45,27 @@ public class KakaoOAuth2Controller {
     @GetMapping("/callback")
     public ResponseEntity<LoginResponse> handleKakaoCallback(
             @RequestParam(AUTHORIZATION_CODE_PARAM) String code, HttpSession session, HttpServletResponse response) {
+
+        log.info("Kakao OAuth2 callback received. authorization code: {}", code);
+
         if (code == null || code.trim().isEmpty()) {
+            log.warn("인가코드가 빈 값으로 들어옴");
             throw new IllegalArgumentException(ERROR_MISSING_CODE);
         }
+
         LoginResponse loginResponse = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(code,
                 session);
+
+        log.info("로그인 응답: accessToken={}, refreshToken={}, nickname={}",
+                loginResponse.getAccessToken().getToken(),
+                loginResponse.getRefreshToken().getToken(),
+                loginResponse.getNickname());
 
         CookieUtil.addJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, loginResponse.getAccessToken().getToken(),
                 ACCESS_TOKEN_EXPIRE_SECONDS);
         CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);
+
         return ResponseEntity.ok(loginResponse);
     }
 
