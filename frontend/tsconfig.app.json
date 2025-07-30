@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["@testing-library/jest-dom", "jest", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -7,6 +8,7 @@
       "@api/*": ["src/api/*"],
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
+      "@config/*": ["src/config/*"],
       "@constants/*": ["src/constants/*"],
       "@customTypes/*": ["src/customTypes/*"],
       "@layouts/*": ["src/layouts/*"],

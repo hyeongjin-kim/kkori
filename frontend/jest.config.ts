@@ -10,6 +10,7 @@ export default {
     '@api/(.*)': '<rootDir>/src/api/$1',
     '@assets/(.*)': '<rootDir>/src/assets/$1',
     '@components/(.*)': '<rootDir>/src/components/$1',
+    '@config/(.*)': '<rootDir>/src/config/$1',
     '@constants/(.*)': '<rootDir>/src/constants/$1',
     '@customTypes/(.*)': '<rootDir>/src/customTypes/$1',
     '@layouts/(.*)': '<rootDir>/src/layouts/$1',
