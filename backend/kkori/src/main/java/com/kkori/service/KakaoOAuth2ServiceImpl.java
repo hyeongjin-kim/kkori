@@ -18,12 +18,14 @@ import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
@@ -73,13 +75,28 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     @Override
     public LoginResponse exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(String authorizationCode,
                                                                                 HttpSession session) {
-        String kakaoSub = validateAndGetKakaoSub(authorizationCode, session);
-        String accessToken = fetchKakaoTokenByAuthorizationCode(authorizationCode).getAccessToken();
+        log.info("id_token 검증 시작");
+        KakaoTokenResponse kakaoTokenResponse = fetchKakaoTokenByAuthorizationCode(authorizationCode);
+        log.info("id_token 추출됨: {}", kakaoTokenResponse.getIdToken());
+
+        boolean valid = IdTokenValidator.validateIdTokenClaims(kakaoTokenResponse.getIdToken(), session, clientId);
+        log.info("id_token 검증 결과: {}", valid);
+        if (!valid) {
+            throw new IllegalArgumentException(ERROR_IDTOKEN_INVALID);
+        }
+
+        String kakaoSub = IdTokenValidator.getSub(kakaoTokenResponse.getIdToken());
+        String accessToken = kakaoTokenResponse.getAccessToken();
+
         String nickname = fetchNicknameFromKakaoProfile(accessToken);
+
         User user = findOrCreateUserByKakaoSub(kakaoSub, nickname);
+
         Token accessJwtToken = tokenProvider.generateAccessToken(user);
         Token refreshJwtToken = tokenProvider.generateRefreshToken(user);
+
         saveRefreshTokenForUser(user, refreshJwtToken);
+
         return new LoginResponse(accessJwtToken, refreshJwtToken, user.getNickname());
     }
 
@@ -104,16 +121,6 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
                 .map(RefreshToken::getUser)
                 .map(tokenProvider::generateAccessToken)
                 .orElse(null);
-    }
-
-    private String validateAndGetKakaoSub(String authorizationCode, HttpSession session) {
-        KakaoTokenResponse kakaoTokenResponse = fetchKakaoTokenByAuthorizationCode(authorizationCode);
-        String idToken = kakaoTokenResponse.getIdToken();
-
-        if (!IdTokenValidator.validateIdTokenClaims(idToken, session, clientId)) {
-            throw new IllegalArgumentException(ERROR_IDTOKEN_INVALID);
-        }
-        return IdTokenValidator.getSub(idToken);
     }
 
     private User findOrCreateUserByKakaoSub(String kakaoSub, String nickname) {
@@ -146,19 +153,27 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         refreshTokenRepository.deleteAll(tokens);
     }
 
-    private KakaoTokenResponse fetchKakaoTokenByAuthorizationCode(String code) {
-        return webClient.post()
+    KakaoTokenResponse fetchKakaoTokenByAuthorizationCode(String code) {
+        log.info("토큰 요청 파라미터: grant_type=authorization_code, client_id={}, redirect_uri={}, code={}",
+                clientId, redirectUri, code);
+
+        KakaoTokenResponse response = webClient.post()
                 .uri(tokenUrl)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData("grant_type", QUERY_PARAM_GRANT_TYPE)
+                .body(BodyInserters.fromFormData("grant_type", "authorization_code")
                         .with("client_id", clientId)
-                        .with("client_secret", clientSecret)
                         .with("redirect_uri", redirectUri)
-                        .with("code", code))
+                        .with("code", code)
+                        .with("client_secret", clientSecret))
                 .retrieve()
                 .bodyToMono(KakaoTokenResponse.class)
-                .blockOptional()
-                .orElseThrow(() -> new RuntimeException(ERROR_TOKEN_ISSUE_FAIL));
+                .block();
+
+        log.info("토큰 응답: {}", response);
+        if (response == null) {
+            throw new RuntimeException(ERROR_TOKEN_ISSUE_FAIL);
+        }
+        return response;
     }
 
     private String fetchNicknameFromKakaoProfile(String accessToken) {

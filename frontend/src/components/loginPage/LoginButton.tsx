@@ -1,5 +1,6 @@
 import SocialLoginRequestProps from '@components/loginPage/SocialLoginRequestProps';
 import loginProvider from '@components/loginPage/loginProvider';
+import { get } from '@api/api';
 
 function LoginButton({
   socialLoginRequestPath,
