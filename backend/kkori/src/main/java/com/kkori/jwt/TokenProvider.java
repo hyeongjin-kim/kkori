@@ -12,11 +12,13 @@ import java.time.Duration;
 import java.util.Date;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenProvider {
@@ -43,6 +45,8 @@ public class TokenProvider {
         Duration expiredAt = Duration.ofMinutes(minutes);
         Date now = new Date();
         String token = makeToken(user, new Date(now.getTime() + expiredAt.toMillis()));
+        log.debug("Generated JWT for userId={}, expiresAt={}", user.getUserId(),
+                new Date(now.getTime() + expiredAt.toMillis()));
         return new Token(token);
     }
 
@@ -60,22 +64,34 @@ public class TokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token);
+            log.info("JWT 토큰 유효성 검사 시작: {}", token);
+            Claims claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token).getBody();
+            log.debug("JWT 유효! claims = {}", claims);
             return true;
         } catch (SignatureException e) {
+            log.warn("JWT 서명 불일치: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT signature", e);
         } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Expired JWT token", e);
         } catch (MalformedJwtException e) {
+            log.warn("잘못된 JWT 형식: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Malformed JWT token", e);
         } catch (Exception e) {
+            log.error("JWT 파싱 예외: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT token", e);
         }
     }
 
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token).getBody();
-        return claims.get("userId", Long.class);
+        try {
+            Claims claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token).getBody();
+            log.info("JWT claims 파싱 결과: {}", claims);
+            return claims.get("userId", Long.class);
+        } catch (Exception e) {
+            log.error("JWT에서 userId 추출 실패: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid JWT token", e);
+        }
     }
 
 }

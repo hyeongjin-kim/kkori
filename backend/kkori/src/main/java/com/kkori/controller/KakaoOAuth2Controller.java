@@ -111,13 +111,18 @@ public class KakaoOAuth2Controller {
 
     private long extractUserIdFromAuthentication(Authentication authentication) {
         Object principal = authentication.getPrincipal();
+        log.info("Principal class: {}, value: {}", principal.getClass(), principal);
 
-        return switch (principal) {
-            case User userDetails -> Long.parseLong(userDetails.getUsername());
-            case String str -> Long.parseLong(str);
-            case Long id -> id;
-            default -> throw new UnsupportedPrincipalException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
-        };
+        if (principal instanceof User userDetails) {
+            return Long.parseLong(userDetails.getUsername());
+        } else if (principal instanceof String str) {
+            return Long.parseLong(str);
+        } else if (principal instanceof Long id) {
+            return id;
+        } else {
+            log.error("Unsupported principal type: {}", principal.getClass());
+            throw new UnsupportedPrincipalException(ERROR_UNSUPPORTED_PRINCIPAL_TYPE + principal.getClass());
+        }
     }
 
 }
