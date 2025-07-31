@@ -3,7 +3,6 @@ import { get } from '@api/api';
 async function loginProvider(socialLoginRequestPath: string) {
   const response = await get<string>(socialLoginRequestPath);
   window.location.href = response;
-  console.log(response);
 }
 
 export default loginProvider;
