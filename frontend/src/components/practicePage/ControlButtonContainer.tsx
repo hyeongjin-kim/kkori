@@ -3,7 +3,7 @@ import {
   switchScreen,
   startAnswer,
   endAnswer,
-} from '@/components/practicePage/controlButtonfunction';
+} from '@/components/practicePage/controlButtonFunction';
 
 function ControlButtonContainer() {
   return (
