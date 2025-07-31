@@ -1,9 +1,19 @@
 import ChattingWindowContainer from '@/components/chattingWindow/ChattingWindowContainer';
 import LeftSection from '@/components/practicePage/LeftSection';
 import useInitMediaStream from '@/hooks/practicePage/useInitMediaStream';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { useEffect } from 'react';
 
 function PracticePage() {
   const { error } = useInitMediaStream();
+  const { connect, disconnect } = useWebSocketStore();
+
+  useEffect(() => {
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, []);
 
   return (
     <main

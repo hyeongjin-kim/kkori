@@ -41,7 +41,8 @@ public class SecurityConfig {
     private static final String[] PERMIT_ALL_PATHS = {
             "/",
             "/oauth2/authorization/kakao",
-            "/oauth2/authorization/kakao/callback"
+            "/oauth2/authorization/kakao/callback",
+            "/ws/**"
     };
 
     private static final long HSTS_MAX_AGE_IN_SECONDS = 31536000L;

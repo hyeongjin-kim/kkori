@@ -15,6 +15,7 @@
       "@api/*": ["src/api/*"],
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
+      "@config/*": ["src/config/*"],
       "@constants/*": ["src/constants/*"],
       "@customTypes/*": ["src/customTypes/*"],
       "@layouts/*": ["src/layouts/*"],
