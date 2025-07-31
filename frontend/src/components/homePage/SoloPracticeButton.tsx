@@ -3,8 +3,9 @@ function SoloPracticeButton() {
   return (
     <PracticeButton
       text="혼자 연습하기"
-      path="/solo-practice"
+      path="/practice"
       className="bg-point-500 text-text-black"
+      mode="SOLO_PRACTICE"
     />
   );
 }

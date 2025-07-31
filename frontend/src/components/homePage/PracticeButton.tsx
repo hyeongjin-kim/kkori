@@ -7,12 +7,14 @@ interface PracticeButtonProps {
   text: string;
   path: string;
   className?: string;
+  mode: 'SOLO_PRACTICE' | 'PAIR_PRACTICE';
 }
 
 export default function PracticeButton({
   text,
   path,
   className,
+  mode,
 }: PracticeButtonProps) {
   const navigate = useNavigate();
   const connect = useWebSocketStore(state => state.connect);
@@ -22,7 +24,7 @@ export default function PracticeButton({
       onClick={() => {
         connect();
         roomCreate({
-          mode: 'SOLO_PRACTICE',
+          mode: mode,
           questionSetId: 1,
         });
         navigate(path);
