@@ -1,5 +1,4 @@
-package com.kkori.util;
-
+package com.kkori.interceptor;
 
 import com.kkori.jwt.TokenProvider;
 import java.util.List;
@@ -14,6 +13,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 @Component
 @RequiredArgsConstructor
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
+
     private final TokenProvider tokenProvider;
 
     @Override
@@ -21,39 +21,47 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         try {
             String token = extractTokenFromCookie(request);
+
             if (token != null && tokenProvider.validateToken(token)) {
                 Long userId = tokenProvider.getUserIdFromToken(token);
-                attributes.put("userId", userId);
-                return true; // 연결 허용
+
+                if (userId != null) {
+                    // 세션에 사용자 정보 저장
+                    attributes.put("userId", userId);
+                    attributes.put("connectedAt", System.currentTimeMillis());
+
+                    return true; // 연결 허용
+                }
             }
+
         } catch (Exception e) {
-            // 토큰 검증 실패
+            // 인증 실패 시 연결 거부
         }
+
         return false; // 연결 거부
-        //return true;
     }
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                WebSocketHandler wsHandler, Exception exception) {
-        // 필요시 추가 처리
     }
 
     private String extractTokenFromCookie(ServerHttpRequest request) {
-        // Cookie 헤더에서 직접 파싱
         List<String> cookies = request.getHeaders().get("Cookie");
 
         if (cookies != null && !cookies.isEmpty()) {
-            String cookieHeader = cookies.get(0);
-            return parseCookieValue(cookieHeader, "accessToken");
+            // 모든 Cookie 헤더를 확인
+            for (String cookieHeader : cookies) {
+                String token = parseCookieValue(cookieHeader, "accessToken");
+                if (token != null) {
+                    return token;
+                }
+            }
         }
 
         return null;
     }
 
-    /**
-     * Cookie 헤더 문자열에서 특정 쿠키 값 추출 예: "accessToken=abc123; refreshToken=def456; theme=dark"
-     */
     private String parseCookieValue(String cookieHeader, String cookieName) {
         if (cookieHeader == null || cookieHeader.trim().isEmpty()) {
             return null;
