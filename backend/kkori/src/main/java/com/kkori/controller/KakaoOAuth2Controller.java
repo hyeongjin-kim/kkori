@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/oauth2/authorization/kakao")
 public class KakaoOAuth2Controller {
 
+    private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+    private static final int ACCESS_TOKEN_EXPIRE_SECONDS = 60 * 15;
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
     private static final int REFRESH_TOKEN_EXPIRE_SECONDS = 60 * 60 * 24 * 7;
     private static final String AUTHORIZATION_CODE_PARAM = "code";
@@ -57,9 +59,18 @@ public class KakaoOAuth2Controller {
         LoginResponse loginResponse = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(code,
                 session);
 
-        log.info("로그인 응답: refreshToken={}, nickname={}",
-                loginResponse.getRefreshToken().getToken(),
+        Token accessToken = kakaoOAuth2Service.issueAccessToken(loginResponse.getRefreshToken().getToken());
+
+        if (accessToken == null) {
+            log.error("AccessToken 발급 실패, refreshToken: {}", loginResponse.getRefreshToken().getToken());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        log.info("로그인 응답: accessToken={}, refreshToken={}, nickname={}", accessToken, loginResponse.getRefreshToken(),
                 loginResponse.getNickname());
+
+        CookieUtil.addSecureJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken.getToken(),
+                ACCESS_TOKEN_EXPIRE_SECONDS);
 
         CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);

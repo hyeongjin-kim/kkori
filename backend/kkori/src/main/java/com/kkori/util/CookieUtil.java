@@ -19,4 +19,8 @@ public class CookieUtil {
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
+    public static void addSecureJwtCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        addJwtCookie(response, name, value, maxAge);
+    }
+
 }

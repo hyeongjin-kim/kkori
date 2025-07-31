@@ -49,10 +49,30 @@ class KakaoOAuth2ServiceImplTest {
     private static final String DUMMY_CLIENT_SECRET = "dummy-client-secret";
     private static final String DUMMY_REDIRECT_URI = "dummy-redirect-uri";
     private static final String DUMMY_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
+
     private static final String VALID_ID_TOKEN = "valid-id-token";
     private static final String INVALID_ID_TOKEN = "invalid-id-token";
+
     private static final String VALID_NONCE = "valid-nonce";
     private static final String INVALID_NONCE = "invalid-nonce";
+
+    private static final String USER_SUB_NEW = "sub123";
+    private static final String USER_SUB_EXISTING = "sub123";
+
+    private static final String NICKNAME_NEW_USER = "홍길동";
+    private static final String NICKNAME_EXISTING_USER = "기존사용자";
+    private static final String NICKNAME_SOFT_DELETED_USER = "탈퇴사용자";
+
+    private static final String TOKEN_ACCESS_SAMPLE = "jwt-accesstoken-sample";
+    private static final String TOKEN_REFRESH_SAMPLE = "jwt-refreshtoken-sample";
+
+    private static final String REFRESH_TOKEN_VALID = "jwt-valid-refresh-token";
+    private static final String REFRESH_TOKEN_INVALID = "invalid-refresh-token";
+    private static final String REFRESH_TOKEN_MISSING = "jwt-missing-token";
+    private static final String REFRESH_TOKEN_EXPIRED = "jwt-expired-token";
+
+    private static final Long USER_ID_1 = 1L;
+    private static final Long USER_ID_NOT_EXIST = 999L;
 
     @InjectMocks
     private KakaoOAuth2ServiceImpl kakaoOAuth2Service;
@@ -99,16 +119,16 @@ class KakaoOAuth2ServiceImplTest {
         given(requestBodySpec.body(any(BodyInserter.class))).willAnswer(invocation -> requestBodySpec);
         given(requestHeadersSpec.headers(any())).willAnswer(invocation -> requestHeadersSpec);
 
-        when(tokenProvider.generateAccessToken(any(User.class))).thenReturn(new Token("jwt-accesstoken-sample"));
-        when(tokenProvider.generateRefreshToken(any(User.class))).thenReturn(new Token("jwt-refreshtoken-sample"));
+        when(tokenProvider.generateAccessToken(any(User.class))).thenReturn(new Token(TOKEN_ACCESS_SAMPLE));
+        when(tokenProvider.generateRefreshToken(any(User.class))).thenReturn(new Token(TOKEN_REFRESH_SAMPLE));
     }
 
     @Test
     @DisplayName("정상 인가코드면 신규 사용자 로그인 후 LoginResponse 반환")
     void loginWithValidAuthorizationCode_shouldReturnLoginResponse() {
         KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
-        KakaoProfileResponse profileResponse = createKakaoProfileResponse("홍길동");
-        User savedUser = new User("sub123", "홍길동");
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse(NICKNAME_NEW_USER);
+        User savedUser = new User(USER_SUB_NEW, NICKNAME_NEW_USER);
 
         mockKakaoTokenRequest(tokenResponse);
         mockKakaoProfileRequest(profileResponse);
@@ -117,18 +137,16 @@ class KakaoOAuth2ServiceImplTest {
         given(userRepository.save(any())).willReturn(savedUser);
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(
-                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
-                                    eq(DUMMY_CLIENT_ID)))
-                    .thenReturn(true);
-            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                    eq(DUMMY_CLIENT_ID))).thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn(USER_SUB_NEW);
 
             LoginResponse response = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(
                     "valid-code", httpSession);
 
             assertNotNull(response);
-            assertEquals("홍길동", response.getNickname());
-            assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
+            assertEquals(NICKNAME_NEW_USER, response.getNickname());
+            assertEquals(TOKEN_REFRESH_SAMPLE, response.getRefreshToken().getToken());
         }
     }
 
@@ -136,8 +154,8 @@ class KakaoOAuth2ServiceImplTest {
     @DisplayName("정상 인가코드면 기존 사용자 로그인 후 LoginResponse 반환")
     void loginWithExistingUser_shouldReturnExistingUser() {
         KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
-        KakaoProfileResponse profileResponse = createKakaoProfileResponse("기존사용자");
-        User existingUser = new User("sub123", "기존사용자");
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse(NICKNAME_EXISTING_USER);
+        User existingUser = new User(USER_SUB_EXISTING, NICKNAME_EXISTING_USER);
 
         mockKakaoTokenRequest(tokenResponse);
         mockKakaoProfileRequest(profileResponse);
@@ -145,18 +163,16 @@ class KakaoOAuth2ServiceImplTest {
         given(userRepository.findBySubAndDeletedFalse(anyString())).willReturn(Optional.of(existingUser));
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(
-                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
-                                    eq(DUMMY_CLIENT_ID)))
-                    .thenReturn(true);
-            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                    eq(DUMMY_CLIENT_ID))).thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn(USER_SUB_EXISTING);
 
             LoginResponse response = kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(
                     "valid-code", httpSession);
 
             assertNotNull(response);
-            assertEquals("기존사용자", response.getNickname());
-            assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
+            assertEquals(NICKNAME_EXISTING_USER, response.getNickname());
+            assertEquals(TOKEN_REFRESH_SAMPLE, response.getRefreshToken().getToken());
         }
     }
 
@@ -210,15 +226,14 @@ class KakaoOAuth2ServiceImplTest {
         given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.empty());
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(
-                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
-                                    eq(DUMMY_CLIENT_ID)))
-                    .thenReturn(true);
-            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                    eq(DUMMY_CLIENT_ID))).thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn(USER_SUB_NEW);
 
             RuntimeException exception = assertThrows(RuntimeException.class,
                     () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("valid-code",
                             httpSession));
+
             assertEquals("카카오 프로필 조회 실패", exception.getMessage());
         }
     }
@@ -240,51 +255,92 @@ class KakaoOAuth2ServiceImplTest {
         given(responseSpec.bodyToMono(KakaoProfileResponse.class)).willReturn(Mono.just(profileResponse));
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(
-                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
-                                    eq(DUMMY_CLIENT_ID)))
-                    .thenReturn(true);
-            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                    eq(DUMMY_CLIENT_ID))).thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn(USER_SUB_NEW);
 
             RuntimeException exception = assertThrows(RuntimeException.class,
                     () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("valid-code",
                             httpSession));
+
             assertEquals("카카오 닉네임 조회 실패", exception.getMessage());
         }
     }
 
     @Test
-    @DisplayName("리프레시 토큰이 유효할 때 새로운 액세스 토큰을 반환")
+    @DisplayName("refreshToken이 유효할 때 새로운 액세스 토큰을 반환")
     void issueAccessToken_ValidToken_ReturnsTokenByValidRefreshToken() {
-        String validRefreshToken = "valid-refresh-token";
         User user = new User("sub", "nickname");
-        ReflectionTestUtils.setField(user, "userId", 1L);
+        ReflectionTestUtils.setField(user, "userId", USER_ID_1);
 
-        RefreshToken refreshToken = new RefreshToken();
-        ReflectionTestUtils.setField(refreshToken, "refreshToken", validRefreshToken);
-        ReflectionTestUtils.setField(refreshToken, "user", user);
-        ReflectionTestUtils.setField(refreshToken, "expirationDate", LocalDateTime.now().plusDays(1));
+        RefreshToken refreshTokenEntity = new RefreshToken();
+        ReflectionTestUtils.setField(refreshTokenEntity, "refreshToken", REFRESH_TOKEN_VALID);
+        ReflectionTestUtils.setField(refreshTokenEntity, "user", user);
+        ReflectionTestUtils.setField(refreshTokenEntity, "expirationDate", LocalDateTime.now().plusDays(1));
 
-        when(tokenProvider.validateToken(validRefreshToken)).thenReturn(true);
-        when(refreshTokenRepository.findByRefreshToken(validRefreshToken))
-                .thenReturn(Optional.of(refreshToken));
-        when(tokenProvider.generateAccessToken(user))
-                .thenReturn(new Token("new-access-token"));
+        when(tokenProvider.validateToken(REFRESH_TOKEN_VALID)).thenReturn(true);
+        when(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_VALID)).thenReturn(
+                Optional.of(refreshTokenEntity));
+        when(tokenProvider.generateAccessToken(user)).thenReturn(new Token(TOKEN_ACCESS_SAMPLE));
 
-        Token result = kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(validRefreshToken);
+        Token result = kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(REFRESH_TOKEN_VALID);
 
         assertNotNull(result);
-        assertEquals("new-access-token", result.getToken());
+        assertEquals(TOKEN_ACCESS_SAMPLE, result.getToken());
+    }
+
+    @Test
+    @DisplayName("refreshToken이 유효하지 않으면 IllegalArgumentException 예외 발생")
+    void issueAccessToken_InvalidToken_ThrowsException() {
+        when(tokenProvider.validateToken(REFRESH_TOKEN_INVALID)).thenReturn(false);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            kakaoOAuth2Service.issueAccessToken(REFRESH_TOKEN_INVALID);
+        });
+        assertEquals("Refresh token이 유효하지 않습니다.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("refreshToken이 DB에 없으면 RuntimeException 예외 발생")
+    void issueAccessToken_TokenNotFound_ThrowsException() {
+        when(tokenProvider.validateToken(REFRESH_TOKEN_MISSING)).thenReturn(true);
+        when(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_MISSING)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            kakaoOAuth2Service.issueAccessToken(REFRESH_TOKEN_MISSING);
+        });
+        assertEquals("Refresh token이 존재하지 않습니다.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("refreshToken이 만료되었으면 RuntimeException 예외 발생")
+    void issueAccessToken_ExpiredToken_ThrowsException() {
+        User user = new User("expired", "유저");
+        ReflectionTestUtils.setField(user, "userId", 2L);
+
+        RefreshToken refreshTokenEntity = new RefreshToken();
+        ReflectionTestUtils.setField(refreshTokenEntity, "refreshToken", REFRESH_TOKEN_EXPIRED);
+        ReflectionTestUtils.setField(refreshTokenEntity, "user", user);
+        ReflectionTestUtils.setField(refreshTokenEntity, "expirationDate", LocalDateTime.now().minusMinutes(1));
+
+        when(tokenProvider.validateToken(REFRESH_TOKEN_EXPIRED)).thenReturn(true);
+        when(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_EXPIRED)).thenReturn(
+                Optional.of(refreshTokenEntity));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            kakaoOAuth2Service.issueAccessToken(REFRESH_TOKEN_EXPIRED);
+        });
+        assertEquals("Refresh token이 만료되었습니다.", ex.getMessage());
     }
 
     @Test
     @DisplayName("soft deleted 상태 사용자 로그인 시 IllegalStateException 발생")
     void loginWithSoftDeletedUser_shouldThrowIllegalStateException() {
-        User softDeletedUser = new User("sub123", "탈퇴사용자");
+        User softDeletedUser = new User("sub123", NICKNAME_SOFT_DELETED_USER);
         softDeletedUser.softDelete();
 
         KakaoTokenResponse tokenResponse = createKakaoTokenResponse(VALID_ID_TOKEN);
-        KakaoProfileResponse profileResponse = createKakaoProfileResponse("탈퇴사용자");
+        KakaoProfileResponse profileResponse = createKakaoProfileResponse(NICKNAME_SOFT_DELETED_USER);
 
         mockKakaoTokenRequest(tokenResponse);
         mockKakaoProfileRequest(profileResponse);
@@ -293,11 +349,9 @@ class KakaoOAuth2ServiceImplTest {
         given(httpSession.getAttribute(anyString())).willReturn(VALID_NONCE);
 
         try (MockedStatic<IdTokenValidator> mockedIdToken = mockStatic(IdTokenValidator.class)) {
-            mockedIdToken.when(
-                            () -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
-                                    eq(DUMMY_CLIENT_ID)))
-                    .thenReturn(true);
-            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn("sub123");
+            mockedIdToken.when(() -> IdTokenValidator.validateIdTokenClaims(anyString(), any(HttpSession.class),
+                    eq(DUMMY_CLIENT_ID))).thenReturn(true);
+            mockedIdToken.when(() -> IdTokenValidator.getSub(anyString())).thenReturn(USER_SUB_NEW);
 
             IllegalStateException exception = assertThrows(IllegalStateException.class,
                     () -> kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded("code",
@@ -309,27 +363,24 @@ class KakaoOAuth2ServiceImplTest {
     @Test
     @DisplayName("유저 아이디로 사용자 닉네임 정상 조회")
     void getUserProfile_ShouldReturnNickname_WhenUserExists() {
-        Long userId = 1L;
-        User user = new User("sub123", "홍길동");
+        User user = new User("sub123", NICKNAME_NEW_USER);
+        ReflectionTestUtils.setField(user, "userId", USER_ID_1);
 
-        ReflectionTestUtils.setField(user, "userId", userId);
+        when(userRepository.findById(USER_ID_1)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        UserProfileResponse response = kakaoOAuth2Service.getUserProfile(userId);
+        UserProfileResponse response = kakaoOAuth2Service.getUserProfile(USER_ID_1);
 
         assertThat(response).isNotNull();
-        assertThat(response.getNickname()).isEqualTo("홍길동");
+        assertThat(response.getNickname()).isEqualTo(NICKNAME_NEW_USER);
     }
 
     @Test
     @DisplayName("유저 없을 경우 RuntimeException 발생")
     void getUserProfile_ShouldThrowException_WhenUserNotFound() {
-        Long userId = 999L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findById(USER_ID_NOT_EXIST)).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            kakaoOAuth2Service.getUserProfile(userId);
+            kakaoOAuth2Service.getUserProfile(USER_ID_NOT_EXIST);
         });
 
         assertThat(exception.getMessage()).isEqualTo("사용자를 찾을 수 없습니다.");
