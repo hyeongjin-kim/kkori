@@ -15,10 +15,12 @@ export default function PracticeButton({
   className,
 }: PracticeButtonProps) {
   const navigate = useNavigate();
+  const connect = useWebSocketStore(state => state.connect);
   const roomCreate = useWebSocketStore(state => state.roomCreate);
   return (
     <button
       onClick={() => {
+        connect();
         roomCreate({
           mode: 'SOLO_PRACTICE',
           questionSetId: 1,
