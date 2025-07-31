@@ -6,25 +6,28 @@ import { RoomCreateRequest } from '@/customTypes/practicePage/RoomCreateRequest'
 interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
+  roomID: string | null;
 }
 
 interface WebSocketAction {
   connect: () => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
-  interviewStart: () => void;
-  interviewEnd: () => void;
-  roomJoin: () => void;
-  roomExit: () => void;
-  answerStart: () => void;
-  answerSubmit: () => void;
-  nextQuestionSelect: () => void;
-  currentQuestionStart: () => void;
+  interviewStart: (roomID: string) => void;
+  interviewEnd: (roomID: string) => void;
+  roomJoin: (roomID: string) => void;
+  roomExit: (roomID: string) => void;
+  answerStart: (roomID: string, questionID: string) => void;
+  answerSubmit: (roomID: string, questionID: string) => void;
+  nextQuestionSelect: (roomID: string) => void;
+  customQuestionStart: (roomID: string) => void;
+  customQuestionCreate: (roomID: string, questionText: string) => void;
 }
 
 const initialState: WebSocketState = {
   client: null,
   isConnected: false,
+  roomID: null,
 };
 
 export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
@@ -45,7 +48,7 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
           client.subscribe('/user/queue/interview', message => {
             const response = JSON.parse(message.body);
             console.log(response);
-            personalMessageHandler(response);
+            personalMessageHandler(client, set, response);
           });
         },
         onDisconnect: () => {
@@ -60,43 +63,95 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
     },
     roomCreate: (request: RoomCreateRequest) => {
       get().client?.publish({
-        destination: '/app/room/create',
+        destination: '/app/room-create',
         body: JSON.stringify(request),
       });
     },
-    interviewStart: () => {},
-    interviewEnd: () => {},
-    roomJoin: () => {},
-    roomExit: () => {},
-    answerStart: () => {},
-    answerSubmit: () => {},
-    nextQuestionSelect: () => {},
-    currentQuestionStart: () => {},
-    currentQuestionCreate: () => {},
+    interviewStart: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/interview-start`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    interviewEnd: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/interview-end`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    roomJoin: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/room-join`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    roomExit: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/room-exit`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    answerStart: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/answer-start`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    answerSubmit: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/answer-submit`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    nextQuestionSelect: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/next-question-select`,
+        body: JSON.stringify({
+          roomId: roomID,
+          questionType: 'DEFAULT',
+          questionId: '1',
+          questionText: 'test',
+        }),
+      });
+    },
+    customQuestionStart: (roomID: string) => {
+      get().client?.publish({
+        destination: `/app/custom-question-start`,
+        body: JSON.stringify({ roomId: roomID }),
+      });
+    },
+    customQuestionCreate: (roomID: string, questionText: string) => {
+      get().client?.publish({
+        destination: `/app/custom-question-create`,
+        body: JSON.stringify({ roomId: roomID, questionText: questionText }),
+      });
+    },
   }),
 );
 
-const personalMessageHandler = (response: any) => {
+const personalMessageHandler = (client: Client, set: any, response: any) => {
   switch (response.type) {
     case 'room-created':
-      roomCreatedHandler(response.data);
+      roomCreatedHandler(client, set, response.data);
       break;
     case 'room-status':
-      roomStatusHandler(response.data);
+      roomStatusHandler(client, set, response.data);
       break;
     case 'answer-processed':
-      answerProcessedHandler(response.data);
+      answerProcessedHandler(client, set, response.data);
       break;
     case 'error':
-      errorHandler(response.data);
+      errorHandler(client, set, response.data);
       break;
   }
 };
 
-const roomCreatedHandler = (response: any) => {};
+const roomCreatedHandler = (client: Client, set: any, response: any) => {
+  set({ roomID: response.roomId });
+};
 
-const roomStatusHandler = (response: any) => {};
+const roomStatusHandler = (client: Client, set: any, response: any) => {};
 
-const answerProcessedHandler = (response: any) => {};
+const answerProcessedHandler = (client: Client, set: any, response: any) => {};
 
-const errorHandler = (response: any) => {};
+const errorHandler = (client: Client, set: any, response: any) => {};
