@@ -1,5 +1,6 @@
 package com.kkori.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,6 +16,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.kkori.dto.response.KakaoProfileResponse;
 import com.kkori.dto.response.KakaoTokenResponse;
 import com.kkori.dto.response.LoginResponse;
+import com.kkori.dto.response.UserProfileResponse;
 import com.kkori.entity.RefreshToken;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
@@ -126,7 +128,6 @@ class KakaoOAuth2ServiceImplTest {
 
             assertNotNull(response);
             assertEquals("홍길동", response.getNickname());
-            assertEquals("jwt-accesstoken-sample", response.getAccessToken().getToken());
             assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
         }
     }
@@ -155,7 +156,6 @@ class KakaoOAuth2ServiceImplTest {
 
             assertNotNull(response);
             assertEquals("기존사용자", response.getNickname());
-            assertEquals("jwt-accesstoken-sample", response.getAccessToken().getToken());
             assertEquals("jwt-refreshtoken-sample", response.getRefreshToken().getToken());
         }
     }
@@ -304,6 +304,50 @@ class KakaoOAuth2ServiceImplTest {
                             httpSession));
             assertEquals("탈퇴한 사용자입니다.", exception.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("유저 아이디로 사용자 닉네임 정상 조회")
+    void getUserProfile_ShouldReturnNickname_WhenUserExists() {
+        Long userId = 1L;
+        User user = new User("sub123", "홍길동");
+
+        ReflectionTestUtils.setField(user, "userId", userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        UserProfileResponse response = kakaoOAuth2Service.getUserProfile(userId);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getNickname()).isEqualTo("홍길동");
+    }
+
+    @Test
+    @DisplayName("유저 없을 경우 RuntimeException 발생")
+    void getUserProfile_ShouldThrowException_WhenUserNotFound() {
+        Long userId = 999L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            kakaoOAuth2Service.getUserProfile(userId);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("사용자를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("null ID 입력 시 NullPointerException 발생")
+    void getUserProfile_ShouldThrowNullPointerException_WhenUserIdIsNull() {
+        assertThrows(NullPointerException.class, () -> kakaoOAuth2Service.getUserProfile(null));
+    }
+
+    @Test
+    @DisplayName("음수 ID 입력 시 RuntimeException 발생 및 메시지 확인")
+    void getUserProfile_ShouldThrowRuntimeException_WhenUserNotFound() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> kakaoOAuth2Service.getUserProfile(-1L));
+        assertThat(ex.getMessage()).isEqualTo("사용자를 찾을 수 없습니다.");
     }
 
     private KakaoTokenResponse createKakaoTokenResponse(String idToken) {

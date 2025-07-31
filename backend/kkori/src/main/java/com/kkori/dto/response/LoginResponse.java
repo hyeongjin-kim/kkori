@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
 
-    private Token accessToken;
-
     private Token refreshToken;
 
     private String nickname;
