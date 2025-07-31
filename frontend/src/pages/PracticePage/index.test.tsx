@@ -4,12 +4,12 @@ import PracticePage from '@/pages/practicePage/index';
 
 describe('PracticePage', () => {
   beforeEach(() => {
-    render(<MemoryRouterWrapped component={<PracticePage />} />);
+    render(<MemoryRouterWrapped component={<PracticePage type="solo" />} />);
   });
 
   test('PracticePage 페이지가 렌더링 된다.', () => {
     expect(
-      screen.getByRole('main', { name: 'practice-page' }),
+      screen.getByRole('main', { name: 'solo-practice-page' }),
     ).toBeInTheDocument();
   });
   test('LeftSection이 렌더링 되어야 한다.', () => {

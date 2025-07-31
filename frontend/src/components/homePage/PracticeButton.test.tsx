@@ -6,13 +6,17 @@ test('버튼을 누르면 어떤 페이지로 이동한다', () => {
   render(
     <MemoryRouterWrapped
       component={
-        <PracticeButton text="연습하기" path="/practice" mode="SOLO_PRACTICE" />
+        <PracticeButton
+          text="연습하기"
+          path="/solo-practice"
+          mode="SOLO_PRACTICE"
+        />
       }
     />,
   );
   fireEvent.click(screen.getByRole('button', { name: /연습하기/i }));
   expect(
-    screen.getByRole('main', { name: 'practice-page' }),
+    screen.getByRole('main', { name: 'solo-practice-page' }),
   ).toBeInTheDocument();
 });
 
