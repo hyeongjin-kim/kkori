@@ -50,6 +50,7 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
             console.log(response);
             personalMessageHandler(client, set, response);
           });
+          get().roomCreate({ mode: 'SOLO_PRACTICE', questionSetId: 1 });
         },
         onDisconnect: () => {
           set({ client: null, isConnected: false });
