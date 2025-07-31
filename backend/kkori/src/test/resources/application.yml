@@ -14,6 +14,9 @@ spring:
   logging.level:
     org.hibernate.SQL: debug
 
+  config:
+    import: classpath:application-secret.yml
+
 gms:
   api-key:
   whisper-url: "https://gms.ssafy.io/gmsapi/api.openai.com/v1/audio/transcriptions"
