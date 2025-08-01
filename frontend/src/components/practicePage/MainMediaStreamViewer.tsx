@@ -4,7 +4,7 @@ import useMediaStreamStore from '@/stores/useMediaStreamStore';
 function MainMediaStreamViewer() {
   const mainStreamType = useMediaStreamStore(state => state.mainStreamType);
   return (
-    <div aria-label="main-media-stream-viewer" className="h-full w-1/2">
+    <div aria-label="main-media-stream-viewer" className="h-full">
       <MediaStreamViewer type={mainStreamType} />
     </div>
   );
