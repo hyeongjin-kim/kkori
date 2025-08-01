@@ -1,13 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 
+export const PRACTICE_MODE = Object.freeze({
+  SOLO_PRACTICE: 'SOLO_PRACTICE',
+  PAIR_PRACTICE: 'PAIR_PRACTICE',
+});
+
 interface PracticeButtonProps {
   text: string;
   path: string;
   className?: string;
-  mode: 'SOLO_PRACTICE' | 'PAIR_PRACTICE';
+  mode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE];
 }
 
-export default function PracticeButton({
+export function PracticeButton({
   text,
   path,
   className,

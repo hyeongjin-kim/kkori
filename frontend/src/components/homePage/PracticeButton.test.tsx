@@ -1,5 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import PracticeButton from '@components/homePage/PracticeButton';
+import {
+  PRACTICE_MODE,
+  PracticeButton,
+} from '@components/homePage/PracticeButton';
 import MemoryRouterWrapped from '@components/common/MemoryRouterWrapped';
 
 test('버튼을 누르면 어떤 페이지로 이동한다', () => {
@@ -9,7 +12,7 @@ test('버튼을 누르면 어떤 페이지로 이동한다', () => {
         <PracticeButton
           text="연습하기"
           path="/solo-practice"
-          mode="SOLO_PRACTICE"
+          mode={PRACTICE_MODE.SOLO_PRACTICE}
         />
       }
     />,
@@ -25,7 +28,11 @@ test('버튼에 내가 원하는 텍스트를 넣을 수 있다.', () => {
   render(
     <MemoryRouterWrapped
       component={
-        <PracticeButton text={text} path="/test" mode="SOLO_PRACTICE" />
+        <PracticeButton
+          text={text}
+          path="/test"
+          mode={PRACTICE_MODE.SOLO_PRACTICE}
+        />
       }
     />,
   );
