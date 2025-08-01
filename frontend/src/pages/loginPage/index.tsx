@@ -1,6 +1,6 @@
 import LoginButton from '@components/loginPage/LoginButton';
-
 import { SOCIAL_LOGIN_REQUEST_PATHS } from '@constants/index';
+import { redirectToSocialLogin } from '@pages/loginPage/utils';
 
 function LoginPage() {
   return (
@@ -8,7 +8,7 @@ function LoginPage() {
       {Object.values(SOCIAL_LOGIN_REQUEST_PATHS).map(({ path, text }) => (
         <LoginButton
           key={path}
-          socialLoginRequestPath={path}
+          onClick={() => redirectToSocialLogin(path)}
           socialLoginRequestText={text}
         />
       ))}
