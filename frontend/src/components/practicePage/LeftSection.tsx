@@ -17,16 +17,10 @@ function LeftSection() {
       </div>
       <div className="flex h-[75%] w-full gap-5">
         <div className="relative flex-[1.2] overflow-hidden rounded-xl bg-black shadow-md">
-          <span className="absolute top-3 left-3 z-10 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white shadow">
-            MAIN
-          </span>
           <MainMediaStreamViewer />
         </div>
 
         <div className="relative flex-[0.8] overflow-hidden rounded-xl bg-black shadow-md">
-          <span className="absolute top-3 left-3 z-10 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white shadow">
-            SUB
-          </span>
           <SubMediaStreamViewer />
         </div>
       </div>
