@@ -6,7 +6,7 @@ import GoToLoginButton from '@components/header/GoToLoginButton';
 function Header() {
   return (
     <header className="text-text-white border-underline-gray flex min-h-16 items-center justify-between border-b px-32">
-      <Logo className="mt-1 -ml-3 h-8 w-8" />
+      <Logo className="mt-1 -ml-3 h-12 w-auto" />
       <NavigationBar />
       <GoToLoginButton />
     </header>
