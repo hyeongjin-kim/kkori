@@ -4,7 +4,7 @@ import Logo from './Logo';
 function LogoLink() {
   return (
     <Link to="/" aria-label="logo-link">
-      <Logo />
+      <Logo className="mt-1 -ml-3 h-12 w-auto" />
     </Link>
   );
 }
