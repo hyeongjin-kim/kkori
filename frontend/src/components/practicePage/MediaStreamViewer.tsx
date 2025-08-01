@@ -14,7 +14,7 @@ function MediaStreamViewer({ type }: MediaStreamType) {
     >
       <VideoStream type={type} />
       <VideoPlaceholder visible={!isVideoOn} />
-      <AudioOffDisplay visible={!isAudioOn} />
+      {!isAudioOn && <AudioOffDisplay />}
     </div>
   );
 }
