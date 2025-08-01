@@ -23,7 +23,7 @@ function PracticePage({ type }: PracticePageProps) {
   return (
     <main
       aria-label={`${type}-practice-page`}
-      className="mt-16 flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
+      className="flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
     >
       <LeftSection />
       <ChattingWindowContainer />
