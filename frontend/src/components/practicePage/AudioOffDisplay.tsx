@@ -1,5 +1,4 @@
-function AudioOffDisplay({ visible }: { visible: boolean }) {
-  if (!visible) return null;
+function AudioOffDisplay() {
   return (
     <div aria-label="audio-off-display">
       <img src="/assets/audio-off.svg" alt="audio-off-icon" />
