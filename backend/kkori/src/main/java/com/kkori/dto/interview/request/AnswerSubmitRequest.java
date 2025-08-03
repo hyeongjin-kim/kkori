@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AnswerSubmitRequest {
     private String roomId;
-    private String audioFilePath;
+    private String audioBase64;
 }

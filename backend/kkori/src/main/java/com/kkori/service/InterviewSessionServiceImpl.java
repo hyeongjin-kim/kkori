@@ -139,17 +139,26 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     // ==================== 답변 처리 ====================
 
     @Override
-    public String processAudioAnswer(String roomId, Long userId, String audioFilePath) {
+    public String processAudioAnswer(String roomId, Long userId, String audioBase64) {
         // 권한 검증
         InterviewRoom room = roomManager.getRoom(roomId);
         validateAnswerPermission(room, userId);
 
         try {
+            // Base64 디코딩
+            byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+            
+            // 임시 WebM 파일 생성
+            String tempFilePath = createTempAudioFile(audioBytes);
+            
             // STT 처리 (Transcriber 컴포넌트 사용)
-            String answerText = transcriber.transcribe(audioFilePath);
+            String answerText = transcriber.transcribe(tempFilePath);
 
             // 답변 처리
             processAnswer(roomId, answerText);
+            
+            // 임시 파일 삭제
+            deleteTempFile(tempFilePath);
 
             return answerText;
 
@@ -194,9 +203,29 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     @Override
-    public QuestionForm createCustomQuestion(String roomId, String questionText) {
-        InterviewSession session = getSession(roomId);
-        return session.createCustomQuestion(questionText);
+    public QuestionForm createCustomQuestion(String roomId, String audioBase64) {
+        try {
+            // Base64 디코딩
+            byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+            
+            // 임시 WebM 파일 생성
+            String tempFilePath = createTempAudioFile(audioBytes);
+            
+            // STT 처리하여 질문 텍스트 추출
+            String questionText = transcriber.transcribe(tempFilePath);
+            
+            // 세션에 커스텀 질문 생성
+            InterviewSession session = getSession(roomId);
+            QuestionForm customQuestion = session.createCustomQuestion(questionText);
+            
+            // 임시 파일 삭제
+            deleteTempFile(tempFilePath);
+            
+            return customQuestion;
+            
+        } catch (Exception e) {
+            throw AudioProcessingException.audioTranscriptionFailed();
+        }
     }
 
     // ==================== 역할 및 상태 관리 ====================
@@ -395,5 +424,34 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     private Interview getInterviewById(Long interviewId) {
         return interviewRepository.findById(interviewId)
                 .orElseThrow(() -> InterviewSessionException.interviewNotFound());
+    }
+    
+    // ==================== 오디오 파일 처리 헬퍼 메서드들 ====================
+    
+    /**
+     * Base64 디코딩된 오디오 데이터로 임시 WebM 파일 생성
+     */
+    private String createTempAudioFile(byte[] audioData) {
+        String tempFilePath = System.getProperty("java.io.tmpdir") + 
+                             "audio_" + System.currentTimeMillis() + ".webm";
+        
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath)) {
+            fos.write(audioData);
+        } catch (java.io.IOException e) {
+            throw AudioProcessingException.audioTranscriptionFailed();
+        }
+        
+        return tempFilePath;
+    }
+    
+    /**
+     * 임시 파일 삭제
+     */
+    private void deleteTempFile(String filePath) {
+        try {
+            java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(filePath));
+        } catch (java.io.IOException e) {
+            // 임시 파일 삭제 실패는 무시
+        }
     }
 }

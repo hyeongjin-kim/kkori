@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CustomQuestionCreateRequest {
     private String roomId;
-    private String questionText;
+    private String audioBase64;
 }
