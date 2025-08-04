@@ -3,13 +3,13 @@ import {
   switchScreen,
   startAnswer,
   endAnswer,
-} from '@/components/practicePage/controlButtonfunction';
+} from '@/components/practicePage/controlButtonFunction';
 
 function ControlButtonContainer() {
   return (
     <div
       aria-label="control-button-container"
-      className="flex w-full items-center gap-4"
+      className="flex w-full items-center justify-center gap-4"
     >
       <ControlButton
         onClick={switchScreen}
