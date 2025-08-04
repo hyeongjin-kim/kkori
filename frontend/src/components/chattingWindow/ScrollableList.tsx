@@ -8,9 +8,9 @@ function ScrollableList() {
     <div
       role="list"
       aria-label="scrollable-list"
-      className="relative h-full w-full"
+      className="overflow-y-auto px-5"
     >
-      <ul>
+      <ul className="h-full w-full overflow-y-auto">
         {messages.map(message => (
           <NameTaggedMessage
             key={message.type + message.id}
