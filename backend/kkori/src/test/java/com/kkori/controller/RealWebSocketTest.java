@@ -66,19 +66,13 @@ class RealWebSocketTest {
         // User 객체로 JWT 토큰 생성
         Token tokenObject = tokenProvider.generateAccessToken(testUser);
         jwtToken = tokenObject.getToken();
-        // JWT 토큰 생성 및 검증 완료
-
-        // 실제 JWT 쿠키와 함께 WebSocket 연결
+        // WebSocket 연결
         stompSession = testHelper.createRealTestSession(port, jwtToken, TEST_USER_ID);
         personalSubscriber = testHelper.subscribeToRealPersonalQueue(stompSession, TEST_USER_ID);
-
-        // 테스트 준비 완료
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        // 테스트 정리 시작
-
         if (personalSubscriber != null) {
             personalSubscriber.unsubscribe();
         }
@@ -87,10 +81,7 @@ class RealWebSocketTest {
 
         if (stompSession != null && stompSession.isConnected()) {
             stompSession.disconnect();
-            // WebSocket 연결 해제됨
         }
-
-        // 테스트 정리 완료
     }
 
     @Test
@@ -149,7 +140,6 @@ class RealWebSocketTest {
             assertThat(roomStatusResponse.getUserCount()).isEqualTo(1);
             assertThat(roomStatusResponse.getMaxUsers()).isEqualTo(2);
 
-            // 방 상태 확인 완료
 
         } catch (AssertionError e) {
             printQueuedMessages();
@@ -166,119 +156,95 @@ class RealWebSocketTest {
 
         try {
             StompSession failSession = testHelper.createRealTestSession(port, invalidToken, TEST_USER_ID);
-            // 잘못된 토큰으로 연결이 성공함 (문제 있음)
             failSession.disconnect();
         } catch (Exception e) {
-            // 예상대로 잘못된 토큰으로 연결 실패
+            // 예상대로 연결 실패
         }
     }
 
     @Test
     @DisplayName("JWT 토큰 정보 확인")
     void jwtTokenInfoTest() throws Exception {
-        // JWT 토큰 정보 확인 (디버깅용)
         assertThat(tokenProvider.validateToken(jwtToken)).isTrue();
         assertThat(tokenProvider.getUserIdFromToken(jwtToken)).isEqualTo(TEST_USER_ID);
     }
 
-//    @Test
-//    @DisplayName("실제 JWT 쿠키로 2명 사용자 방 입장 테스트")
-//    void realJWTTwoUsersRoomTest() throws Exception {
-//        // given - 두 번째 사용자 설정
-//        final Long TEST_USER2_ID = 456L;
-//        User testUser2 = User.builder()
-//                .userId(TEST_USER2_ID)
-//                .sub("test-kakao-456789")
-//                .nickname("테스트사용자2")
-//                .deleted(false)
-//                .build();
-//
-//        Token tokenObject2 = tokenProvider.generateAccessToken(testUser2);
-//        String jwtToken2 = tokenObject2.getToken();
-//
-//        // 두 번째 사용자 WebSocket 연결 및 구독
-//        StompSession stompSession2 = testHelper.createRealTestSession(port, jwtToken2, TEST_USER2_ID);
-//        WebSocketTestHelper.MessageSubscriber personalSubscriber2 =
-//                testHelper.subscribeToRealPersonalQueue(stompSession2, TEST_USER2_ID);
-//
-//        try {
-//            System.out.println("🎯 === 2명 사용자 방 테스트 시작 ===");
-//
-//            // 방 생성 모킹 - createPairRoom 사용 (2명이 함께하는 방)
-//            String testRoomId = "TWO_USER_ROOM_123";
-//            given(interviewSessionService.createPairRoom(1L, TEST_USER_ID))
-//                    .willReturn(testRoomId);
-//
-//            // 방 참여 가능 여부 및 참여 모킹
-//            given(interviewSessionService.canJoinRoom(testRoomId))
-//                    .willReturn(true);
-//
-//            // joinRoom은 void이므로 doNothing 사용
-//            doNothing().when(interviewSessionService).joinRoom(testRoomId, TEST_USER2_ID);
-//
-//            // Step 1: 첫 번째 사용자가 함께 연습하기 방 생성
-//            System.out.println("📤 사용자1이 함께 연습하기 방 생성 요청");
-//            RoomCreateRequest createRequest = new RoomCreateRequest("PAIR_PRACTICE", 1L);
-//            stompSession.send("/app/room-create", createRequest);
-//
-//            // 방 생성 응답 확인
-//            Map<String, Object> createResponse = personalSubscriber.waitForMessage("room-created", 10);
-//            System.out.println("✅ 사용자1 방 생성 응답: " + createResponse);
-//
-//            @SuppressWarnings("unchecked")
-//            Map<String, Object> createDataMap = (Map<String, Object>) createResponse.get("data");
-//            RoomCreateResponse roomCreateResponse = objectMapper.convertValue(createDataMap, RoomCreateResponse.class);
-//            String createdRoomId = roomCreateResponse.getRoomId();
-//
-//            // Step 2: 방 토픽 구독 (두 사용자 모두)
-//            WebSocketTestHelper.MessageSubscriber roomSubscriber1 =
-//                    testHelper.subscribeToRealRoomTopic(stompSession, createdRoomId);
-//            WebSocketTestHelper.MessageSubscriber roomSubscriber2 =
-//                    testHelper.subscribeToRealRoomTopic(stompSession2, createdRoomId);
-//
-//            // Step 3: 두 번째 사용자가 방 입장
-//            System.out.println("📤 사용자2가 방 입장 요청");
-//            CommonRoomRequest joinRequest = new CommonRoomRequest(createdRoomId);
-//            stompSession2.send("/app/room-join", joinRequest);
-//
-//            // Step 4: 입장 관련 알림들 확인
-//            System.out.println("📥 방 입장 관련 알림 대기 중...");
-//
-//            // 사용자2가 받는 알림 (방 입장 성공)
-//            Map<String, Object> user2Response = personalSubscriber2.waitForMessage("room-joined", 10);
-//            System.out.println("✅ 사용자2가 받은 입장 응답: " + user2Response);
-//
-//            // 방 토픽으로 브로드캐스트되는 새 사용자 입장 알림
-//            Map<String, Object> user1Notification = roomSubscriber1.waitForMessage("user-joined", 10);
-//            System.out.println("✅ 사용자1이 받은 입장 알림: " + user1Notification);
-//
-//            // Step 5: 검증
-//            assertThat(user2Response.get("type")).isEqualTo("room-joined");
-//            assertThat(user1Notification.get("type")).isEqualTo("user-joined");
-//
-//            @SuppressWarnings("unchecked")
-//            Map<String, Object> joinDataMap = (Map<String, Object>) user2Response.get("data");
-//            assertThat(joinDataMap.get("roomId")).isEqualTo(createdRoomId);
-//
-//            System.out.println("🎉 2명 사용자 방 입장 테스트 성공!");
-//            System.out.println("📋 방 ID: " + createdRoomId);
-//            System.out.println("📋 사용자1: " + TEST_USER_ID + ", 사용자2: " + TEST_USER2_ID);
-//
-//            // 정리
-//            roomSubscriber1.unsubscribe();
-//            roomSubscriber2.unsubscribe();
-//
-//        } finally {
-//            // 두 번째 사용자 연결 정리
-//            if (personalSubscriber2 != null) {
-//                personalSubscriber2.unsubscribe();
-//            }
-//            if (stompSession2 != null && stompSession2.isConnected()) {
-//                stompSession2.disconnect();
-//                System.out.println("🔌 사용자2 WebSocket 연결 해제됨");
-//            }
-//        }
-//    }
+    @Test
+    @DisplayName("실제 JWT 쿠키로 2명 사용자 방 입장 테스트")
+    void realJWTTwoUsersRoomTest() throws Exception {
+        // given - 두 번째 사용자 설정
+        final Long TEST_USER2_ID = 456L;
+        User testUser2 = User.builder()
+                .userId(TEST_USER2_ID)
+                .sub("test-kakao-456789")
+                .nickname("테스트사용자2")
+                .deleted(false)
+                .build();
+
+        Token tokenObject2 = tokenProvider.generateAccessToken(testUser2);
+        String jwtToken2 = tokenObject2.getToken();
+
+        // 두 번째 사용자 WebSocket 연결 및 구독
+        StompSession stompSession2 = testHelper.createRealTestSession(port, jwtToken2, TEST_USER2_ID);
+        WebSocketTestHelper.MessageSubscriber personalSubscriber2 =
+                testHelper.subscribeToRealPersonalQueue(stompSession2, TEST_USER2_ID);
+
+        try {
+            // 방 생성 모킹
+            String testRoomId = "TWO_USER_ROOM_123";
+            given(interviewSessionService.createPairRoom(1L, TEST_USER_ID))
+                    .willReturn(testRoomId);
+
+            // 1: 첫 번째 사용자가 함께 연습하기 방 생성
+            RoomCreateRequest createRequest = new RoomCreateRequest("PAIR_INTERVIEW", 1L);
+            stompSession.send("/app/room-create", createRequest);
+
+            // 방 생성 응답 확인
+            Map<String, Object> createResponse = personalSubscriber.waitForMessage("room-created", 10);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> createDataMap = (Map<String, Object>) createResponse.get("data");
+            RoomCreateResponse roomCreateResponse = objectMapper.convertValue(createDataMap, RoomCreateResponse.class);
+            String createdRoomId = roomCreateResponse.getRoomId();
+
+            // 2: 방 토픽 구독 (두 사용자 모두)
+            WebSocketTestHelper.MessageSubscriber roomSubscriber1 =
+                    testHelper.subscribeToRealRoomTopic(stompSession, createdRoomId);
+            WebSocketTestHelper.MessageSubscriber roomSubscriber2 =
+                    testHelper.subscribeToRealRoomTopic(stompSession2, createdRoomId);
+
+            // 3: 두 번째 사용자가 방 입장
+            CommonRoomRequest joinRequest = new CommonRoomRequest(createdRoomId);
+            stompSession2.send("/app/room-join", joinRequest);
+
+            // 4: 입장 관련 알림들 확인
+            Map<String, Object> user1Notification = roomSubscriber1.waitForMessage("user-joined", 10);
+            Map<String, Object> user2Notification = roomSubscriber2.waitForMessage("user-joined", 10);
+
+            // 5: 검증
+            assertThat(user1Notification.get("type")).isEqualTo("user-joined");
+            assertThat(user2Notification.get("type")).isEqualTo("user-joined");
+
+            // SuccessResponse 구조 확인
+            @SuppressWarnings("unchecked")
+            Map<String, Object> joinDataMap = (Map<String, Object>) user1Notification.get("data");
+            assertThat(joinDataMap.get("message")).isEqualTo("새 사용자가 참여했습니다");
+
+
+            // 정리
+            roomSubscriber1.unsubscribe();
+            roomSubscriber2.unsubscribe();
+
+        } finally {
+            // 두 번째 사용자 연결 정리
+            if (personalSubscriber2 != null) {
+                personalSubscriber2.unsubscribe();
+            }
+            if (stompSession2 != null && stompSession2.isConnected()) {
+                stompSession2.disconnect();
+            }
+        }
+    }
 
     @Test
     @DisplayName("에러 응답 처리 테스트")
@@ -286,7 +252,6 @@ class RealWebSocketTest {
         // given - 존재하지 않는 모드로 방 생성 시도
         RoomCreateRequest invalidRequest = new RoomCreateRequest("INVALID_MODE", 1L);
 
-        // 잘못된 요청으로 에러 응답 테스트
 
         // when
         stompSession.send("/app/room-create", invalidRequest);
@@ -294,27 +259,21 @@ class RealWebSocketTest {
         // then
         try {
             Map<String, Object> response = personalSubscriber.waitForMessage("error", 10);
-            // 에러 응답 받음
 
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("error");
 
-            // 에러 응답 처리 테스트 성공
-
         } catch (AssertionError e) {
-            // 에러 응답 테스트 실패
             printQueuedMessages();
             throw e;
         }
     }
 
     private void printQueuedMessages() {
-        // 큐에 있는 모든 메시지 확인 (디버깅용)
         Map<String, Object> anyMessage;
         int count = 0;
         while ((anyMessage = personalSubscriber.getMessages().poll()) != null && count < 10) {
             count++;
         }
-        // 메시지 확인 완료
     }
 }
