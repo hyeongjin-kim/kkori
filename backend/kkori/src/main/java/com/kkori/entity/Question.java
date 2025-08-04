@@ -14,11 +14,12 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
 @Entity
+@Getter
 @Table(name = "question")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Question extends BaseEntity {
@@ -39,5 +40,16 @@ public class Question extends BaseEntity {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TailQuestion> tailQuestions = new ArrayList<>();
+
+    @Builder
+    public Question(String content, String expectedAnswer, QuestionType questionType) {
+        this.content = content;
+        this.expectedAnswer = expectedAnswer;
+        this.questionType = questionType;
+    }
+
+    public static Question of(String content, String expectedAnswer, QuestionType questionType) {
+        return new Question(content, expectedAnswer, questionType);
+    }
 
 }
