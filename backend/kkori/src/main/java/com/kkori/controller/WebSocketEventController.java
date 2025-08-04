@@ -8,16 +8,20 @@ import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.CustomQuestionCreateRequest;
 import com.kkori.dto.interview.request.NextQuestionSelectRequest;
 import com.kkori.dto.interview.request.RoomCreateRequest;
-import com.kkori.dto.interview.response.AnswerSubmitResponse;
+import com.kkori.dto.interview.response.NextQuestionChoicesResponse;
+import com.kkori.dto.interview.response.STTResultResponse;
 import com.kkori.dto.interview.response.ErrorResponse;
 import com.kkori.dto.interview.response.InterviewStartResponse;
 import com.kkori.dto.interview.response.RoomCreateResponse;
 import com.kkori.dto.interview.response.RoomStatusResponse;
 import com.kkori.dto.interview.response.SuccessResponse;
+import com.kkori.exception.ExceptionCode;
+import com.kkori.exception.user.UserException;
+import com.kkori.message.InterviewMessages;
 import com.kkori.service.InterviewSessionService;
+import com.kkori.component.interview.InterviewRoom;
+import com.kkori.dto.websocket.WebSocketResponse;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -43,51 +47,46 @@ public class WebSocketEventController {
 
     @MessageMapping("/room-create")
     public void handleRoomCreate(@Payload RoomCreateRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        System.out.println("방 생성");
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = createRoom(request, authenticatedUserId);
             RoomCreateResponse response = new RoomCreateResponse(roomId);
             sendPersonalMessage(authenticatedUserId, "room-created", response);
-            System.out.println("방 ID" + roomId);
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "방 생성 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.ROOM_CREATE_FAILED, e.getMessage());
         }
     }
 
     @MessageMapping("/room-join")
     public void handleRoomJoin(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
             interviewSessionService.joinRoom(roomId, authenticatedUserId);
 
             SuccessResponse broadcastResponse = new SuccessResponse(
-                    "새 사용자가 참여했습니다",
+                    InterviewMessages.USER_JOINED,
                     String.valueOf(System.currentTimeMillis())
             );
             broadcastToRoom(roomId, "user-joined", broadcastResponse);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "방 참여 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.ROOM_JOIN_FAILED, e.getMessage());
         }
     }
 
     @MessageMapping("/room-exit")
     public void handleRoomExit(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
             interviewSessionService.exitRoom(roomId, authenticatedUserId);
 
             SuccessResponse broadcastResponse = new SuccessResponse(
-                    "사용자가 방을 나갔습니다",
+                    InterviewMessages.USER_EXITED,
                     String.valueOf(System.currentTimeMillis())
             );
             broadcastToRoom(roomId, "user-exited", broadcastResponse);
@@ -99,19 +98,18 @@ public class WebSocketEventController {
 
     @MessageMapping("/room-status")
     public void handleRoomStatus(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
 
-            // TODO: 실제 방 상태 조회 로직 구현
+            // TODO: 실제 방 상태 조회 로직 구현 (필요하다면)
             RoomStatusResponse response = new RoomStatusResponse("WAITING", 1, 2);
 
             sendPersonalMessage(authenticatedUserId, "room-status", response);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "방 상태 조회 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.ROOM_STATUS_FAILED, e.getMessage());
         }
     }
 
@@ -119,8 +117,7 @@ public class WebSocketEventController {
 
     @MessageMapping("/interview-start")
     public void handleInterviewStart(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
@@ -130,33 +127,32 @@ public class WebSocketEventController {
 
             // 첫 번째 질문 조회
             QuestionForm currentQuestion = interviewSessionService.getCurrentQuestion(roomId);
-            QuestionDto questionDto = convertToQuestionDto(currentQuestion);
+            QuestionDto questionDto = QuestionDto.from(currentQuestion);
 
             InterviewStartResponse response = new InterviewStartResponse(questionDto);
             broadcastToRoom(roomId, "interview-started", response);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "면접 시작 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.INTERVIEW_START_FAILED, e.getMessage());
         }
     }
 
     @MessageMapping("/interview-end")
     public void handleInterviewEnd(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
             interviewSessionService.completeInterview(roomId);
 
             SuccessResponse response = new SuccessResponse(
-                    "면접이 완료되었습니다",
+                    InterviewMessages.INTERVIEW_COMPLETED,
                     String.valueOf(System.currentTimeMillis())
             );
             broadcastToRoom(roomId, "interview-ended", response);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "면접 종료 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.INTERVIEW_END_FAILED, e.getMessage());
         }
     }
 
@@ -164,12 +160,11 @@ public class WebSocketEventController {
 
     @MessageMapping("/answer-start")
     public void handleAnswerStart(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         String roomId = request.getRoomId();
         SuccessResponse response = new SuccessResponse(
-                "답변 녹음이 시작되었습니다",
+                InterviewMessages.ANSWER_RECORDING_STARTED,
                 String.valueOf(System.currentTimeMillis())
         );
         broadcastToRoom(roomId, "answer-recording-started", response);
@@ -177,28 +172,36 @@ public class WebSocketEventController {
 
     @MessageMapping("/answer-submit")
     public void handleAnswerSubmit(@Payload AnswerSubmitRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
             String audioBase64 = request.getAudioBase64();
 
-            // STT 처리 및 답변 저장
+            // 1단계: STT 처리 및 답변 저장
             String transcribedText = interviewSessionService.processAudioAnswer(
                     roomId, authenticatedUserId, audioBase64);
 
-            // 다음 질문 선택지 조회
-            List<QuestionForm> nextQuestions = interviewSessionService.getNextQuestions(roomId);
-            List<QuestionDto> nextQuestionDtos = nextQuestions.stream()
-                    .map(this::convertToQuestionDto)
-                    .toList();
+            // 1단계: STT 결과를 방 전체에 먼저 브로드캐스트
+            STTResultResponse sttResponse = new STTResultResponse(transcribedText);
+            broadcastToRoom(roomId, "stt-result", sttResponse);
 
-            AnswerSubmitResponse response = new AnswerSubmitResponse(transcribedText, nextQuestionDtos);
-            sendPersonalMessage(authenticatedUserId, "answer-processed", response);
+            // 2단계: 방 정보를 가져와서 면접관 확인 후 질문 선택지를 면접관에게만 개인 메시지로 전송
+            InterviewRoom room = interviewSessionService.getRoom(roomId);
+            Long interviewerId = room.getInterviewerId();
+            
+            if (interviewerId != null) {
+                List<QuestionForm> nextQuestions = interviewSessionService.getNextQuestions(roomId);
+                List<QuestionDto> nextQuestionDtos = nextQuestions.stream()
+                        .map(QuestionDto::from)
+                        .toList();
+
+                NextQuestionChoicesResponse choicesResponse = new NextQuestionChoicesResponse(nextQuestionDtos);
+                sendPersonalMessage(interviewerId, "next-question-choices", choicesResponse);
+            }
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "답변 처리 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.ANSWER_PROCESSING_FAILED, e.getMessage());
         }
     }
 
@@ -206,8 +209,7 @@ public class WebSocketEventController {
 
     @MessageMapping("/next-question-select")
     public void handleNextQuestionSelect(@Payload NextQuestionSelectRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
@@ -218,22 +220,21 @@ public class WebSocketEventController {
                     request.getQuestionId(),
                     request.getQuestionText());
 
-            QuestionDto questionDto = convertToQuestionDto(selectedQuestion);
+            QuestionDto questionDto = QuestionDto.from(selectedQuestion);
             broadcastToRoom(roomId, "next-question-selected", questionDto);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "질문 선택 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.QUESTION_SELECT_FAILED, e.getMessage());
         }
     }
 
     @MessageMapping("/custom-question-start")
     public void handleCustomQuestionStart(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         String roomId = request.getRoomId();
         SuccessResponse response = new SuccessResponse(
-                "커스텀 질문 녹음이 시작되었습니다",
+                InterviewMessages.CUSTOM_QUESTION_RECORDING_STARTED,
                 String.valueOf(System.currentTimeMillis())
         );
         broadcastToRoom(roomId, "custom-question-recording-started", response);
@@ -241,8 +242,7 @@ public class WebSocketEventController {
 
     @MessageMapping("/custom-question-create")
     public void handleCustomQuestionCreate(@Payload CustomQuestionCreateRequest request, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) return;
+        Long authenticatedUserId = requireAuthenticatedUserId(headerAccessor);
 
         try {
             String roomId = request.getRoomId();
@@ -251,11 +251,11 @@ public class WebSocketEventController {
             QuestionForm customQuestion = interviewSessionService.createCustomQuestion(
                     roomId, audioBase64);
 
-            QuestionDto questionDto = convertToQuestionDto(customQuestion);
+            QuestionDto questionDto = QuestionDto.from(customQuestion);
             broadcastToRoom(roomId, "custom-question-created", questionDto);
 
         } catch (Exception e) {
-            sendErrorToUser(authenticatedUserId, "커스텀 질문 생성 실패", e.getMessage());
+            sendErrorToUser(authenticatedUserId, ExceptionCode.AUDIO_TRANSCRIPTION_FAILED.getMessage(), e.getMessage());
         }
     }
 
@@ -264,7 +264,18 @@ public class WebSocketEventController {
     private Long getAuthenticatedUserId(SimpMessageHeaderAccessor headerAccessor) {
         Long userId = (Long) headerAccessor.getSessionAttributes().get("userId");
         if (userId == null) {
-            sendErrorToUser(null, "인증 실패", "인증되지 않은 사용자입니다");
+            sendErrorToUser(null, ExceptionCode.WEBSOCKET_AUTHENTICATION_FAILED);
+        }
+        return userId;
+    }
+
+    /**
+     * @throws UserException 인증되지 않은 사용자인 경우
+     */
+    private Long requireAuthenticatedUserId(SimpMessageHeaderAccessor headerAccessor) {
+        Long userId = getAuthenticatedUserId(headerAccessor);
+        if (userId == null) {
+            throw UserException.webSocketAuthenticationFailed();
         }
         return userId;
     }
@@ -277,13 +288,6 @@ public class WebSocketEventController {
         };
     }
 
-    private QuestionDto convertToQuestionDto(QuestionForm questionForm) {
-        return new QuestionDto(
-                questionForm.getQuestionType().name(),
-                questionForm.getQuestionId(),
-                questionForm.getQuestionText()
-        );
-    }
 
     private void sendPersonalMessage(Long userId, String messageType, Object responseData) {
         try {
@@ -318,16 +322,19 @@ public class WebSocketEventController {
             sendPersonalMessage(userId, "error", errorResponse);
         }
     }
-
-    private WebSocketResponse createResponse(String type, Object data) {
-        return new WebSocketResponse(type, data, System.currentTimeMillis());
+    
+    /**
+     * ExceptionCode를 활용한 에러 전송
+     */
+    private void sendErrorToUser(Long userId, ExceptionCode exceptionCode, String detailMessage) {
+        sendErrorToUser(userId, exceptionCode.getMessage(), detailMessage);
     }
 
-    @Getter
-    @AllArgsConstructor
-    public static class WebSocketResponse {
-        private final String type;
-        private final Object data;
-        private final long timestamp;
+    private void sendErrorToUser(Long userId, ExceptionCode exceptionCode) {
+        sendErrorToUser(userId, exceptionCode.getMessage(), exceptionCode.getMessage());
+    }
+
+    private WebSocketResponse createResponse(String type, Object data) {
+        return WebSocketResponse.of(type, data);
     }
 }
