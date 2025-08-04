@@ -2,6 +2,7 @@ package com.kkori.service;
 
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.component.interview.InterviewRoom;
 
 import java.util.List;
 import java.util.Map;
@@ -93,4 +94,9 @@ public interface InterviewSessionService {
      * 면접 시작 가능 여부 확인
      */
     boolean canStartInterview(String roomId);
+
+    /**
+     * 방 정보 조회
+     */
+    InterviewRoom getRoom(String roomId);
 }
