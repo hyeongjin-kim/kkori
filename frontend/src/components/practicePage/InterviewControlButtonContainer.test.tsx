@@ -8,7 +8,7 @@ describe('ControlButtonContainer', () => {
 
   test('ControlButtonContainer가 렌더링 된다.', () => {
     expect(
-      screen.getByLabelText('control-button-container'),
+      screen.getByLabelText('interview-control-button-container'),
     ).toBeInTheDocument();
   });
 

@@ -21,11 +21,18 @@ describe('LeftSection', () => {
     expect(mainMediaStream).toBeInTheDocument();
   });
 
-  test('ControlButtonContainer가 렌더링 되어야 한다.', () => {
-    const controlButtonContainer = screen.getByLabelText(
-      'control-button-container',
+  test('PreInterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
+    const preInterviewControlButtonContainer = screen.getByLabelText(
+      'pre-interview-control-button-container',
     );
-    expect(controlButtonContainer).toBeInTheDocument();
+    expect(preInterviewControlButtonContainer).toBeInTheDocument();
+  });
+
+  test('InterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
+    const interviewControlButtonContainer = screen.getByLabelText(
+      'interview-control-button-container',
+    );
+    expect(interviewControlButtonContainer).toBeInTheDocument();
   });
 
   test('서브 미디어 스트림이 렌더링 되어야 한다.', () => {

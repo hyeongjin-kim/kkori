@@ -10,7 +10,7 @@ import {
 function InterviewControlButtonContainer() {
   return (
     <div
-      aria-label="control-button-container"
+      aria-label="interview-control-button-container"
       className="flex w-full items-center justify-center gap-4"
     >
       <ControlButton
