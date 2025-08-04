@@ -21,6 +21,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(QuestionSetController.class)
 class QuestionSetControllerTest {
 
+    private static final Long TEST_USER_ID = 123L;
+    private static final String TEST_TITLE = "테스트 질문 세트";
+    private static final String TEST_DESCRIPTION = "테스트 질문 세트 설명";
+    private static final String TEST_QUESTION_CONTENT = "질문 내용";
+    private static final int TEST_QUESTION_TYPE = 1;
+    private static final String TEST_EXPECTED_ANSWER = "예상 답변";
+    private static final Long MOCK_QUESTION_SET_ID = 1L;
+
+    private static final String API_URL = "/api/questionsets";
+    private static final String SUCCESS_MESSAGE = "질문 세트와 첫 질문이 생성되었습니다";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -34,18 +45,15 @@ class QuestionSetControllerTest {
     @DisplayName("새 질문 세트 생성 API 성공 테스트")
     void createQuestionSet_Success() throws Exception {
 
-        Long userId = 123L;
-        String title = "테스트 질문 세트";
-
         CreateQuestionRequest question = CreateQuestionRequest.builder()
-                .content("질문 내용")
-                .questionType(1)
-                .expectedAnswer("예상 답변")
+                .content(TEST_QUESTION_CONTENT)
+                .questionType(TEST_QUESTION_TYPE)
+                .expectedAnswer(TEST_EXPECTED_ANSWER)
                 .build();
 
         CreateNewQuestionSetRequest requestDto = CreateNewQuestionSetRequest.builder()
-                .title(title)
-                .description("테스트 질문 세트 설명")
+                .title(TEST_TITLE)
+                .description(TEST_DESCRIPTION)
                 .questions(List.of(question))
                 .build();
 
@@ -53,17 +61,17 @@ class QuestionSetControllerTest {
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
-        )).willReturn(1L);
+        )).willReturn(MOCK_QUESTION_SET_ID);
 
-        mockMvc.perform(post("/api/questionsets")
-                        .param("title", title)
+        mockMvc.perform(post(API_URL)
+                        .param("title", TEST_TITLE)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto))
-                        .requestAttr("LoginUser", userId)
+                        .requestAttr("LoginUser", TEST_USER_ID)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(1L))
-                .andExpect(jsonPath("$.data.message").value("질문 세트와 첫 질문이 생성되었습니다"));
+                .andExpect(jsonPath("$.data.id").value(MOCK_QUESTION_SET_ID))
+                .andExpect(jsonPath("$.data.message").value(SUCCESS_MESSAGE));
     }
 
 }
