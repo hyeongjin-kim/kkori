@@ -114,8 +114,7 @@ public class WebRTCControllerTest {
     void sendOffer() throws Exception {
         // given
         SignalingMessage offer = new SignalingMessage(
-                "offer", TEST_ROOM_ID, TEST_USER_ID_2, TEST_USER_ID_1, "v=0\r\no=- 123 456 IN IP4 127.0.0.1\r\n...",
-                null
+                "offer", TEST_ROOM_ID, TEST_USER_ID_2, TEST_USER_ID_1, "v=0\r\no=- 123 456 IN IP4 127.0.0.1\r\n..."
         );
 
         // when
@@ -134,8 +133,7 @@ public class WebRTCControllerTest {
     void sendAnswer() throws Exception {
         // given
         SignalingMessage answer = new SignalingMessage(
-                "answer", TEST_ROOM_ID, TEST_USER_ID_1, TEST_USER_ID_2, "v=0\r\no=- 789 012 IN IP4 127.0.0.1\r\n...",
-                null
+                "answer", TEST_ROOM_ID, TEST_USER_ID_1, TEST_USER_ID_2, "v=0\r\no=- 789 012 IN IP4 127.0.0.1\r\n..."
         );
 
         // when
