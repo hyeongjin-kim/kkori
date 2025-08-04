@@ -12,4 +12,8 @@ public class UserException extends CustomRuntimeException {
     public static UserException userNotFound(){
         return new UserException(ExceptionCode.USER_NOT_FOUND);
     }
+    
+    public static UserException webSocketAuthenticationFailed(){
+        return new UserException(ExceptionCode.WEBSOCKET_AUTHENTICATION_FAILED);
+    }
 }
