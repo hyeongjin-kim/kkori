@@ -5,7 +5,7 @@ import { mockupQuestion } from '@/__mocks__/questionMocks';
 
 describe('CurrentQuestionDisplay', () => {
   beforeEach(() => {
-    render(<MemoryRouterWrapped component={<CurrentQuestionDisplay />} />);
+    render(<CurrentQuestionDisplay />);
   });
 
   test('CurrentQuestionDisplay 컴포넌트가 렌더링 된다.', () => {
