@@ -245,6 +245,11 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return roomManager.canStartInterview(roomId);
     }
 
+    @Override
+    public InterviewRoom getRoom(String roomId) {
+        return roomManager.getRoom(roomId);
+    }
+
     // ==================== Private 헬퍼 메서드들 ====================
 
     /**

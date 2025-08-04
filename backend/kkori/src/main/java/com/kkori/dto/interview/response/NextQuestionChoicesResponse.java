@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnswerSubmitResponse {
-    private String transcribedText;
+public class NextQuestionChoicesResponse {
     private List<QuestionDto> nextQuestionChoices;
 }

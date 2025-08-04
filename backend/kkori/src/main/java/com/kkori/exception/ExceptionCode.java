@@ -41,7 +41,17 @@ public enum ExceptionCode {
     JSON_CONVERSION_FAILED(5003, "JSON 변환에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ==== User 관련 ====
-    USER_NOT_FOUND(6001, "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    USER_NOT_FOUND(6001, "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    WEBSOCKET_AUTHENTICATION_FAILED(6002, "WebSocket 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
+    
+    // ==== WebSocket 관련 ====
+    ROOM_CREATE_FAILED(7001, "방 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ROOM_JOIN_FAILED(7002, "방 참여에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ROOM_STATUS_FAILED(7003, "방 상태 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INTERVIEW_START_FAILED(7004, "면접 시작에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INTERVIEW_END_FAILED(7005, "면접 종료에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ANSWER_PROCESSING_FAILED(7006, "답변 처리에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String message;
