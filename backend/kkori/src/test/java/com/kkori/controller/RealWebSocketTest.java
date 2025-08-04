@@ -13,7 +13,10 @@ import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.test.helper.WebSocketTestHelper;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -208,10 +211,10 @@ class RealWebSocketTest {
             String createdRoomId = roomCreateResponse.getRoomId();
 
             // 2: 방 토픽 구독 (두 사용자 모두)
-            WebSocketTestHelper.MessageSubscriber roomSubscriber1 =
-                    testHelper.subscribeToRealRoomTopic(stompSession, createdRoomId);
-            WebSocketTestHelper.MessageSubscriber roomSubscriber2 =
-                    testHelper.subscribeToRealRoomTopic(stompSession2, createdRoomId);
+            List<StompSession> sessions = Arrays.asList(stompSession, stompSession2);
+            List<WebSocketTestHelper.MessageSubscriber> roomSubscribers = subscribeUsersToRoom(sessions, createdRoomId);
+            WebSocketTestHelper.MessageSubscriber roomSubscriber1 = roomSubscribers.get(0);
+            WebSocketTestHelper.MessageSubscriber roomSubscriber2 = roomSubscribers.get(1);
 
             // 3: 두 번째 사용자가 방 입장
             CommonRoomRequest joinRequest = new CommonRoomRequest(createdRoomId);
@@ -230,19 +233,14 @@ class RealWebSocketTest {
             Map<String, Object> joinDataMap = (Map<String, Object>) user1Notification.get("data");
             assertThat(joinDataMap.get("message")).isEqualTo("새 사용자가 참여했습니다");
 
-
             // 정리
-            roomSubscriber1.unsubscribe();
-            roomSubscriber2.unsubscribe();
+            unsubscribeSafe(roomSubscriber1);
+            unsubscribeSafe(roomSubscriber2);
 
         } finally {
             // 두 번째 사용자 연결 정리
-            if (personalSubscriber2 != null) {
-                personalSubscriber2.unsubscribe();
-            }
-            if (stompSession2 != null && stompSession2.isConnected()) {
-                stompSession2.disconnect();
-            }
+            unsubscribeSafe(personalSubscriber2);
+            disconnectSafe(stompSession2);
         }
     }
 
@@ -266,6 +264,32 @@ class RealWebSocketTest {
         } catch (AssertionError e) {
             printQueuedMessages();
             throw e;
+        }
+    }
+
+    // ==================== 헬퍼 메서드들 ====================
+    
+    private List<WebSocketTestHelper.MessageSubscriber> subscribeUsersToRoom(List<StompSession> sessions, String roomId) {
+        return sessions.stream()
+                .map(session -> {
+                    try {
+                        return testHelper.subscribeToRealRoomTopic(session, roomId);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+    
+    private void unsubscribeSafe(WebSocketTestHelper.MessageSubscriber subscriber) {
+        if (subscriber != null) {
+            subscriber.unsubscribe();
+        }
+    }
+
+    private void disconnectSafe(StompSession session) {
+        if (session != null && session.isConnected()) {
+            session.disconnect();
         }
     }
 
