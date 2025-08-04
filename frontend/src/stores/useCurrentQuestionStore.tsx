@@ -1,3 +1,4 @@
+import { mockupQuestion } from '@/__mocks__/questionMocks';
 import { create } from 'zustand';
 
 export interface Question {
@@ -16,10 +17,7 @@ interface CurrentQuestionActions {
 type CurrentQuestionStore = CurrentQuestionState & CurrentQuestionActions;
 
 const initialState: CurrentQuestionState = {
-  question: {
-    id: 0,
-    question: '명령형 프로그래밍과 선언형 프로그래밍이 무엇인가요?',
-  },
+  question: mockupQuestion,
 };
 
 export const useCurrentQuestionStore = create<CurrentQuestionStore>(set => ({
