@@ -47,7 +47,7 @@ public interface InterviewSessionService {
     /**
      * 음성 파일로 답변 처리 (STT 변환 포함)
      */
-    String processAudioAnswer(String roomId, Long userId, String audioFilePath);
+    String processAudioAnswer(String roomId, Long userId, String audioBase64);
 
     // ==================== 질문 관리 ====================
 
@@ -74,7 +74,7 @@ public interface InterviewSessionService {
     /**
      * 커스텀 질문 생성
      */
-    QuestionForm createCustomQuestion(String roomId, String questionText);
+    QuestionForm createCustomQuestion(String roomId, String audioBase64);
 
     // ==================== 역할 및 상태 관리 ====================
 

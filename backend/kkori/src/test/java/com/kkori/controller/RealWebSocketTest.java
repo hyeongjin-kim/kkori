@@ -66,20 +66,18 @@ class RealWebSocketTest {
         // User 객체로 JWT 토큰 생성
         Token tokenObject = tokenProvider.generateAccessToken(testUser);
         jwtToken = tokenObject.getToken();
-        System.out.println("🔑 생성된 JWT 토큰: " + jwtToken.substring(0, Math.min(30, jwtToken.length())) + "...");
-        System.out.println("🔍 토큰에서 사용자 ID 확인: " + tokenProvider.getUserIdFromToken(jwtToken));
-        System.out.println("🔍 토큰 유효성 확인: " + tokenProvider.validateToken(jwtToken));
+        // JWT 토큰 생성 및 검증 완료
 
         // 실제 JWT 쿠키와 함께 WebSocket 연결
         stompSession = testHelper.createRealTestSession(port, jwtToken, TEST_USER_ID);
         personalSubscriber = testHelper.subscribeToRealPersonalQueue(stompSession, TEST_USER_ID);
 
-        System.out.println("=== 실제 JWT 기반 테스트 준비 완료 ===");
+        // 테스트 준비 완료
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        System.out.println("🔧 실제 테스트 정리 시작...");
+        // 테스트 정리 시작
 
         if (personalSubscriber != null) {
             personalSubscriber.unsubscribe();
@@ -89,34 +87,28 @@ class RealWebSocketTest {
 
         if (stompSession != null && stompSession.isConnected()) {
             stompSession.disconnect();
-            System.out.println("🔌 실제 WebSocket 연결 해제됨");
+            // WebSocket 연결 해제됨
         }
 
-        System.out.println("✅ 실제 테스트 정리 완료");
+        // 테스트 정리 완료
     }
 
     @Test
-    @DisplayName("실제 JWT 쿠키로 방 생성 테스트")
+    @DisplayName("실제 JWT 쿠키로 방 생성 테스트 (혼자 연습하기)")
     void realJWTRoomCreateTest() throws Exception {
         // given
         String expectedRoomId = "REAL_CREATED_ROOM_789";
         given(interviewSessionService.createSoloRoom(1L, TEST_USER_ID))
                 .willReturn(expectedRoomId);
 
-        // RoomCreateRequest 객체를 직접 전송
+        // RoomCreateRequest 직접 전송
         RoomCreateRequest request = new RoomCreateRequest("SOLO_PRACTICE", 1L);
-
-        System.out.println("🎯 실제 JWT로 방 생성 메시지 전송");
 
         // when
         stompSession.send("/app/room-create", request);
 
-        // then
-        System.out.println("📥 실제 JWT 기반 응답 메시지 대기 중... (10초)");
-
         try {
             Map<String, Object> response = personalSubscriber.waitForMessage("room-created", 10);
-            System.out.println("✅ 실제 JWT 기반 응답 받음: " + response);
 
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("room-created");
@@ -126,20 +118,9 @@ class RealWebSocketTest {
             Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
             RoomCreateResponse roomCreateResponse = objectMapper.convertValue(dataMap, RoomCreateResponse.class);
             assertThat(roomCreateResponse.getRoomId()).isEqualTo(expectedRoomId);
-
-            System.out.println("🎉 실제 JWT 기반 테스트 성공!");
-            System.out.println("📋 생성된 방 ID: " + roomCreateResponse.getRoomId());
-
         } catch (AssertionError e) {
-            System.err.println("❌ 실제 JWT 기반 테스트 실패: " + e.getMessage());
-
-            // 실패 시 디버깅 정보
-            System.out.println("🔍 JWT 토큰 재확인: " + tokenProvider.validateToken(jwtToken));
-            System.out.println("🔍 사용자 ID 재확인: " + tokenProvider.getUserIdFromToken(jwtToken));
-
             // 대기 중인 모든 메시지 확인
             printQueuedMessages();
-
             throw e;
         }
     }
@@ -150,18 +131,12 @@ class RealWebSocketTest {
         // given
         CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
 
-        System.out.println("🎯 실제 JWT로 방 상태 조회 메시지 전송");
-
         // when
         stompSession.send("/app/room-status", request);
-        Thread.sleep(1000);
-
-        // then
-        System.out.println("📥 실제 JWT 기반 상태 응답 대기 중... (10초)");
+        Thread.sleep(500);
 
         try {
             Map<String, Object> response = personalSubscriber.waitForMessage("room-status", 10);
-            System.out.println("✅ 실제 JWT 기반 상태 응답 받음: " + response);
 
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("room-status");
@@ -174,12 +149,9 @@ class RealWebSocketTest {
             assertThat(roomStatusResponse.getUserCount()).isEqualTo(1);
             assertThat(roomStatusResponse.getMaxUsers()).isEqualTo(2);
 
-            System.out.println("🎉 실제 JWT 기반 상태 조회 테스트 성공!");
-            System.out.println("📋 방 상태: " + roomStatusResponse.getStatus());
-            System.out.println("📋 참여자 수: " + roomStatusResponse.getUserCount() + "/" + roomStatusResponse.getMaxUsers());
+            // 방 상태 확인 완료
 
         } catch (AssertionError e) {
-            System.err.println("❌ 실제 JWT 기반 상태 조회 실패: " + e.getMessage());
             printQueuedMessages();
             throw e;
         }
@@ -188,31 +160,25 @@ class RealWebSocketTest {
     @Test
     @DisplayName("실제 인터셉터 동작 확인 - 인증 실패 시뮬레이션")
     void realInterceptorAuthFailureTest() throws Exception {
-        System.out.println("🎯 잘못된 JWT로 연결 시도 테스트");
+        // 잘못된 JWT로 연결 시도 테스트
 
         String invalidToken = "invalid.jwt.token";
 
         try {
             StompSession failSession = testHelper.createRealTestSession(port, invalidToken, TEST_USER_ID);
-            System.err.println("❌ 잘못된 토큰으로 연결이 성공했습니다! (문제 있음)");
+            // 잘못된 토큰으로 연결이 성공함 (문제 있음)
             failSession.disconnect();
         } catch (Exception e) {
-            System.out.println("✅ 예상대로 잘못된 토큰으로 연결 실패: " + e.getMessage());
-            // 이것이 정상적인 동작
+            // 예상대로 잘못된 토큰으로 연결 실패
         }
     }
 
     @Test
     @DisplayName("JWT 토큰 정보 확인")
     void jwtTokenInfoTest() throws Exception {
-        System.out.println("🔍 === JWT 토큰 정보 확인 ===");
-        System.out.println("📋 테스트 사용자: " + testUser);
-        System.out.println("📋 사용자 ID: " + testUser.getUserId());
-        System.out.println("📋 사용자 Sub: " + testUser.getSub());
-        System.out.println("📋 사용자 닉네임: " + testUser.getNickname());
-        System.out.println("📋 JWT 토큰 유효성: " + tokenProvider.validateToken(jwtToken));
-        System.out.println("📋 JWT에서 추출한 사용자 ID: " + tokenProvider.getUserIdFromToken(jwtToken));
-        System.out.println("🔍 === JWT 토큰 정보 확인 완료 ===");
+        // JWT 토큰 정보 확인 (디버깅용)
+        assertThat(tokenProvider.validateToken(jwtToken)).isTrue();
+        assertThat(tokenProvider.getUserIdFromToken(jwtToken)).isEqualTo(TEST_USER_ID);
     }
 
 //    @Test
@@ -320,7 +286,7 @@ class RealWebSocketTest {
         // given - 존재하지 않는 모드로 방 생성 시도
         RoomCreateRequest invalidRequest = new RoomCreateRequest("INVALID_MODE", 1L);
 
-        System.out.println("🎯 잘못된 요청으로 에러 응답 테스트");
+        // 잘못된 요청으로 에러 응답 테스트
 
         // when
         stompSession.send("/app/room-create", invalidRequest);
@@ -328,30 +294,27 @@ class RealWebSocketTest {
         // then
         try {
             Map<String, Object> response = personalSubscriber.waitForMessage("error", 10);
-            System.out.println("✅ 에러 응답 받음: " + response);
+            // 에러 응답 받음
 
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("error");
 
-            System.out.println("🎉 에러 응답 처리 테스트 성공!");
+            // 에러 응답 처리 테스트 성공
 
         } catch (AssertionError e) {
-            System.err.println("❌ 에러 응답 테스트 실패: " + e.getMessage());
+            // 에러 응답 테스트 실패
             printQueuedMessages();
             throw e;
         }
     }
 
     private void printQueuedMessages() {
-        System.out.println("🔍 === 큐에 있는 모든 메시지 확인 ===");
+        // 큐에 있는 모든 메시지 확인 (디버깅용)
         Map<String, Object> anyMessage;
         int count = 0;
         while ((anyMessage = personalSubscriber.getMessages().poll()) != null && count < 10) {
-            System.out.println("📨 큐에 있던 메시지 " + (++count) + ": " + anyMessage);
+            count++;
         }
-        if (count == 0) {
-            System.out.println("📭 큐에 메시지가 없습니다.");
-        }
-        System.out.println("🔍 === 메시지 확인 완료 ===");
+        // 메시지 확인 완료
     }
 }

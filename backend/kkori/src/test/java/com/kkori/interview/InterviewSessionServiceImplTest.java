@@ -55,13 +55,16 @@ class InterviewSessionServiceImplTest {
     private static final Long USER_ID = 2L;
     private static final Long QUESTION_SET_ID = 1L;
     private static final Long INTERVIEW_ID = 100L;
-    private static final String AUDIO_FILE_PATH = "demo.m4a";
     private static final String TRANSCRIBED_TEXT = "테스트 답변입니다";
     private static final String QUESTION_1_TEXT = "자기소개를 해주세요";
     private static final String QUESTION_2_TEXT = "지원동기는 무엇인가요";
     private static final String CUSTOM_QUESTION_TEXT = "커스텀 질문";
     private static final String TAIL_QUESTION_1 = "구체적으로 설명해주세요";
     private static final String TAIL_QUESTION_2 = "어려웠던 점은 무엇인가요";
+    private static final String AUDIO_BASE64 = "GkXfo0OBAkKFgQIYU4BnAQAAAAAAAHTEU2bdgX+Wws+XmiHnQs+EaOFjhDMAAUABvABMAfWD" +
+            "bwPfAMwA5QBZrmtTsKRFH6NLZvDLLFKTpUHnQs+EaOFjhDMABMAJAwCF2cEAAAAA8QEBAcABPABg" +
+            "AICAYwDyQEAAaABgAHgEcABRyEpv1Kb4EjSEVPYABDGvMDPUMQIR+CAAIi8wMlIAAKwByAUkm8AL" +
+            "AB0Lk8AAH2wByA=="; // 테스트용 WebM Base64 데이터
 
     // Mock Objects
     private User mockCreator;
@@ -220,14 +223,15 @@ class InterviewSessionServiceImplTest {
             when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
-            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenReturn(TRANSCRIBED_TEXT);
+            when(transcriber.transcribe(anyString())).thenReturn(TRANSCRIBED_TEXT);
 
             // when
-            String result = service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH);
+            String result = service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_BASE64);
 
             // then
             assertThat(result).isEqualTo(TRANSCRIBED_TEXT);
-            verify(transcriber).transcribe(AUDIO_FILE_PATH);
+            verify(transcriber).transcribe(anyString());
+            System.out.println(result);
         }
 
         @Test
@@ -239,7 +243,7 @@ class InterviewSessionServiceImplTest {
             // isStarted() 설정 제거 - 첫 번째 검증에서 실패하므로 호출되지 않음
 
             // when & then - CREATOR_ID가 답변 시도 (권한 없음)
-            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, CREATOR_ID, AUDIO_FILE_PATH))
+            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, CREATOR_ID, AUDIO_BASE64))
                     .isInstanceOf(InterviewSessionException.class);
         }
 
@@ -252,7 +256,7 @@ class InterviewSessionServiceImplTest {
             when(mockRoom.isStarted()).thenReturn(false);  // 면접 시작 전
 
             // when & then
-            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH))
+            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_BASE64))
                     .isInstanceOf(InterviewRoomException.class);
         }
 
@@ -265,10 +269,10 @@ class InterviewSessionServiceImplTest {
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
 
             // STT 처리 실패 설정
-            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenThrow(new RuntimeException("STT Error"));
+            when(transcriber.transcribe(anyString())).thenThrow(new RuntimeException("STT Error"));
 
             // when & then
-            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH))
+            assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_BASE64))
                     .isInstanceOf(AudioProcessingException.class);
         }
     }
@@ -586,14 +590,19 @@ class InterviewSessionServiceImplTest {
         @DisplayName("커스텀 질문 생성")
         void createCustomQuestion() {
             // given
+            when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
+            when(transcriber.transcribe(anyString())).thenReturn(CUSTOM_QUESTION_TEXT);
+            
             QuestionForm customQuestion = new QuestionForm(QuestionType.CUSTOM, 1, CUSTOM_QUESTION_TEXT);
             when(mockSession.createCustomQuestion(CUSTOM_QUESTION_TEXT)).thenReturn(customQuestion);
 
             // when
-            QuestionForm result = service.createCustomQuestion(ROOM_ID, CUSTOM_QUESTION_TEXT);
+            QuestionForm result = service.createCustomQuestion(ROOM_ID, AUDIO_BASE64);
 
             // then
             assertThat(result).isEqualTo(customQuestion);
+            verify(transcriber).transcribe(anyString());
+            verify(mockSession).createCustomQuestion(CUSTOM_QUESTION_TEXT);
         }
     }
 
@@ -614,11 +623,22 @@ class InterviewSessionServiceImplTest {
         @Test
         @DisplayName("역할 변경")
         void swapRoles() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            
+            // roomManager.swapRoles()가 실제 동작을 하도록 설정
+            doAnswer(invocation -> {
+                InterviewRoom room = roomManager.getRoom(ROOM_ID);
+                room.swapRoles();
+                return null;
+            }).when(roomManager).swapRoles(ROOM_ID);
+
             // when
             service.swapRoles(ROOM_ID);
 
             // then
             verify(roomManager).swapRoles(ROOM_ID);
+            verify(mockRoom).swapRoles();
         }
 
         @Test
@@ -632,6 +652,7 @@ class InterviewSessionServiceImplTest {
 
             // then
             assertThat(result).isTrue();
+            verify(roomManager).canJoinRoom(ROOM_ID);
         }
 
         @Test
@@ -645,6 +666,7 @@ class InterviewSessionServiceImplTest {
 
             // then
             assertThat(result).isTrue();
+            verify(roomManager).canStartInterview(ROOM_ID);
         }
     }
 }

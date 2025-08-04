@@ -43,6 +43,7 @@ public class WebSocketEventController {
 
     @MessageMapping("/room-create")
     public void handleRoomCreate(@Payload RoomCreateRequest request, SimpMessageHeaderAccessor headerAccessor) {
+        System.out.println("방 생성");
         Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
         if (authenticatedUserId == null) return;
 
@@ -50,6 +51,7 @@ public class WebSocketEventController {
             String roomId = createRoom(request, authenticatedUserId);
             RoomCreateResponse response = new RoomCreateResponse(roomId);
             sendPersonalMessage(authenticatedUserId, "room-created", response);
+            System.out.println("방 ID" + roomId);
         } catch (Exception e) {
             sendErrorToUser(authenticatedUserId, "방 생성 실패", e.getMessage());
         }
@@ -180,11 +182,11 @@ public class WebSocketEventController {
 
         try {
             String roomId = request.getRoomId();
-            String audioFilePath = request.getAudioFilePath();
+            String audioBase64 = request.getAudioBase64();
 
             // STT 처리 및 답변 저장
             String transcribedText = interviewSessionService.processAudioAnswer(
-                    roomId, authenticatedUserId, audioFilePath);
+                    roomId, authenticatedUserId, audioBase64);
 
             // 다음 질문 선택지 조회
             List<QuestionForm> nextQuestions = interviewSessionService.getNextQuestions(roomId);
@@ -244,9 +246,10 @@ public class WebSocketEventController {
 
         try {
             String roomId = request.getRoomId();
+            String audioBase64 = request.getAudioBase64();
 
             QuestionForm customQuestion = interviewSessionService.createCustomQuestion(
-                    roomId, request.getQuestionText());
+                    roomId, audioBase64);
 
             QuestionDto questionDto = convertToQuestionDto(customQuestion);
             broadcastToRoom(roomId, "custom-question-created", questionDto);
