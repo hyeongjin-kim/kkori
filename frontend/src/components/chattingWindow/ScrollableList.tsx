@@ -8,7 +8,7 @@ function ScrollableList() {
     <div
       role="list"
       aria-label="scrollable-list"
-      className="overflow-y-auto px-5"
+      className="h-full overflow-y-auto px-5"
     >
       <ul className="h-full w-full overflow-y-auto">
         {messages.map(message => (
