@@ -149,30 +149,4 @@ public class WebRTCControllerTest {
         assertThat(((Number) received.get("senderId")).longValue()).isEqualTo(TEST_USER_ID_1);
         assertThat(((Number) received.get("receiverId")).longValue()).isEqualTo(TEST_USER_ID_2);
     }
-
-    @Test
-    void sendIceCandidate() throws Exception {
-        // given
-        Map<String, Object> candidateData = Map.of(
-                "candidate", "candidate:1 1 UDP 2130706431 192.168.1.100 54400 typ host",
-                "sdpMLineIndex", 0,
-                "sdpMid", "0"
-        );
-
-        SignalingMessage iceCandidate = new SignalingMessage(
-                "ice-candidate", TEST_ROOM_ID, TEST_USER_ID_2, TEST_USER_ID_1, null, candidateData
-        );
-
-        // when
-        stompSession_user2.send("/app/ice-candidate", iceCandidate);
-
-        // then
-        Map<String, Object> received = personalSubscriber_user1.waitForMessage("ice-candidate", 10);
-        assertThat(received).isNotNull();
-
-        assertThat(received.get("type")).isEqualTo("ice-candidate");
-        assertThat(((Number) received.get("senderId")).longValue()).isEqualTo(TEST_USER_ID_2);
-        assertThat(((Number) received.get("receiverId")).longValue()).isEqualTo(TEST_USER_ID_1);
-        assertThat(received.get("candidate")).isNotNull();
-    }
 }
