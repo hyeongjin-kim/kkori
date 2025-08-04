@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
 import com.kkori.dto.question.request.CreateQuestionRequest;
 import com.kkori.service.QuestionSetService;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
@@ -36,9 +37,17 @@ class QuestionSetControllerTest {
         Long userId = 123L;
         String title = "테스트 질문 세트";
 
-        CreateQuestionRequest createQuestion = new CreateQuestionRequest("질문 내용", 1, "예상 답변");
+        CreateQuestionRequest question = CreateQuestionRequest.builder()
+                .content("질문 내용")
+                .questionType(1)
+                .expectedAnswer("예상 답변")
+                .build();
 
-        CreateNewQuestionSetRequest requestDto = new CreateNewQuestionSetRequest();
+        CreateNewQuestionSetRequest requestDto = CreateNewQuestionSetRequest.builder()
+                .title(title)
+                .description("테스트 질문 세트 설명")
+                .questions(List.of(question))
+                .build();
 
         BDDMockito.given(questionSetService.createNewQuestionSetWithQuestion(
                 anyLong(),
