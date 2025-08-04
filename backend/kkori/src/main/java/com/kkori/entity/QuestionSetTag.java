@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "question_set_version_tag")
-public class QuestionSetVersionTag extends BaseEntity {
+public class QuestionSetTag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +20,7 @@ public class QuestionSetVersionTag extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_set_version_id")
-    private QuestionSetVersion questionSetVersion;
+    private QuestionSet questionSet;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")

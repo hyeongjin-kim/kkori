@@ -18,7 +18,7 @@ public class QuestionSetQuestionMap extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_set_version_id")
-    private QuestionSetVersion questionSetVersion;
+    private QuestionSet questionSet;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
