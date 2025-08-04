@@ -6,7 +6,6 @@ import com.kkori.dto.question.request.CreateQuestionRequest;
 import com.kkori.service.QuestionSetService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,9 +41,9 @@ class QuestionSetControllerTest {
         CreateNewQuestionSetRequest requestDto = new CreateNewQuestionSetRequest();
 
         BDDMockito.given(questionSetService.createNewQuestionSetWithQuestion(
-                ArgumentMatchers.anyLong(),
-                ArgumentMatchers.any(CreateNewQuestionSetRequest.class),
-                ArgumentMatchers.anyString()
+                anyLong(),
+                any(CreateNewQuestionSetRequest.class),
+                anyString()
         )).willReturn(1L);
 
         mockMvc.perform(post("/api/questionsets")
