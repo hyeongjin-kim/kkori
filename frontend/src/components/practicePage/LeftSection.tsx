@@ -12,18 +12,10 @@ function LeftSection() {
       <CurrentQuestionDisplay />
 
       <div className="flex h-[75%] w-full gap-5">
-        <div className="relative flex-[1.2] overflow-hidden rounded-xl bg-black shadow-md">
-          <MainMediaStreamViewer />
-        </div>
-
-        <div className="relative flex-[0.8] overflow-hidden rounded-xl bg-black shadow-md">
-          <SubMediaStreamViewer />
-        </div>
+        <MainMediaStreamViewer />
+        <SubMediaStreamViewer />
       </div>
-
-      <div aria-label="bottom-section" className="flex w-full justify-end">
-        <ControlButtonContainer />
-      </div>
+      <ControlButtonContainer />
     </div>
   );
 }
