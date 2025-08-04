@@ -7,7 +7,7 @@ function LeftSection() {
   return (
     <div
       aria-label="left-section"
-      className="flex h-[95%] max-h-screen w-3/4 flex-col items-center justify-between gap-6 rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-md"
+      className="flex h-[calc(100vh-8rem)] max-h-[calc(100vh-8rem)] w-3/4 flex-col items-center justify-between rounded-2xl border border-gray-200 bg-white px-8 py-8 shadow-md"
     >
       <CurrentQuestionDisplay />
 
