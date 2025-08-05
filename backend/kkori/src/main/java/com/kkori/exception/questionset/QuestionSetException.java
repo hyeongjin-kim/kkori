@@ -37,4 +37,12 @@ public class QuestionSetException extends CustomRuntimeException {
         return new QuestionSetException(ExceptionCode.QUESTION_SET_INTERNAL_ERROR);
     }
 
+    public static QuestionSetException questionSetNotFound() {
+        return new QuestionSetException(ExceptionCode.QUESTION_SET_NOT_FOUND_EXCEPTION);
+    }
+
+    public static QuestionSetException noPermission() {
+        return new QuestionSetException(ExceptionCode.NO_PERMISSION);
+    }
+
 }

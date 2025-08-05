@@ -69,7 +69,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
         CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -92,7 +92,7 @@ class QuestionSetControllerTest {
     void createQuestionSet_Fail_EmptyQuestions() throws Exception {
         CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of());
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -115,7 +115,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
         CreateNewQuestionSetRequest requestDto = buildRequest(null, of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -138,7 +138,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
         CreateNewQuestionSetRequest requestDto = buildRequest("", of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -161,7 +161,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(null, TEST_QUESTION_TYPE);
         CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -184,7 +184,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, null);
         CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()
@@ -207,7 +207,7 @@ class QuestionSetControllerTest {
         CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
         CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createNewQuestionSetWithQuestion(
+        given(questionSetService.createQuestionSetWithInitialQuestions(
                 anyLong(),
                 any(CreateNewQuestionSetRequest.class),
                 anyString()

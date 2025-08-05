@@ -2,13 +2,15 @@ package com.kkori.controller;
 
 import com.kkori.annotation.LoginUser;
 import com.kkori.common.CommonApiResponse;
+import com.kkori.constant.QuestionSetConstants;
 import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
+import com.kkori.dto.question.request.CreateQuestionRequest;
 import com.kkori.dto.question.response.QuestionSetResponse;
-import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.service.QuestionSetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,26 +28,31 @@ public class QuestionSetController {
             @LoginUser Long userId,
             @RequestBody @Valid CreateNewQuestionSetRequest request
     ) {
-        if (request.getTitle() == null) {
-            throw QuestionSetException.noTitle();
-        }
-        if (request.getTitle().trim().isEmpty()) {
-            throw QuestionSetException.blankTitle();
-        }
-        if (request.getQuestions() == null || request.getQuestions().isEmpty()) {
-            throw QuestionSetException.emptyQuestions();
-        }
+        Long questionSetId = questionSetService.createQuestionSetWithInitialQuestions(userId, request, request.getTitle());
 
-        Long questionSetId = questionSetService.createNewQuestionSetWithQuestion(userId, request, request.getTitle());
+        String message = request.getParentVersionId() != null 
+            ? QuestionSetConstants.ResponseMessage.NEW_VERSION_CREATED 
+            : QuestionSetConstants.ResponseMessage.QUESTION_SET_CREATED;
 
         QuestionSetResponse response = QuestionSetResponse.builder()
                 .id(questionSetId)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .message("질문 세트와 첫 질문이 생성되었습니다")
+                .message(message)
                 .build();
 
-        return ResponseEntity.ok(CommonApiResponse.ok(response, "질문 세트와 첫 질문이 생성되었습니다"));
+        return ResponseEntity.ok(CommonApiResponse.ok(response, message));
+    }
+
+    @PostMapping("/{questionSetId}/questions")
+    public ResponseEntity<CommonApiResponse<Long>> addQuestionToQuestionSet(
+            @LoginUser Long userId,
+            @PathVariable Long questionSetId,
+            @RequestBody @Valid CreateQuestionRequest request
+    ) {
+        Long questionId = questionSetService.addQuestionToQuestionSet(userId, questionSetId, request);
+
+        return ResponseEntity.ok(CommonApiResponse.ok(questionId, QuestionSetConstants.ResponseMessage.QUESTION_ADDED));
     }
 
 }

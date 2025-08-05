@@ -54,13 +54,15 @@ public enum ExceptionCode {
     QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ==== QuestionSet 생성 관련 ====
-    EMPTY_QUESTIONS(8001, "질문 리스트는 비어 있을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    EMPTY_QUESTIONS(8001, "질문이 비어있습니다.", HttpStatus.BAD_REQUEST),
     NO_TITLE(8002, "질문 세트 제목은 필수입니다.", HttpStatus.BAD_REQUEST),
     BLANK_TITLE(8003, "질문 세트 제목은 빈 문자열일 수 없습니다.", HttpStatus.BAD_REQUEST),
     NO_QUESTION_CONTENT(8004, "질문 내용은 필수입니다.", HttpStatus.BAD_REQUEST),
     NO_QUESTION_TYPE(8005, "질문 타입은 필수입니다.", HttpStatus.BAD_REQUEST),
     NOT_LOGGED_IN(8006, "로그인이 필요합니다.", HttpStatus.BAD_REQUEST),
-    QUESTION_SET_INTERNAL_ERROR(8007, "질문 세트 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    QUESTION_SET_INTERNAL_ERROR(8007, "질문 세트 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    QUESTION_SET_NOT_FOUND_EXCEPTION(8008, "질문 세트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    NO_PERMISSION(8009, "질문 세트에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
 
     private final int code;
     private final String message;
