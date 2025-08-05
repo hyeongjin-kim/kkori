@@ -1,6 +1,5 @@
 package com.kkori.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.dto.interview.QuestionDto;
 import com.kkori.dto.interview.request.AnswerSubmitRequest;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Controller;
 public class InterviewWebSocketController {
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
     private final InterviewSessionService interviewSessionService;
     private final UserService userService;
 
