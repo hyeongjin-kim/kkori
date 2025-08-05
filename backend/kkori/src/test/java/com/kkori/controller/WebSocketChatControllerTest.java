@@ -49,6 +49,7 @@ public class WebSocketChatControllerTest {
     private final String TEST_ROOM_ID = "REAL_ROOM_456";
     private String jwt_user1, jwt_user2;
     private User user1, user2;
+    private final String TEST_CHAT_MESSAGE = "테스트 메시지123abc";
 
     @BeforeEach
     void setUp() throws Exception {
@@ -74,9 +75,6 @@ public class WebSocketChatControllerTest {
         Token user2_token = tokenProvider.generateAccessToken(user2);
         jwt_user1 = user1_token.getToken();
         jwt_user2 = user2_token.getToken();
-        System.out.println("🔑 생성된 JWT 토큰: " + jwt_user1.substring(0, Math.min(30, jwt_user1.length())) + "...");
-        System.out.println("🔍 토큰에서 사용자 ID 확인: " + tokenProvider.getUserIdFromToken(jwt_user1));
-        System.out.println("🔍 토큰 유효성 확인: " + tokenProvider.validateToken(jwt_user1));
 
         // 실제 JWT 쿠키와 함께 WebSocket 연결
         stompSession_user1 = testHelper.createRealTestSession(port, jwt_user1, TEST_USER_ID_1);
@@ -84,13 +82,11 @@ public class WebSocketChatControllerTest {
 
         stompSession_user2 = testHelper.createRealTestSession(port, jwt_user2, TEST_USER_ID_2);
         personalSubscriber_user2 = testHelper.subscribeToRealPersonalQueue(stompSession_user2, TEST_USER_ID_2);
-
-        System.out.println("=== 실제 JWT 기반 테스트 준비 완료 ===");
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        System.out.println("🔧 실제 테스트 정리 시작...");
+        System.out.println("🔧 테스트 정리 시작...");
 
         if (personalSubscriber_user1 != null) {
             personalSubscriber_user1.unsubscribe();
@@ -117,7 +113,6 @@ public class WebSocketChatControllerTest {
     @DisplayName("채팅을 보내면 자신과 상대방이 동일한 내용을 받는다")
     void sendChat() throws Exception {
         // given
-        String TEST_CHAT_MESSAGE = "테스트 메시지123abc";
 
         given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_2))
                 .willReturn(TEST_ROOM_ID);
@@ -145,11 +140,11 @@ public class WebSocketChatControllerTest {
         // then
         Map<String, Object> chatResponse_user1 = chatSubscriber_user1.waitForMessage("chat", 3);
         Map<String, Object> chatResponse_user2 = chatSubscriber_user2.waitForMessage("chat", 3);
-        WebSocketChatMessage chatMessage_user1 = WebSocketChatMessage.of(chatResponse_user1.get("data"));
-        WebSocketChatMessage chatMessage_user2 = WebSocketChatMessage.of(chatResponse_user2.get("data"));
+        WebSocketChatMessage chatMessage_user1 = objectMapper.convertValue(chatResponse_user1.get("data"),
+                WebSocketChatMessage.class);
+        WebSocketChatMessage chatMessage_user2 = objectMapper.convertValue(chatResponse_user2.get("data"),
+                WebSocketChatMessage.class);
         assertThat(chatMessage_user1.content()).isEqualTo(TEST_CHAT_MESSAGE);
         assertThat(chatMessage_user2.content()).isEqualTo(TEST_CHAT_MESSAGE);
     }
-    
-
 }
