@@ -63,6 +63,7 @@ class SoloPracticeTest {
     private WebSocketTestHelper.MessageSubscriber personalSubscriber;
     private WebSocketTestHelper.MessageSubscriber roomSubscriber;
 
+    private static final String MSG_TYPE_ROOM_CREATED = "room-created";
     private final Long TEST_USER_ID = 123L;
     private final Long QUESTION_SET_ID = 1L;
     private final String EXPECTED_ROOM_ID = "SOLO_ROOM_123";
@@ -175,9 +176,9 @@ class SoloPracticeTest {
         stompSession.send("/app/room-create", request);
 
         // 방 생성 응답 확인
-        Map<String, Object> response = personalSubscriber.waitForMessage("room-created", 10);
+        Map<String, Object> response = personalSubscriber.waitForMessage("MSG_TYPE_ROOM_CREATED", 10);
         assertThat(response).isNotNull();
-        assertThat(response.get("type")).isEqualTo("room-created");
+        assertThat(response.get("type")).isEqualTo("MSG_TYPE_ROOM_CREATED");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> dataMap = (Map<String, Object>) response.get("data");

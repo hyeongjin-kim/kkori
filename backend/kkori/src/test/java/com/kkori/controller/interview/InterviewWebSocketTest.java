@@ -103,6 +103,13 @@ class InterviewWebSocketTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private <T> T extractData(Map<String, Object> response, Class<T> clazz) {
+        Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+        return objectMapper.convertValue(dataMap, clazz);
+    }
+
+
     @Test
     @DisplayName("실제 JWT 쿠키로 방 생성 테스트 (혼자 연습하기)")
     void realJWTRoomCreateTest() throws Exception {
@@ -124,9 +131,8 @@ class InterviewWebSocketTest {
             assertThat(response.get("type")).isEqualTo("room-created");
 
             // 응답 데이터에서 방 정보 확인
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            RoomCreateResponse roomCreateResponse = objectMapper.convertValue(dataMap, RoomCreateResponse.class);
+            RoomCreateResponse roomCreateResponse = extractData(response, RoomCreateResponse.class);
+
             assertThat(roomCreateResponse.getRoomId()).isEqualTo(expectedRoomId);
         } catch (AssertionError e) {
             // 대기 중인 모든 메시지 확인
@@ -138,11 +144,9 @@ class InterviewWebSocketTest {
     @Test
     @DisplayName("실제 JWT 쿠키로 방 상태 조회 테스트")
     void realJWTRoomStatusTest() throws Exception {
-        // given
-        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
 
         // when
-        stompSession.send("/app/room-status", request);
+        stompSession.send("/app/room-status", new CommonRoomRequest(TEST_ROOM_ID));
         Thread.sleep(500);
 
         try {
@@ -152,9 +156,8 @@ class InterviewWebSocketTest {
             assertThat(response.get("type")).isEqualTo("room-status");
 
             // 응답 데이터에서 방 상태 정보 확인
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            RoomStatusResponse roomStatusResponse = objectMapper.convertValue(dataMap, RoomStatusResponse.class);
+            RoomStatusResponse roomStatusResponse = extractData(response, RoomStatusResponse.class);
+
             assertThat(roomStatusResponse.getStatus()).isEqualTo("WAITING");
             assertThat(roomStatusResponse.getUserCount()).isEqualTo(1);
             assertThat(roomStatusResponse.getMaxUsers()).isEqualTo(2);
@@ -236,8 +239,9 @@ class InterviewWebSocketTest {
 
             // then - 브로드캐스트 메시지 확인
             Map<String, Object> response = waitForBroadcastMessage(roomSubscriber, "interview-started", 10);
-            Map<String, Object> dataMap = extractMessageData(response);
-            InterviewStartResponse startResponse = objectMapper.convertValue(dataMap, InterviewStartResponse.class);
+
+            InterviewStartResponse startResponse = extractData(response, InterviewStartResponse.class);
+
             assertThat(startResponse.getFirstQuestion()).isNotNull();
             assertThat(startResponse.getFirstQuestion().getQuestionText()).isEqualTo("자기소개를 해주세요.");
         });
@@ -313,9 +317,7 @@ class InterviewWebSocketTest {
             assertThat(sttResponse).isNotNull();
             assertThat(sttResponse.get("type")).isEqualTo("stt-result");
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> sttDataMap = (Map<String, Object>) sttResponse.get("data");
-            STTResultResponse sttResult = objectMapper.convertValue(sttDataMap, STTResultResponse.class);
+            STTResultResponse sttResult = extractData(sttResponse, STTResultResponse.class);
             assertThat(sttResult.getTranscribedText()).isEqualTo("테스트 답변입니다.");
 
             // then - 2단계: 면접관에게 질문 선택지 개인 메시지 확인
@@ -323,9 +325,7 @@ class InterviewWebSocketTest {
             assertThat(choicesResponse).isNotNull();
             assertThat(choicesResponse.get("type")).isEqualTo("next-question-choices");
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> choicesDataMap = (Map<String, Object>) choicesResponse.get("data");
-            NextQuestionChoicesResponse choices = objectMapper.convertValue(choicesDataMap, NextQuestionChoicesResponse.class);
+            NextQuestionChoicesResponse choices = extractData(choicesResponse, NextQuestionChoicesResponse.class);
             assertThat(choices.getNextQuestionChoices()).hasSize(2);
         } finally {
             unsubscribeSafe(roomSubscriber);
@@ -352,9 +352,8 @@ class InterviewWebSocketTest {
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("next-question-selected");
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            QuestionDto selectedQuestion = objectMapper.convertValue(dataMap, QuestionDto.class);
+            QuestionDto selectedQuestion = extractData(response, QuestionDto.class);
+
             assertThat(selectedQuestion.getQuestionText()).isEqualTo("개발자가 되고 싶은 이유는 무엇인가요?");
             assertThat(selectedQuestion.getQuestionType()).isEqualTo("DEFAULT");
         } finally {
@@ -407,9 +406,7 @@ class InterviewWebSocketTest {
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("custom-question-created");
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            QuestionDto customQuestion = objectMapper.convertValue(dataMap, QuestionDto.class);
+            QuestionDto customQuestion = extractData(response, QuestionDto.class);
             assertThat(customQuestion.getQuestionText()).isEqualTo("커스텀 질문입니다.");
             assertThat(customQuestion.getQuestionType()).isEqualTo("CUSTOM");
         } finally {
