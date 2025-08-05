@@ -40,9 +40,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
 
         if (request.getParentVersionId() != null) {
             return createVersionedQuestionSetFromParent(userId, request, title);
-        } else {
-            return createBrandNewQuestionSetWithQuestions(userId, request, title);
         }
+
+        return createBrandNewQuestionSetWithQuestions(userId, request, title);
     }
 
     private void validateCreateQuestionSetRequest(CreateNewQuestionSetRequest request, String title) {
