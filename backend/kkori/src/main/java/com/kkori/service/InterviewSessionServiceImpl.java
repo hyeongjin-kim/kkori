@@ -1,31 +1,40 @@
 package com.kkori.service;
 
 import com.kkori.component.InterviewRoomManager;
-import com.kkori.component.Transcriber;
 import com.kkori.component.TailQuestionGenerator;
+import com.kkori.component.Transcriber;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
-import com.kkori.entity.*;
+import com.kkori.entity.Answer;
+import com.kkori.entity.Interview;
+import com.kkori.entity.InterviewRecord;
+import com.kkori.entity.Question;
+import com.kkori.entity.QuestionSet;
+import com.kkori.entity.QuestionSetItem;
+import com.kkori.entity.User;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
 import com.kkori.exception.user.UserException;
-import com.kkori.repository.*;
-import com.kkori.service.InterviewSessionService;
+import com.kkori.repository.AnswerRepository;
+import com.kkori.repository.InterviewRecordRepository;
+import com.kkori.repository.InterviewRepository;
+import com.kkori.repository.QuestionRepository;
+import com.kkori.repository.QuestionSetItemRepository;
+import com.kkori.repository.QuestionSetRepository;
+import com.kkori.repository.UserRepository;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
- * 면접 세션 관리 서비스 구현체
- * 면접 방 생성부터 완료까지의 전체 라이프사이클을 관리
+ * 면접 세션 관리 서비스 구현체 면접 방 생성부터 완료까지의 전체 라이프사이클을 관리
  */
 @Service
 @RequiredArgsConstructor
@@ -147,16 +156,16 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         try {
             // Base64 디코딩
             byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-            
+
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
-            
+
             // STT 처리 (Transcriber 컴포넌트 사용)
             String answerText = transcriber.transcribe(tempFilePath);
 
             // 답변 처리
             processAnswer(roomId, answerText);
-            
+
             // 임시 파일 삭제
             deleteTempFile(tempFilePath);
 
@@ -207,22 +216,22 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         try {
             // Base64 디코딩
             byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-            
+
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
-            
+
             // STT 처리하여 질문 텍스트 추출
             String questionText = transcriber.transcribe(tempFilePath);
-            
+
             // 세션에 커스텀 질문 생성
             InterviewSession session = getSession(roomId);
             QuestionForm customQuestion = session.createCustomQuestion(questionText);
-            
+
             // 임시 파일 삭제
             deleteTempFile(tempFilePath);
-            
+
             return customQuestion;
-            
+
         } catch (Exception e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
@@ -248,6 +257,15 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     @Override
     public InterviewRoom getRoom(String roomId) {
         return roomManager.getRoom(roomId);
+    }
+
+    @Override
+    public void canSendChatMessage(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        if (room.getUserIds().contains(userId)) {
+            return;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
     }
 
     // ==================== Private 헬퍼 메서드들 ====================
@@ -363,7 +381,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 질문셋 로딩
      */
     private List<QuestionForm> loadQuestionSet(Long questionSetId) {
-        List<QuestionSetItem> items = questionSetItemRepository.findByQuestionSetSetIdOrderBySortOrderAsc(questionSetId);
+        List<QuestionSetItem> items = questionSetItemRepository.findByQuestionSetIdOrderBySortOrderAsc(questionSetId);
 
         return items.stream()
                 .map(item -> new QuestionForm(
@@ -430,25 +448,25 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return interviewRepository.findById(interviewId)
                 .orElseThrow(() -> InterviewSessionException.interviewNotFound());
     }
-    
+
     // ==================== 오디오 파일 처리 헬퍼 메서드들 ====================
-    
+
     /**
      * Base64 디코딩된 오디오 데이터로 임시 WebM 파일 생성
      */
     private String createTempAudioFile(byte[] audioData) {
-        String tempFilePath = System.getProperty("java.io.tmpdir") + 
-                             "audio_" + System.currentTimeMillis() + ".webm";
-        
+        String tempFilePath = System.getProperty("java.io.tmpdir") +
+                "audio_" + System.currentTimeMillis() + ".webm";
+
         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath)) {
             fos.write(audioData);
         } catch (java.io.IOException e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
-        
+
         return tempFilePath;
     }
-    
+
     /**
      * 임시 파일 삭제
      */
