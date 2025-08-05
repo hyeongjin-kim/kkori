@@ -63,7 +63,6 @@ public enum ExceptionCode {
     QUESTION_SET_INTERNAL_ERROR(8007, "질문 세트 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     QUESTION_SET_NOT_FOUND_EXCEPTION(8008, "질문 세트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     NO_PERMISSION(8009, "질문 세트에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
-    QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String message;

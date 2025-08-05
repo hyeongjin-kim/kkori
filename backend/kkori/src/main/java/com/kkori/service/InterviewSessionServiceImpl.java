@@ -121,7 +121,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             String tempFilePath = createTempAudioFile(audioBytes);
             
             // STT 처리 (Transcriber 컴포넌트 사용)
-            String answerText = transcriber.transcribe(audioFilePath);
+            String answerText = transcriber.transcribe(tempFilePath);
             // 답변 처리
             processAnswer(roomId, answerText);
             return answerText;
@@ -193,6 +193,11 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     @Override
     public boolean canStartInterview(String roomId) {
         return roomManager.canStartInterview(roomId);
+    }
+    
+    @Override
+    public InterviewRoom getRoom(String roomId) {
+        return roomManager.getRoom(roomId);
     }
     // ==================== Private 헬퍼 메서드들 ====================
     /**

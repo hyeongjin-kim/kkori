@@ -214,15 +214,12 @@ class InterviewSessionServiceImplTest {
             when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
-            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenReturn(TRANSCRIBED_TEXT);
-            // when
-            String result = service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_FILE_PATH);
             when(transcriber.transcribe(anyString())).thenReturn(TRANSCRIBED_TEXT);
-
+            // when
+            String result = service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_BASE64);
             // then
             assertThat(result).isEqualTo(TRANSCRIBED_TEXT);
             verify(transcriber).transcribe(anyString());
-            System.out.println(result);
         }
 
         @Test
@@ -257,7 +254,7 @@ class InterviewSessionServiceImplTest {
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
             // STT 처리 실패 설정
-            when(transcriber.transcribe(AUDIO_FILE_PATH)).thenThrow(new RuntimeException("STT Error"));
+            when(transcriber.transcribe(anyString())).thenThrow(new RuntimeException("STT Error"));
 
             // when & then
             assertThatThrownBy(() -> service.processAudioAnswer(ROOM_ID, USER_ID, AUDIO_BASE64))
@@ -538,10 +535,10 @@ class InterviewSessionServiceImplTest {
 
             when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
             when(transcriber.transcribe(anyString())).thenReturn(CUSTOM_QUESTION_TEXT);
-
             when(mockSession.createCustomQuestion(CUSTOM_QUESTION_TEXT)).thenReturn(customQuestion);
+            
             // when
-            QuestionForm result = service.createCustomQuestion(ROOM_ID, CUSTOM_QUESTION_TEXT);
+            QuestionForm result = service.createCustomQuestion(ROOM_ID, AUDIO_BASE64);
 
             // then
             assertThat(result).isEqualTo(customQuestion);
