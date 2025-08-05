@@ -12,7 +12,6 @@ import com.kkori.entity.Interview;
 import com.kkori.entity.InterviewRecord;
 import com.kkori.entity.Question;
 import com.kkori.entity.QuestionSet;
-import com.kkori.entity.QuestionSetItem;
 import com.kkori.entity.User;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
@@ -23,7 +22,6 @@ import com.kkori.repository.AnswerRepository;
 import com.kkori.repository.InterviewRecordRepository;
 import com.kkori.repository.InterviewRepository;
 import com.kkori.repository.QuestionRepository;
-import com.kkori.repository.QuestionSetItemRepository;
 import com.kkori.repository.QuestionSetRepository;
 import com.kkori.repository.UserRepository;
 import java.util.List;
@@ -47,8 +45,6 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     private final InterviewRecordRepository interviewRecordRepository;
     private final UserRepository userRepository;
     private final QuestionSetRepository questionSetRepository;
-    private final QuestionSetItemRepository questionSetItemRepository;
-
     private final InterviewRoomManager roomManager;
     private final Transcriber transcriber;
     private final TailQuestionGenerator tailQuestionGenerator;
@@ -165,9 +161,6 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
 
             // 답변 처리
             processAnswer(roomId, answerText);
-
-            // 임시 파일 삭제
-            deleteTempFile(tempFilePath);
 
             return answerText;
 
@@ -315,16 +308,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 기본 질문 조회 또는 생성
      */
     private Question findOrCreateDefaultQuestion(QuestionForm questionForm) {
-        return questionRepository.findById(Long.valueOf(questionForm.getQuestionId()))
-                .orElseThrow(() -> InterviewSessionException.defaultQuestionNotFound());
+        return questionRepository.findById((long) questionForm.getQuestionId())
+                .orElseThrow(InterviewSessionException::defaultQuestionNotFound);
     }
 
     /**
      * 커스텀 질문 저장
      */
     private Question saveCustomQuestion(QuestionForm questionForm) {
-        Question question = Question.customBuilder()
+        Question question = Question.builder()
                 .content(questionForm.getQuestionText())
+                .questionType(com.kkori.entity.QuestionType.CUSTOM)
                 .build();
         return questionRepository.save(question);
     }
@@ -334,10 +328,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private Question saveTailQuestion(QuestionForm questionForm) {
         Question parentQuestion = findParentQuestion(questionForm);
-
-        Question question = Question.tailBuilder()
+        Question question = Question.builder()
                 .content(questionForm.getQuestionText())
-                .parent(parentQuestion)
+                .questionType(com.kkori.entity.QuestionType.DEFAULT)
                 .build();
         return questionRepository.save(question);
     }
@@ -347,20 +340,16 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private Question findParentQuestion(QuestionForm questionForm) {
         int parentId = questionForm.getParentQuestionId();
-
-        return questionRepository.findById(Long.valueOf(parentId))
-                .orElseThrow(() -> InterviewSessionException.parentQuestionNotFound());
+        return questionRepository.findById((long) parentId)
+                .orElseThrow(InterviewSessionException::parentQuestionNotFound);
     }
 
     /**
      * 답변 저장
      */
     private Answer saveAnswer(Question question, User user, String answerText) {
-        Answer answer = Answer.builder()
-                .question(question)
-                .user(user)
-                .content(answerText)
-                .build();
+        // Answer 엔티티를 확인해서 생성자 사용
+        Answer answer = new Answer(question, user, answerText);
         return answerRepository.save(answer);
     }
 
@@ -381,13 +370,13 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 질문셋 로딩
      */
     private List<QuestionForm> loadQuestionSet(Long questionSetId) {
-        List<QuestionSetItem> items = questionSetItemRepository.findByQuestionSetIdOrderBySortOrderAsc(questionSetId);
-
-        return items.stream()
-                .map(item -> new QuestionForm(
+        QuestionSet questionSet = getQuestionSetById(questionSetId);
+        return questionSet.getQuestionMaps().stream()
+                .sorted((q1, q2) -> Integer.compare(q1.getDisplayOrder(), q2.getDisplayOrder()))
+                .map(questionMap -> new QuestionForm(
                         QuestionType.DEFAULT,
-                        item.getQuestion().getQuestionId().intValue(),
-                        item.getQuestion().getContent()
+                        questionMap.getQuestion().getId().intValue(),
+                        questionMap.getQuestion().getContent()
                 ))
                 .collect(Collectors.toList());
     }
@@ -430,7 +419,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> UserException.userNotFound());
+                .orElseThrow(UserException::userNotFound);
     }
 
     /**
@@ -438,7 +427,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private QuestionSet getQuestionSetById(Long questionSetId) {
         return questionSetRepository.findById(questionSetId)
-                .orElseThrow(() -> InterviewSessionException.questionSetNotFound());
+                .orElseThrow(InterviewSessionException::questionSetNotFound);
     }
 
     /**
@@ -446,7 +435,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private Interview getInterviewById(Long interviewId) {
         return interviewRepository.findById(interviewId)
-                .orElseThrow(() -> InterviewSessionException.interviewNotFound());
+                .orElseThrow(InterviewSessionException::interviewNotFound);
     }
 
     // ==================== 오디오 파일 처리 헬퍼 메서드들 ====================
