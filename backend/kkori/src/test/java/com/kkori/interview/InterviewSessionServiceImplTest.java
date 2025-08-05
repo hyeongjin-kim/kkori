@@ -6,7 +6,6 @@ import com.kkori.component.Transcriber;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
-import com.kkori.component.interview.QuestionType;
 import com.kkori.entity.*;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
@@ -24,9 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.*;
 
-import static com.kkori.component.interview.QuestionType.CUSTOM;
-import static com.kkori.component.interview.QuestionType.DEFAULT;
-import static com.kkori.component.interview.QuestionType.TAIL;
+import static com.kkori.component.interview.QuestionType.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -556,6 +553,7 @@ class InterviewSessionServiceImplTest {
     @Nested
     @DisplayName("유틸리티 메서드 테스트")
     class UtilityTest {
+
         @Test
         @DisplayName("방 참여")
         void joinRoom() {
@@ -609,4 +607,5 @@ class InterviewSessionServiceImplTest {
             verify(roomManager).canStartInterview(ROOM_ID);
         }
     }
+
 }
