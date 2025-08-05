@@ -1,28 +1,28 @@
 package com.kkori.dto.question.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 
 @Getter
-@NoArgsConstructor
 public class CreateNewQuestionSetRequest {
 
-    @NotBlank
-    private String title;
+    @NotBlank(message = "질문 세트 제목은 필수입니다.")
+    private final String title;
 
-    private String description;
+    private final String description;
 
-    private List<Long> tagIds;
+    private final List<Long> tagIds;
 
-    @NotEmpty
-    private List<CreateQuestionRequest> questions;
+    @Valid
+    @NotEmpty(message = "질문 리스트는 필수입니다.")
+    private final List<CreateQuestionRequest> questions;
 
-    private Long parentVersionId;
+    private final Long parentVersionId;
 
     @Builder
     public CreateNewQuestionSetRequest(String title, String description,

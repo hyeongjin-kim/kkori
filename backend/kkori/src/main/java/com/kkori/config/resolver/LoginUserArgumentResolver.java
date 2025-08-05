@@ -1,6 +1,7 @@
 package com.kkori.config.resolver;
 
 import com.kkori.annotation.LoginUser;
+import com.kkori.security.CustomUserDetails;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -28,17 +29,22 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
                                   ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
         }
 
         Object principal = authentication.getPrincipal();
 
+        if (principal instanceof CustomUserDetails userDetails) {
+            return userDetails.getUserId();
+        }
+
         if (principal instanceof Long userId) {
             return userId;
         }
+
         throw new IllegalStateException("인증 정보에 userId(Long)가 없습니다.");
     }
 

@@ -8,13 +8,13 @@ import lombok.Getter;
 @Getter
 public class CreateQuestionRequest {
 
-    @NotBlank
-    private String content;
+    @NotBlank(message = "질문 내용은 필수입니다.")
+    private final String content;
 
-    @NotNull
-    private Integer questionType;
+    @NotNull(message = "질문 타입은 필수입니다.")
+    private final Integer questionType;
 
-    private String expectedAnswer;
+    private final String expectedAnswer;
 
     @Builder
     public CreateQuestionRequest(String content, Integer questionType, String expectedAnswer) {

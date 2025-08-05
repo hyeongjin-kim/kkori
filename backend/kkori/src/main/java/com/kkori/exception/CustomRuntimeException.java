@@ -1,6 +1,7 @@
 package com.kkori.exception;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
 public class CustomRuntimeException extends RuntimeException {
@@ -17,5 +18,9 @@ public class CustomRuntimeException extends RuntimeException {
 
     public String getExceptionMessage() {
         return exceptionCode.getMessage();
+    }
+
+    public HttpStatus getStatus() {
+        return exceptionCode.getStatus();
     }
 }
