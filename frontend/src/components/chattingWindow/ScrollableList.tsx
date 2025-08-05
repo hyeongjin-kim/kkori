@@ -7,7 +7,7 @@ const useScrollToBottom = () => {
   const messages = useChattingWindowStore(state => state.messages);
   useLayoutEffect(() => {
     const list = document.querySelector('[aria-label="scrollable-list"]');
-    list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+    list?.scrollTo({ top: list.scrollHeight, behavior: 'instant' });
   }, [messages]);
   return messages;
 };
