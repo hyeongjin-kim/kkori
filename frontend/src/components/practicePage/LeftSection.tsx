@@ -1,8 +1,8 @@
 import CurrentQuestionDisplay from '@/components/practicePage/CurrentQuestionDisplay';
 import MainMediaStreamViewer from '@/components/practicePage/MainMediaStreamViewer';
 import SubMediaStreamViewer from '@/components/practicePage/SubMediaStreamViewer';
-import InterviewControlButtonContainer from './InterviewControlButtonContainer';
-import PreInterviewControlButtonContainer from './PreInterviewControlButtonContainer';
+import ControlButtonContainer from '@/components/practicePage/ControlButtonContainer';
+
 function LeftSection() {
   return (
     <div
@@ -14,11 +14,7 @@ function LeftSection() {
         <MainMediaStreamViewer />
         <SubMediaStreamViewer />
       </div>
-      {true ? (
-        <PreInterviewControlButtonContainer />
-      ) : (
-        <InterviewControlButtonContainer />
-      )}
+      <ControlButtonContainer />
     </div>
   );
 }
