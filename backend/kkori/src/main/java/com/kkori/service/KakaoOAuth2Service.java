@@ -16,4 +16,6 @@ public interface KakaoOAuth2Service {
     void softDeleteUserAndRemoveAllRefreshTokens(Long userId);
 
     UserProfileResponse getUserProfile(Long userId);
+
+    Token issueAccessToken(String token);
 }

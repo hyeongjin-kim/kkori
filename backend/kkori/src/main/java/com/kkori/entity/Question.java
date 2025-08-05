@@ -1,60 +1,43 @@
 package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
-import com.kkori.component.interview.QuestionType;
-import jakarta.persistence.*;
+import com.kkori.common.jpa.converter.QuestionTypeConverter;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+@Table(name = "question")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Question extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long questionId;
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Question parent;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    private QuestionType type;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Builder(builderMethodName = "defaultBuilder")
-    public Question(Long questionId, String content) {
-        this.questionId = questionId;
-        this.content = content;
-        this.type = QuestionType.DEFAULT;
-    }
+    @Convert(converter = QuestionTypeConverter.class)
+    private QuestionType questionType;
 
-    // 커스텀 질문 생성자
-    @Builder(builderMethodName = "customBuilder")
-    public Question(String content) {
-        this.content = content;
-        this.type = QuestionType.CUSTOM;
-    }
+    private String expectedAnswer;
 
-    // 꼬리 질문 생성자
-    @Builder(builderMethodName = "tailBuilder")
-    public Question(String content, Question parent) {
-        this.content = content;
-        this.type = QuestionType.TAIL;
-        this.parent = parent;
-    }
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Answer> answers = new ArrayList<>();
 
-    public boolean isTailQuestion() {
-        return type == QuestionType.TAIL;
-    }
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TailQuestion> tailQuestions = new ArrayList<>();
 
-    public boolean isCustomQuestion() {
-        return type == QuestionType.CUSTOM;
-    }
 }

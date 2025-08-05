@@ -1,6 +1,5 @@
 package com.kkori.repository;
 
-import com.kkori.entity.QuestionSetItem;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

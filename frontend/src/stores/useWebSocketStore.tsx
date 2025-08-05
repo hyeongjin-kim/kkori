@@ -101,7 +101,10 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
     answerSubmit: (roomID: string) => {
       get().client?.publish({
         destination: `/app/answer-submit`,
-        body: JSON.stringify({ roomId: roomID }),
+        body: JSON.stringify({
+          roomId: roomID,
+          //TODO: 오디오 파일 같이 전달해야함
+        }),
       });
     },
     nextQuestionSelect: (roomID: string) => {
@@ -121,10 +124,13 @@ export const useWebSocketStore = create<WebSocketState & WebSocketAction>(
         body: JSON.stringify({ roomId: roomID }),
       });
     },
-    customQuestionCreate: (roomID: string, questionText: string) => {
+    customQuestionCreate: (roomID: string) => {
       get().client?.publish({
         destination: `/app/custom-question-create`,
-        body: JSON.stringify({ roomId: roomID, questionText: questionText }),
+        body: JSON.stringify({
+          roomId: roomID,
+          //TODO: 커스텀 질문 오디오 파일 전달해야 함
+        }),
       });
     },
   }),
@@ -135,11 +141,24 @@ const personalMessageHandler = (client: Client, set: any, response: any) => {
     case 'room-created':
       roomCreatedHandler(client, set, response.data);
       break;
+    case 'existing-user':
+      existingUserHandler(client, set, response.data);
+      //TODO: offer 전송
+      break;
+    case 'joined-user':
+      joinedUserHandler(client, set, response.data);
+
+      break;
     case 'room-status':
       roomStatusHandler(client, set, response.data);
       break;
-    case 'answer-processed':
-      answerProcessedHandler(client, set, response.data);
+    case 'offer':
+      //RTC 요청
+      offerHandler(client, set, response.data);
+      break;
+    case 'answer':
+      //RTC 응답
+      answerHandler(client, set, response.data);
       break;
     case 'error':
       errorHandler(client, set, response.data);
@@ -149,10 +168,119 @@ const personalMessageHandler = (client: Client, set: any, response: any) => {
 
 const roomCreatedHandler = (client: Client, set: any, response: any) => {
   set({ roomID: response.roomId });
+  client.subscribe(`/topic/interview/${response.roomId}`, message => {
+    const response = JSON.parse(message.body);
+    InterviewMessageHandler(client, set, response);
+  });
 };
 
-const roomStatusHandler = (client: Client, set: any, response: any) => {};
+const existingUserHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
 
-const answerProcessedHandler = (client: Client, set: any, response: any) => {};
+const joinedUserHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
 
-const errorHandler = (client: Client, set: any, response: any) => {};
+const roomStatusHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const offerHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const answerHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const InterviewMessageHandler = (client: Client, set: any, response: any) => {
+  switch (response.type) {
+    case 'user-exited':
+      userExitedHandler(client, set, response.data);
+      break;
+    case 'interview-started':
+      interviewStartedHandler(client, set, response.data);
+      break;
+    case 'interview-ended':
+      interviewEndedHandler(client, set, response.data);
+      break;
+    case 'answer-recording-started':
+      answerRecordingStartHandler(client, set, response.data);
+      break;
+    case 'stt-result':
+      sttResultHandler(client, set, response.data);
+      break;
+    case 'next-question-choices':
+      nextQuestionChoiceHandler(client, set, response.data);
+      break;
+    case 'next-question-selected':
+      nextQuestionSelectedHandler(client, set, response.data);
+      break;
+    case 'custom-question-recording-started':
+      customQuestionStartHandler(client, set, response.data);
+      break;
+    case 'custom-question-created':
+      customQuestionCreatedHandler(client, set, response.data);
+      break;
+    case 'error':
+      errorHandler(client, set, response.data);
+      break;
+  }
+};
+
+const userExitedHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const interviewStartedHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const interviewEndedHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const answerRecordingStartHandler = (
+  client: Client,
+  set: any,
+  response: any,
+) => {
+  console.log(response);
+};
+
+const sttResultHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const nextQuestionChoiceHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};
+
+const nextQuestionSelectedHandler = (
+  client: Client,
+  set: any,
+  response: any,
+) => {
+  console.log(response);
+};
+
+const customQuestionStartHandler = (
+  client: Client,
+  set: any,
+  response: any,
+) => {
+  console.log(response);
+};
+
+const customQuestionCreatedHandler = (
+  client: Client,
+  set: any,
+  response: any,
+) => {
+  console.log(response);
+};
+
+const errorHandler = (client: Client, set: any, response: any) => {
+  console.log(response);
+};

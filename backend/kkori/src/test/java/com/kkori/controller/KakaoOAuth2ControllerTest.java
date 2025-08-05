@@ -105,13 +105,20 @@ class KakaoOAuth2ControllerTest {
 
     @Test
     @WithMockUser
-    @DisplayName("유효한 인가코드로 로그인 요청 시 302와 JWT 토큰, 닉네임 반환")
+    @DisplayName("유효한 인가코드로 로그인 요청 시 302와 JWT 토큰, 닉네임 반환 및 쿠키 설정")
     void loginWithValidAuthorizationCode_ShouldReturnTokensAndNickname() throws Exception {
-        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any())).willReturn(
-                createLoginResponse(NICKNAME));
+        given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any()))
+                .willReturn(createLoginResponse(NICKNAME));
+
+        when(kakaoOAuth2Service.issueAccessToken(anyString()))
+                .thenReturn(new Token(ACCESS_TOKEN_VALUE));
 
         performLoginCallbackWithCode(VALID_CODE)
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("accessToken="))))
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("refreshToken="))));
     }
 
     @Test
@@ -153,20 +160,36 @@ class KakaoOAuth2ControllerTest {
                 any(HttpSession.class))).willReturn(
                 createLoginResponse(NEW_USER_NICKNAME));
 
+        when(kakaoOAuth2Service.issueAccessToken(anyString()))
+                .thenReturn(new Token(ACCESS_TOKEN_VALUE));
+
         performLoginCallbackWithCode("new-user-code")
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("refreshToken="))))
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("accessToken="))));
     }
 
     @Test
     @WithMockUser
     @DisplayName("기존 사용자면 즉시 로그인 응답 성공")
     void loginCallback_ExistingUser_Success() throws Exception {
+        LoginResponse loginResponse = createLoginResponse(EXISTING_USER_NICKNAME);
+
         given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(),
-                any(HttpSession.class))).willReturn(
-                createLoginResponse(EXISTING_USER_NICKNAME));
+                any(HttpSession.class)))
+                .willReturn(loginResponse);
+
+        when(kakaoOAuth2Service.issueAccessToken(anyString()))
+                .thenReturn(new Token(ACCESS_TOKEN_VALUE));
 
         performLoginCallbackWithCode("existing-user-code")
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("accessToken="))))
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("refreshToken="))));
     }
 
     @Test
@@ -243,11 +266,15 @@ class KakaoOAuth2ControllerTest {
         LoginResponse mockResponse = createLoginResponse(NICKNAME);
         given(kakaoOAuth2Service.exchangeAuthorizationCodeForLoginAndCreateUserIfNeeded(anyString(), any())).willReturn(
                 mockResponse);
+        when(kakaoOAuth2Service.issueAccessToken(anyString()))
+                .thenReturn(new Token(ACCESS_TOKEN_VALUE));
 
         performLoginCallbackWithCode(VALID_CODE)
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().stringValues("Set-Cookie",
-                        hasItem(Matchers.containsString("refreshToken="))));
+                        hasItem(Matchers.containsString("refreshToken="))))
+                .andExpect(header().stringValues("Set-Cookie",
+                        hasItem(Matchers.containsString("accessToken="))));
     }
 
     @Test

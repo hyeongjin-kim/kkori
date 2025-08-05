@@ -123,6 +123,25 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
     }
 
     @Override
+    public Token issueAccessToken(String refreshTokenValue) {
+
+        if (!isValidRefreshTokenInput(refreshTokenValue)) {
+            throw new IllegalArgumentException("Refresh token이 유효하지 않습니다.");
+        }
+
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findByRefreshToken(refreshTokenValue)
+                .orElseThrow(() -> new RuntimeException("Refresh token이 존재하지 않습니다."));
+
+        if (refreshTokenEntity.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token이 만료되었습니다.");
+        }
+
+        User user = refreshTokenEntity.getUser();
+        return tokenProvider.generateAccessToken(user);
+    }
+
+
+    @Override
     public Token issueAccessTokenByValidRefreshToken(String refreshTokenValue) {
         if (!isValidRefreshTokenInput(refreshTokenValue)) {
             return null;
