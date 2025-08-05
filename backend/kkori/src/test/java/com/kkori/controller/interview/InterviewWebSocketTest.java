@@ -1,4 +1,4 @@
-package com.kkori.controller;
+package com.kkori.controller.interview;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -8,12 +8,13 @@ import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.RoomCreateRequest;
 import com.kkori.dto.interview.response.RoomCreateResponse;
 import com.kkori.dto.interview.response.RoomStatusResponse;
+import com.kkori.component.interview.InterviewRoom;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.service.InterviewSessionService;
+import com.kkori.service.UserService;
 import com.kkori.test.helper.WebSocketTestHelper;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,14 +31,17 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@DisplayName("실제 JWT 쿠키 기반 WebSocket 테스트")
-class RealWebSocketTest {
+@DisplayName("JWT 쿠키 기반 InterviewWebSocket 테스트")
+class InterviewWebSocketTest {
 
     @LocalServerPort
     private int port;
 
     @MockBean
     private InterviewSessionService interviewSessionService;
+
+    @MockBean
+    private UserService userService;
 
     @Autowired
     private TokenProvider tokenProvider;
@@ -175,72 +179,19 @@ class RealWebSocketTest {
     @Test
     @DisplayName("실제 JWT 쿠키로 2명 사용자 방 입장 테스트")
     void realJWTTwoUsersRoomTest() throws Exception {
-        // given - 두 번째 사용자 설정
-        final Long TEST_USER2_ID = 456L;
-        User testUser2 = User.builder()
-                .userId(TEST_USER2_ID)
-                .sub("test-kakao-456789")
-                .nickname("테스트사용자2")
-                .deleted(false)
-                .build();
-
-        Token tokenObject2 = tokenProvider.generateAccessToken(testUser2);
-        String jwtToken2 = tokenObject2.getToken();
-
-        // 두 번째 사용자 WebSocket 연결 및 구독
-        StompSession stompSession2 = testHelper.createRealTestSession(port, jwtToken2, TEST_USER2_ID);
-        WebSocketTestHelper.MessageSubscriber personalSubscriber2 =
-                testHelper.subscribeToRealPersonalQueue(stompSession2, TEST_USER2_ID);
-
+        // given
+        TwoUserTestSetup testSetup = setupTwoUserTest();
+        
         try {
-            // 방 생성 모킹
-            String testRoomId = "TWO_USER_ROOM_123";
-            given(interviewSessionService.createPairRoom(1L, TEST_USER_ID))
-                    .willReturn(testRoomId);
-
-            // 1: 첫 번째 사용자가 함께 연습하기 방 생성
-            RoomCreateRequest createRequest = new RoomCreateRequest("PAIR_INTERVIEW", 1L);
-            stompSession.send("/app/room-create", createRequest);
-
-            // 방 생성 응답 확인
-            Map<String, Object> createResponse = personalSubscriber.waitForMessage("room-created", 10);
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> createDataMap = (Map<String, Object>) createResponse.get("data");
-            RoomCreateResponse roomCreateResponse = objectMapper.convertValue(createDataMap, RoomCreateResponse.class);
-            String createdRoomId = roomCreateResponse.getRoomId();
-
-            // 2: 방 토픽 구독 (두 사용자 모두)
-            List<StompSession> sessions = Arrays.asList(stompSession, stompSession2);
-            List<WebSocketTestHelper.MessageSubscriber> roomSubscribers = subscribeUsersToRoom(sessions, createdRoomId);
-            WebSocketTestHelper.MessageSubscriber roomSubscriber1 = roomSubscribers.get(0);
-            WebSocketTestHelper.MessageSubscriber roomSubscriber2 = roomSubscribers.get(1);
-
-            // 3: 두 번째 사용자가 방 입장
-            CommonRoomRequest joinRequest = new CommonRoomRequest(createdRoomId);
-            stompSession2.send("/app/room-join", joinRequest);
-
-            // 4: 입장 관련 알림들 확인
-            Map<String, Object> user1Notification = roomSubscriber1.waitForMessage("user-joined", 10);
-            Map<String, Object> user2Notification = roomSubscriber2.waitForMessage("user-joined", 10);
-
-            // 5: 검증
-            assertThat(user1Notification.get("type")).isEqualTo("user-joined");
-            assertThat(user2Notification.get("type")).isEqualTo("user-joined");
-
-            // SuccessResponse 구조 확인
-            @SuppressWarnings("unchecked")
-            Map<String, Object> joinDataMap = (Map<String, Object>) user1Notification.get("data");
-            assertThat(joinDataMap.get("message")).isEqualTo("새 사용자가 참여했습니다");
-
-            // 정리
-            unsubscribeSafe(roomSubscriber1);
-            unsubscribeSafe(roomSubscriber2);
-
+            // when - 방 생성 및 입장
+            createPairRoomAndJoin(testSetup);
+            
+            // then - 개인 메시지 검증
+            verifyPersonalJoinMessages(testSetup);
+            
         } finally {
-            // 두 번째 사용자 연결 정리
-            unsubscribeSafe(personalSubscriber2);
-            disconnectSafe(stompSession2);
+            // 정리
+            cleanupTwoUserTest(testSetup);
         }
     }
 
@@ -265,6 +216,128 @@ class RealWebSocketTest {
             printQueuedMessages();
             throw e;
         }
+    }
+
+    // ==================== 테스트 데이터 클래스 ====================
+    
+    /**
+     * 2명 사용자 테스트 설정
+     */
+    private static class TwoUserTestSetup {
+        final Long user2Id = 456L;
+        final User testUser2;
+        final StompSession stompSession2;
+        final WebSocketTestHelper.MessageSubscriber personalSubscriber2;
+        
+        TwoUserTestSetup(User testUser2, StompSession stompSession2, 
+                        WebSocketTestHelper.MessageSubscriber personalSubscriber2) {
+            this.testUser2 = testUser2;
+            this.stompSession2 = stompSession2;
+            this.personalSubscriber2 = personalSubscriber2;
+        }
+    }
+    
+    // ==================== 테스트 헬퍼 메서드들 ====================
+    
+    private TwoUserTestSetup setupTwoUserTest() throws Exception {
+        final Long TEST_USER2_ID = 456L;
+        
+        // 두 번째 사용자 생성 및 JWT 토큰 생성
+        User testUser2 = createTestUser(TEST_USER2_ID, "test-kakao-456789", "테스트사용자2");
+        Token tokenObject2 = tokenProvider.generateAccessToken(testUser2);
+        String jwtToken2 = tokenObject2.getToken();
+
+        // WebSocket 연결 및 구독
+        StompSession stompSession2 = testHelper.createRealTestSession(port, jwtToken2, TEST_USER2_ID);
+        WebSocketTestHelper.MessageSubscriber personalSubscriber2 = 
+                testHelper.subscribeToRealPersonalQueue(stompSession2, TEST_USER2_ID);
+
+        // 서비스 모킹 설정
+        setupServiceMocks(testUser, testUser2);
+        
+        return new TwoUserTestSetup(testUser2, stompSession2, personalSubscriber2);
+    }
+    
+    private User createTestUser(Long userId, String sub, String nickname) {
+        return User.builder()
+                .userId(userId)
+                .sub(sub)
+                .nickname(nickname)
+                .deleted(false)
+                .build();
+    }
+    
+    private void setupServiceMocks(User user1, User user2) {
+        // 방 생성 모킹
+        String testRoomId = "TWO_USER_ROOM_123";
+        given(interviewSessionService.createPairRoom(1L, TEST_USER_ID))
+                .willReturn(testRoomId);
+        
+        // UserService 모킹
+        given(userService.findById(TEST_USER_ID)).willReturn(user1);
+        given(userService.findById(user2.getUserId())).willReturn(user2);
+    }
+    
+    private void createPairRoomAndJoin(TwoUserTestSetup testSetup) throws Exception {
+        // 1. 방 생성
+        RoomCreateRequest createRequest = new RoomCreateRequest("PAIR_INTERVIEW", 1L);
+        stompSession.send("/app/room-create", createRequest);
+
+        // 방 생성 응답 확인
+        Map<String, Object> createResponse = personalSubscriber.waitForMessage("room-created", 10);
+        String createdRoomId = extractRoomIdFromResponse(createResponse);
+        
+        // 2. 방 입장 관련 모킹 설정
+        setupRoomJoinMocks(createdRoomId, testSetup.user2Id);
+        
+        // 3. 두 번째 사용자 방 입장
+        CommonRoomRequest joinRequest = new CommonRoomRequest(createdRoomId);
+        testSetup.stompSession2.send("/app/room-join", joinRequest);
+    }
+    
+    private String extractRoomIdFromResponse(Map<String, Object> response) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(dataMap, RoomCreateResponse.class);
+        return roomCreateResponse.getRoomId();
+    }
+    
+    private void setupRoomJoinMocks(String roomId, Long user2Id) {
+        InterviewRoom mockRoom = InterviewRoom.createPairRoom(roomId, 1L, TEST_USER_ID, null);
+        mockRoom.addUser(user2Id);
+        given(interviewSessionService.getRoom(roomId)).willReturn(mockRoom);
+    }
+    
+    private void verifyPersonalJoinMessages(TwoUserTestSetup testSetup) throws Exception {
+        // 개인 메시지들 확인
+        Map<String, Object> creatorNotification = personalSubscriber.waitForMessage("joined-user", 10);
+        Map<String, Object> participantNotification = testSetup.personalSubscriber2.waitForMessage("existing-user", 10);
+
+        // 방 생성자가 받는 "joined-user" 메시지 검증
+        verifyJoinedUserMessage(creatorNotification, testSetup.testUser2.getNickname());
+        
+        // 새 참여자가 받는 "existing-user" 메시지 검증
+        verifyExistingUserMessage(participantNotification, testUser.getNickname(), TEST_USER_ID);
+    }
+    
+    private void verifyJoinedUserMessage(Map<String, Object> message, String expectedNickname) {
+        assertThat(message.get("type")).isEqualTo("joined-user");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) message.get("data");
+        assertThat(data.get("nickName")).isEqualTo(expectedNickname);
+    }
+    
+    private void verifyExistingUserMessage(Map<String, Object> message, String expectedNickname, Long expectedUserId) {
+        assertThat(message.get("type")).isEqualTo("existing-user");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) message.get("data");
+        assertThat(data.get("nickName")).isEqualTo(expectedNickname);
+        assertThat(((Number) data.get("id")).longValue()).isEqualTo(expectedUserId);
+    }
+    
+    private void cleanupTwoUserTest(TwoUserTestSetup testSetup) {
+        unsubscribeSafe(testSetup.personalSubscriber2);
+        disconnectSafe(testSetup.stompSession2);
     }
 
     // ==================== 헬퍼 메서드들 ====================
