@@ -8,7 +8,7 @@ function HomePage() {
   return (
     <main
       aria-label="home-page"
-      className="bg-background relative mt-16 flex h-full max-h-screen w-full items-center justify-around gap-4 overflow-hidden px-20 py-16"
+      className="bg-background relative flex h-full max-h-screen w-full items-center justify-around gap-4 overflow-hidden px-20 py-16"
     >
       <BackgroundShadow />
       <LeftSection />

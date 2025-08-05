@@ -1,5 +1,7 @@
+import PracticePage from '@pages/practicePage';
+
 function SoloPracticePage() {
-  return <main aria-label="solo-practice-page">SoloPracticePage</main>;
+  return <PracticePage type="solo" />;
 }
 
 export default SoloPracticePage;
