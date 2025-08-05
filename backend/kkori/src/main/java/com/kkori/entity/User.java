@@ -33,6 +33,7 @@ public class User extends BaseEntity {
     @Column(length = 50, nullable = false)
     private String nickname;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean deleted = false;
 

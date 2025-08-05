@@ -1,4 +1,4 @@
-import { CHAT_TYPES } from '@/customTypes/practicePage/NameTaggedMessageProps';
+import { CHAT_TYPES } from '@/widgets/chattingWindow/model/NameTaggedMessageProps';
 
 export const mockMessageExamples = [
   {

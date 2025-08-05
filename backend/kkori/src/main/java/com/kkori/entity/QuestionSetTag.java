@@ -9,9 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "question_set_version_tag")
+@Table(name = "question_set_tag")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSetTag extends BaseEntity {
 
     @Id
@@ -19,7 +22,7 @@ public class QuestionSetTag extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_set_version_id")
+    @JoinColumn(name = "question_set_id")
     private QuestionSet questionSet;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -43,7 +43,7 @@ public enum ExceptionCode {
     // ==== User 관련 ====
     USER_NOT_FOUND(6001, "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     WEBSOCKET_AUTHENTICATION_FAILED(6002, "WebSocket 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
-    
+
     // ==== WebSocket 관련 ====
     ROOM_CREATE_FAILED(7001, "방 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     ROOM_JOIN_FAILED(7002, "방 참여에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -51,7 +51,18 @@ public enum ExceptionCode {
     INTERVIEW_START_FAILED(7004, "면접 시작에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     INTERVIEW_END_FAILED(7005, "면접 종료에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     ANSWER_PROCESSING_FAILED(7006, "답변 처리에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // ==== QuestionSet 생성 관련 ====
+    EMPTY_QUESTIONS(8001, "질문이 비어있습니다.", HttpStatus.BAD_REQUEST),
+    NO_TITLE(8002, "질문 세트 제목은 필수입니다.", HttpStatus.BAD_REQUEST),
+    BLANK_TITLE(8003, "질문 세트 제목은 빈 문자열일 수 없습니다.", HttpStatus.BAD_REQUEST),
+    NO_QUESTION_CONTENT(8004, "질문 내용은 필수입니다.", HttpStatus.BAD_REQUEST),
+    NO_QUESTION_TYPE(8005, "질문 타입은 필수입니다.", HttpStatus.BAD_REQUEST),
+    NOT_LOGGED_IN(8006, "로그인이 필요합니다.", HttpStatus.BAD_REQUEST),
+    QUESTION_SET_INTERNAL_ERROR(8007, "질문 세트 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    QUESTION_SET_NOT_FOUND_EXCEPTION(8008, "질문 세트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    NO_PERMISSION(8009, "질문 세트에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
 
     private final int code;
     private final String message;

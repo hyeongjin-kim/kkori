@@ -13,9 +13,15 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "question_set_version")
+@Getter
+@Table(name = "question_set")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSet extends BaseEntity {
 
     @Id
@@ -28,7 +34,7 @@ public class QuestionSet extends BaseEntity {
 
     private String title;
 
-    @OneToMany(mappedBy = "questionSetVersion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSetTag> tags = new ArrayList<>();
 
     private String description;
@@ -41,7 +47,18 @@ public class QuestionSet extends BaseEntity {
 
     private Boolean isShared = false;
 
-    @OneToMany(mappedBy = "questionSetVersion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
+
+    @Builder
+    public QuestionSet(User ownerUserId, String title, String description,
+                       Integer versionNumber, QuestionSet parentVersionId, Boolean isShared) {
+        this.ownerUserId = ownerUserId;
+        this.title = title;
+        this.description = description;
+        this.versionNumber = versionNumber;
+        this.parentVersionId = parentVersionId;
+        this.isShared = isShared != null ? isShared : false;
+    }
 
 }
