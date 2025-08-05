@@ -1,5 +1,5 @@
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
-import { NameTaggedMessageProps } from '@/customTypes/practicePage/NameTaggedMessageProps';
+import { NameTaggedMessageProps } from '@/widgets/chattingWindow/model/NameTaggedMessageProps';
 import { create } from 'zustand';
 
 interface ChattingWindowState {
