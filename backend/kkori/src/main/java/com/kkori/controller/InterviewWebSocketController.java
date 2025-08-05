@@ -8,6 +8,8 @@ import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.CustomQuestionCreateRequest;
 import com.kkori.dto.interview.request.NextQuestionSelectRequest;
 import com.kkori.dto.interview.request.RoomCreateRequest;
+import com.kkori.dto.interview.response.ExistingUserResponse;
+import com.kkori.dto.interview.response.JoinedUserResponse;
 import com.kkori.dto.interview.response.NextQuestionChoicesResponse;
 import com.kkori.dto.interview.response.STTResultResponse;
 import com.kkori.dto.interview.response.ErrorResponse;
@@ -15,12 +17,14 @@ import com.kkori.dto.interview.response.InterviewStartResponse;
 import com.kkori.dto.interview.response.RoomCreateResponse;
 import com.kkori.dto.interview.response.RoomStatusResponse;
 import com.kkori.dto.interview.response.SuccessResponse;
+import com.kkori.entity.User;
 import com.kkori.exception.ExceptionCode;
 import com.kkori.exception.user.UserException;
 import com.kkori.message.InterviewMessages;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.dto.websocket.WebSocketResponse;
+import com.kkori.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -34,11 +38,12 @@ import org.springframework.stereotype.Controller;
  */
 @Controller
 @RequiredArgsConstructor
-public class WebSocketEventController {
+public class InterviewWebSocketController {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
     private final InterviewSessionService interviewSessionService;
+    private final UserService userService;
 
     private static final String ROOM_TOPIC_PREFIX = "/topic/interview/";
     private static final String USER_QUEUE = "/queue/interview";
@@ -66,11 +71,9 @@ public class WebSocketEventController {
             String roomId = request.getRoomId();
             interviewSessionService.joinRoom(roomId, authenticatedUserId);
 
-            SuccessResponse broadcastResponse = new SuccessResponse(
-                    InterviewMessages.USER_JOINED,
-                    String.valueOf(System.currentTimeMillis())
-            );
-            broadcastToRoom(roomId, "user-joined", broadcastResponse);
+            InterviewRoom interviewRoom = interviewSessionService.getRoom(roomId);
+
+            sendJoinMessage(interviewRoom.getCreatorId(), authenticatedUserId);
 
         } catch (Exception e) {
             sendErrorToUser(authenticatedUserId, ExceptionCode.ROOM_JOIN_FAILED, e.getMessage());
@@ -192,11 +195,11 @@ public class WebSocketEventController {
             
             if (interviewerId != null) {
                 List<QuestionForm> nextQuestions = interviewSessionService.getNextQuestions(roomId);
-                List<QuestionDto> nextQuestionDtos = nextQuestions.stream()
+                List<QuestionDto> questionDtoList = nextQuestions.stream()
                         .map(QuestionDto::from)
                         .toList();
 
-                NextQuestionChoicesResponse choicesResponse = new NextQuestionChoicesResponse(nextQuestionDtos);
+                NextQuestionChoicesResponse choicesResponse = new NextQuestionChoicesResponse(questionDtoList);
                 sendPersonalMessage(interviewerId, "next-question-choices", choicesResponse);
             }
 
@@ -299,6 +302,17 @@ public class WebSocketEventController {
         } catch (Exception e) {
             // 개인 메시지 전송 실패 시 무시
         }
+    }
+
+    private void sendJoinMessage(Long creatorId, Long participantId) {
+        User creator = userService.findById(creatorId);
+        User participant = userService.findById(participantId);
+
+        ExistingUserResponse toParticipantResponse = new ExistingUserResponse(creator.getNickname(), creatorId);
+        JoinedUserResponse toCreatorResponse = new JoinedUserResponse(participant.getNickname());
+
+        sendPersonalMessage(participantId, "existing-user", toParticipantResponse);
+        sendPersonalMessage(creatorId, "joined-user", toCreatorResponse);
     }
 
     private void broadcastToRoom(String roomId, String messageType, Object responseData) {
