@@ -1,4 +1,7 @@
-import PracticeButton from '@components/homePage/PracticeButton';
+import {
+  PRACTICE_MODE,
+  PracticeButton,
+} from '@components/homePage/PracticeButton';
 
 function PairPracticeButton() {
   return (
@@ -6,7 +9,7 @@ function PairPracticeButton() {
       text="같이 연습하기"
       path="/pair-practice"
       className="border-point-300 text-point-300 border"
-      mode="PAIR_PRACTICE"
+      mode={PRACTICE_MODE.PAIR_PRACTICE}
     />
   );
 }

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import LeftSection from '@/components/practicePage/LeftSection';
-import { mockupQuestion } from '@/__mocks__/questionMocks';
+
 describe('LeftSection', () => {
   beforeEach(() => {
     render(<LeftSection />);
@@ -21,13 +21,15 @@ describe('LeftSection', () => {
     expect(mainMediaStream).toBeInTheDocument();
   });
 
-  test('BottomSection이 렌더링 되어야 한다.', () => {
-    const bottomSection = screen.getByLabelText('bottom-section');
-    expect(bottomSection).toBeInTheDocument();
-  });
-
   test('서브 미디어 스트림이 렌더링 되어야 한다.', () => {
     const subMediaStream = screen.getByLabelText('sub-media-stream-viewer');
     expect(subMediaStream).toBeInTheDocument();
+  });
+
+  test('ControlButtonContainer가 렌더링 되어야 한다.', () => {
+    const controlButtonContainer = screen.getByLabelText(
+      'control-button-container',
+    );
+    expect(controlButtonContainer).toBeInTheDocument();
   });
 });

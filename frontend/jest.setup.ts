@@ -19,3 +19,5 @@ HTMLFormElement.prototype.requestSubmit = function (submitter?: HTMLElement) {
   });
   this.dispatchEvent(submitEvent);
 };
+
+Element.prototype.scrollTo = () => {};
