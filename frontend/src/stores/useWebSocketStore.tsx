@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
-import { RoomCreateRequest } from '@/customTypes/practicePage/RoomCreateRequest';
 
+interface RoomCreateRequest {
+  mode: string;
+  questionSetId: number;
+}
 interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
