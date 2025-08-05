@@ -1,11 +1,12 @@
-import { CurrentQuestionDisplayProps } from '@/customTypes/practicePage/CurrentQuestionDisplayProps';
+import { useCurrentQuestionStore } from '@/stores/useCurrentQuestionStore';
 
-function CurrentQuestionDisplay({ id, question }: CurrentQuestionDisplayProps) {
+function CurrentQuestionDisplay() {
+  const { question } = useCurrentQuestionStore(state => state.question);
+
   return (
     <div
       aria-label="current-question-display"
-      key={id}
-      className="text-md inline-block rounded-full border border-blue-500 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-sm"
+      className="text-md inline-block w-full rounded-full border border-blue-500 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-sm"
     >
       ❓ {question}
     </div>

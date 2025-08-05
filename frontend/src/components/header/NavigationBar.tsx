@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 function NavigationBar() {
   const links = Object.entries(NAVIGATION_BAR_LINKS);
   return (
-    <nav className="flex items-center">
+    <nav>
       <ul className="flex items-center gap-4 text-sm font-medium">
         {links.map(([key, value]) => (
           <li key={key}>

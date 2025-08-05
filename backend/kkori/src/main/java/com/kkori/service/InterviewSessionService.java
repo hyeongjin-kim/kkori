@@ -2,6 +2,7 @@ package com.kkori.service;
 
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.component.interview.InterviewRoom;
 
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public interface InterviewSessionService {
     /**
      * 음성 파일로 답변 처리 (STT 변환 포함)
      */
-    String processAudioAnswer(String roomId, Long userId, String audioFilePath);
+    String processAudioAnswer(String roomId, Long userId, String audioBase64);
 
     // ==================== 질문 관리 ====================
 
@@ -74,7 +75,7 @@ public interface InterviewSessionService {
     /**
      * 커스텀 질문 생성
      */
-    QuestionForm createCustomQuestion(String roomId, String questionText);
+    QuestionForm createCustomQuestion(String roomId, String audioBase64);
 
     // ==================== 역할 및 상태 관리 ====================
 
@@ -93,4 +94,9 @@ public interface InterviewSessionService {
      * 면접 시작 가능 여부 확인
      */
     boolean canStartInterview(String roomId);
+
+    /**
+     * 방 정보 조회
+     */
+    InterviewRoom getRoom(String roomId);
 }

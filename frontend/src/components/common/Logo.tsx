@@ -1,23 +1,11 @@
-interface LogoProps {
-  textClassName?: string;
-  imgClassName?: string;
-}
-
-function Logo({ textClassName, imgClassName }: LogoProps) {
+function Logo({ className }: { className?: string }) {
   return (
-    <div className="inline-flex items-center">
-      <span
-        className={`bg-gradient-to-b from-[#fef6da] to-[#e08311] bg-clip-text text-2xl font-extrabold text-transparent ${textClassName}`}
-      >
-        꼬리
-      </span>
-      <img
-        src="/fox-tail.png"
-        alt="꼬리"
-        className={`inline-block ${imgClassName}`}
-        aria-label="logo-image"
-      />
-    </div>
+    <img
+      src="/logo.png"
+      alt="logo"
+      className={`inline-block ${className}`}
+      aria-label="logo-image"
+    />
   );
 }
 

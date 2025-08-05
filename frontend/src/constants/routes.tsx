@@ -34,11 +34,6 @@ const mainLayoutRoutes: readonly Route[] = [
     element: <InterviewQuestionsPage />,
     label: 'interview-questions-page',
   },
-  {
-    path: '/practice',
-    element: <PracticePage />,
-    label: 'practice-page',
-  },
 ];
 
 const appRoutes: AppRoutes = Object.freeze({ mainLayout: mainLayoutRoutes });

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Transcriber {
 
-    private static final MediaType AUDIO_M4A = MediaType.parse("audio/m4a");
+    private static final MediaType AUDIO_WEBM = MediaType.parse("audio/webm");
     private static final String WHISPER_MODEL = "whisper-1";
 
     private final GMSConfig config;
@@ -37,7 +37,7 @@ public class Transcriber {
 
     private MultipartBody buildRequestBody(String filePath) {
         File audioFile = new File(filePath);
-        RequestBody fileBody = RequestBody.create(audioFile, AUDIO_M4A);
+        RequestBody fileBody = RequestBody.create(audioFile, AUDIO_WEBM);
 
         return new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)

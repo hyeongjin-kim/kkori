@@ -1,5 +1,7 @@
+import PracticePage from '../practicePage';
+
 function PairPracticePage() {
-  return <main aria-label="pair-practice-page">PairPracticePage</main>;
+  return <PracticePage type="pair" />;
 }
 
 export default PairPracticePage;
