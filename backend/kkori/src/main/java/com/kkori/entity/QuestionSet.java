@@ -46,6 +46,7 @@ public class QuestionSet extends BaseEntity {
     private QuestionSet parentVersionId;
 
     private Boolean isShared = false;
+    private Boolean isDelete = false;
 
     @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
