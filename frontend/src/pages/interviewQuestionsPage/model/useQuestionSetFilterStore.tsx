@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { QuestionSet, Tag } from '@/entities/questionSet/model/type';
+import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
 
 interface QuestionSetFilterState {
-  selectedTag: Tag | null;
+  selectedTag: Tag;
   questionSets: QuestionSet[];
 }
 
@@ -12,7 +13,7 @@ interface QuestionSetFilterAction {
 }
 
 const initialState: QuestionSetFilterState = {
-  selectedTag: null,
+  selectedTag: TAG_FILTER_LIST[0],
   questionSets: [],
 };
 

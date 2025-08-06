@@ -7,9 +7,9 @@ function QuestionSetTagFilter() {
   return (
     <section
       aria-label="question-set-tag-filter"
-      className="flex flex-col gap-4"
+      className="flex w-full flex-col gap-4 rounded-md border-gray-200 bg-white p-8 shadow-sm"
     >
-      <p className="text-lg font-bold">태그 필터</p>
+      <p className="mb-2 text-xl font-bold">태그 필터</p>
       <TagFilterList selectedTag={selectedTag} onClick={setSelectedTag} />
       <TagInputForm />
     </section>
