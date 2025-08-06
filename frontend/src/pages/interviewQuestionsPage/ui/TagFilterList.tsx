@@ -9,7 +9,7 @@ interface TagFilterListProps {
 
 function TagFilterList({ selectedTag, onClick }: TagFilterListProps) {
   return (
-    <ul aria-label="tag-filter-list" className="flex gap-2">
+    <ul aria-label="tag-filter-list" className="flex flex-wrap gap-2">
       {TAG_FILTER_LIST.map(tag => (
         <li key={tag.id}>
           <TagFilter
