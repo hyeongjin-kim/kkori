@@ -176,9 +176,9 @@ class SoloPracticeTest {
         stompSession.send("/app/room-create", request);
 
         // 방 생성 응답 확인
-        Map<String, Object> response = personalSubscriber.waitForMessage("MSG_TYPE_ROOM_CREATED", 10);
+        Map<String, Object> response = personalSubscriber.waitForMessage(MSG_TYPE_ROOM_CREATED, 10);
         assertThat(response).isNotNull();
-        assertThat(response.get("type")).isEqualTo("MSG_TYPE_ROOM_CREATED");
+        assertThat(response.get("type")).isEqualTo(MSG_TYPE_ROOM_CREATED);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
