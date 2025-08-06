@@ -382,11 +382,6 @@ class QuestionSetServiceImplTest {
 
         given(questionRepository.save(any(Question.class)))
                 .willReturn(Question.builder()
-                        .content("복제 질문")
-                        .questionType(CUSTOM)
-                        .expectedAnswer("복제 답변")
-                        .build())
-                .willReturn(Question.builder()
                         .content("추가 질문")
                         .questionType(CUSTOM)
                         .expectedAnswer("추가 답변")
@@ -400,7 +395,7 @@ class QuestionSetServiceImplTest {
         verify(questionSetRepository, times(1)).findMaxVersionNumberByParentVersionId(parentQuestionSetId);
         verify(questionSetRepository, times(1)).save(any(QuestionSet.class));
         verify(questionSetRepository, times(1)).findById(3L);
-        verify(questionRepository, times(2)).save(any(Question.class));
+        verify(questionRepository, times(1)).save(any(Question.class));
     }
 
     @Test
@@ -473,6 +468,73 @@ class QuestionSetServiceImplTest {
         assertEquals("질문 세트를 찾을 수 없습니다.", exception.getMessage());
         verify(questionSetRepository, times(1)).findById(nonExistingParentId);
         verify(questionSetRepository, times(0)).save(any(QuestionSet.class));
+    }
+
+    @Test
+    @DisplayName("불변 구조: 버전 생성 시 기존 Question을 재사용한다")
+    void createNewQuestionSetWithQuestion_FromExisting_ReuseQuestions() {
+        Long parentQuestionSetId = 2L;
+
+        Question existingQuestion = Question.builder()
+                .content("기존 질문")
+                .questionType(CUSTOM)
+                .expectedAnswer("기존 답변")
+                .build();
+        ReflectionTestUtils.setField(existingQuestion, "id", 100L);
+
+        QuestionSet parentQuestionSet = QuestionSet.builder()
+                .ownerUserId(user)
+                .title("원본 질문 세트")
+                .description("원본 설명")
+                .versionNumber(1)
+                .isShared(false)
+                .build();
+
+        QuestionSetQuestionMap existingMap = QuestionSetQuestionMap.of(parentQuestionSet, existingQuestion, 1);
+        parentQuestionSet.getQuestionMaps().add(existingMap);
+
+        CreateNewQuestionSetRequest versioningRequest = CreateNewQuestionSetRequest.builder()
+                .title("새 버전 질문 세트")
+                .description("새 버전 설명")
+                .questions(asList(
+                        CreateQuestionRequest.builder()
+                                .content("더미 질문")
+                                .questionType(1)
+                                .expectedAnswer("더미 답변")
+                                .build()
+                ))
+                .parentVersionId(parentQuestionSetId)
+                .build();
+
+        QuestionSet newVersionQuestionSet = QuestionSet.builder()
+                .ownerUserId(user)
+                .title("새 버전 질문 세트")
+                .description("새 버전 설명")
+                .versionNumber(2)
+                .parentVersionId(parentQuestionSet)
+                .isShared(false)
+                .build();
+        ReflectionTestUtils.setField(newVersionQuestionSet, "id", 3L);
+
+        given(userRepository.findById(USER_ID)).willReturn(of(user));
+        given(questionSetRepository.findById(parentQuestionSetId)).willReturn(of(parentQuestionSet));
+        given(questionSetRepository.findMaxVersionNumberByParentVersionId(parentQuestionSetId)).willReturn(of(1));
+        given(questionSetRepository.save(any(QuestionSet.class))).willReturn(newVersionQuestionSet);
+        given(questionSetRepository.findById(3L)).willReturn(of(newVersionQuestionSet));
+        given(questionRepository.save(any(Question.class)))
+                .willReturn(Question.builder()
+                        .content("더미 질문")
+                        .questionType(CUSTOM)
+                        .expectedAnswer("더미 답변")
+                        .build());
+
+        Long result = questionSetService.createQuestionSetWithInitialQuestions(USER_ID, versioningRequest, "새 버전 질문 세트");
+
+        assertNotNull(result);
+        verify(userRepository, times(2)).findById(USER_ID);
+        verify(questionSetRepository, times(1)).findById(parentQuestionSetId);
+        verify(questionSetRepository, times(1)).save(any(QuestionSet.class));
+        verify(questionRepository, times(1)).save(any(Question.class));
     }
 
 }

@@ -136,7 +136,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         QuestionSet newVersionQuestionSet = createQuestionSetEntity(user, title, request.getDescription(), parentQuestionSet, nextVersionNumber);
         QuestionSet savedQuestionSet = questionSetRepository.save(newVersionQuestionSet);
         
-        duplicateAllQuestionsFromParentToChild(parentQuestionSet, savedQuestionSet);
+        linkExistingQuestionsToNewVersion(parentQuestionSet, savedQuestionSet);
         addMultipleQuestionsToSet(userId, savedQuestionSet.getId(), request.getQuestions());
         
         return savedQuestionSet.getId();
@@ -148,24 +148,15 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .orElse(NEXT_VERSION_NUMBER);
     }
     
-    private void duplicateAllQuestionsFromParentToChild(QuestionSet parentQuestionSet, QuestionSet childQuestionSet) {
+    private void linkExistingQuestionsToNewVersion(QuestionSet parentQuestionSet, QuestionSet childQuestionSet) {
         parentQuestionSet.getQuestionMaps().stream()
                 .sorted(comparingInt(QuestionSetQuestionMap::getDisplayOrder))
                 .forEach(parentQuestionMap -> {
-                    Question originalQuestion = parentQuestionMap.getQuestion();
-                    Question duplicatedQuestion = duplicateQuestionFromOriginal(originalQuestion);
-                    addQuestionToQuestionSetMapping(childQuestionSet, duplicatedQuestion, parentQuestionMap.getDisplayOrder());
+                    Question existingQuestion = parentQuestionMap.getQuestion();
+                    addQuestionToQuestionSetMapping(childQuestionSet, existingQuestion, parentQuestionMap.getDisplayOrder());
                 });
     }
     
-    private Question duplicateQuestionFromOriginal(Question originalQuestion) {
-        Question copiedQuestion = Question.builder()
-                .content(originalQuestion.getContent())
-                .questionType(originalQuestion.getQuestionType())
-                .expectedAnswer(originalQuestion.getExpectedAnswer())
-                .build();
-        return questionRepository.save(copiedQuestion);
-    }
 
     private void addMultipleQuestionsToSet(Long userId, Long questionSetId, List<CreateQuestionRequest> questions) {
         questions.forEach(singleQuestionRequest -> addQuestionToQuestionSet(userId, questionSetId, singleQuestionRequest));
