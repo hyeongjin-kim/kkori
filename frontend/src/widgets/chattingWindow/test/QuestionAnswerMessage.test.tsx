@@ -5,7 +5,7 @@ import { mockMessageExamples } from '@/__mocks__/chatMocks';
 import QuestionAnswerMessage from '@/widgets/chattingWindow/ui/QuestionAnswerMessage';
 
 describe('QuestionAnswerMessage', () => {
-  [CHAT_TYPES.QUESTION, CHAT_TYPES.ANSWER].forEach(type => {
+  [CHAT_TYPES.question, CHAT_TYPES.answer].forEach(type => {
     test(`${type} 메시지가 랜더링 되어야 한다.`, () => {
       render(
         <QuestionAnswerMessage
@@ -43,7 +43,7 @@ describe('QuestionAnswerMessage', () => {
 
     items.forEach((item, idx) => {
       expect(item).toHaveClass(
-        mockMessageExamples[idx].type === CHAT_TYPES.QUESTION
+        mockMessageExamples[idx].type === CHAT_TYPES.question
           ? 'bg-gray-100 text-gray-800'
           : 'bg-yellow-100 text-gray-800',
       );
