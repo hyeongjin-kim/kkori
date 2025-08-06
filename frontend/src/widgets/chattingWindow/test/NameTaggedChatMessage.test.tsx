@@ -1,18 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import NameTaggedMessage, {
-  chatStyleMap,
-} from '@/widgets/chattingWindow/ui/NameTaggedMessage';
-import { CHAT_TYPES } from '@/widgets/chattingWindow/model/NameTaggedMessageProps';
+import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
+import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
+import { CHAT_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 
 describe('NameTaggedMessage', () => {
   test('이름 태그 메시지가 랜더링 되어야 한다.', () => {
     render(
       <NameTaggedMessage
-        id="1"
-        type={CHAT_TYPES.QUESTION}
-        sender="tester"
-        message="test"
+        message={{
+          id: '1',
+          type: CHAT_TYPES.QUESTION,
+          sender: 'tester',
+          text: 'test',
+          timestamp: new Date().toISOString(),
+          isMyMessage: false,
+        }}
       />,
     );
 
@@ -26,7 +29,7 @@ describe('NameTaggedMessage', () => {
     render(
       <>
         {mockMessageExamples.map(example => (
-          <NameTaggedMessage key={example.id} {...example} />
+          <NameTaggedMessage key={example.id} message={example} />
         ))}
       </>,
     );
@@ -36,7 +39,11 @@ describe('NameTaggedMessage', () => {
     });
 
     items.forEach((item, idx) => {
-      expect(item).toHaveClass(chatStyleMap[mockMessageExamples[idx].type]);
+      expect(item).toHaveClass(
+        mockMessageExamples[idx].isMyMessage
+          ? CHAT_MESSAGE_STYLE.me
+          : CHAT_MESSAGE_STYLE.opponent,
+      );
     });
   });
 });

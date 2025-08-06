@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import VideoStream from '@/widgets/interviewSection/ui/VideoStream';
-import useMediaStreamStore from '@/stores/useMediaStreamStore';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 describe('VideoStream', () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
-import usePracticeStore from '@/stores/usePracticeStore';
-import { PracticeType } from '@/stores/usePracticeStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { PracticeType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import {
   interviewControlButtonProps,
   preInterviewControlButtonProps,
@@ -16,7 +16,7 @@ const switchStatus = (status: PracticeType) => {
 };
 
 function InterviewController() {
-  const status = usePracticeStore(state => state.status);
+  const status = useInterviewRoomStore(state => state.status);
 
   return (
     <div

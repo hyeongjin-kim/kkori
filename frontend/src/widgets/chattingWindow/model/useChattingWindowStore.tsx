@@ -1,13 +1,13 @@
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
-import { NameTaggedMessageProps } from '@/widgets/chattingWindow/model/NameTaggedMessageProps';
 import { create } from 'zustand';
+import { Message } from '@/widgets/chattingWindow/model/chattingWindowType';
 
 interface ChattingWindowState {
-  messages: NameTaggedMessageProps[];
+  messages: Message[];
 }
 
 interface ChattingWindowAction {
-  addMessage: (message: NameTaggedMessageProps) => void;
+  addMessage: (message: Message) => void;
   deleteMessage: (id: string) => void;
 }
 

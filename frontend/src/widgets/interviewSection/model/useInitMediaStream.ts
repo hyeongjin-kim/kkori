@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import useMediaStreamStore from '@/stores/useMediaStreamStore';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 function useInitMediaStream() {
   const setMyStream = useMediaStreamStore(state => state.setMyStream);

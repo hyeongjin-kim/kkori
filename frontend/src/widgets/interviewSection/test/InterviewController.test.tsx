@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import InterviewController from '@/widgets/interviewSection/ui/InterviewController';
-import usePracticeStore from '@/stores/usePracticeStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 describe('InterviewController', () => {
-  const { setStatus } = usePracticeStore.getState();
+  const { setStatus } = useInterviewRoomStore.getState();
 
   beforeEach(() => {
     setStatus('pre-interview');
