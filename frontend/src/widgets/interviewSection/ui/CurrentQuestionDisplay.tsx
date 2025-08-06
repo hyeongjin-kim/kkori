@@ -1,4 +1,4 @@
-import { useCurrentQuestionStore } from '@/stores/useCurrentQuestionStore';
+import { useCurrentQuestionStore } from '@/widgets/interviewSection/model/useCurrentQuestionStore';
 
 function CurrentQuestionDisplay() {
   const { question } = useCurrentQuestionStore(state => state.question);

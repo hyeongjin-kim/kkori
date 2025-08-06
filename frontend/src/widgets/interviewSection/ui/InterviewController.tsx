@@ -1,5 +1,5 @@
-import usePracticeStore from '@/stores/usePracticeStore';
-import { PracticeType } from '@/stores/usePracticeStore';
+import usePracticeStore from '@/entities/interviewRoom/model/usePracticeStore';
+import { PracticeType } from '@/entities/interviewRoom/model/usePracticeStore';
 import {
   interviewControlButtonProps,
   preInterviewControlButtonProps,

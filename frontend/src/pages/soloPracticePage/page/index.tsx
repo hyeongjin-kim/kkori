@@ -1,5 +1,5 @@
 import ChattingWindowContainer from '@/widgets/chattingWindow';
-import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { useWebSocketStore } from '@/shared/lib/useWebSocketStore';
 import { useEffect } from 'react';
 import InterviewSection from '@/widgets/interviewSection';
 import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';

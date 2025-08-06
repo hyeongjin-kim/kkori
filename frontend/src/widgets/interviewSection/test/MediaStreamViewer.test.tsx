@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import MediaStreamViewer from '@/widgets/interviewSection/ui/MediaStreamViewer';
-import useMediaStreamStore from '@/stores/useMediaStreamStore';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 describe('MediaStreamViewer 스트림 없을 경우', () => {
   beforeEach(() => {

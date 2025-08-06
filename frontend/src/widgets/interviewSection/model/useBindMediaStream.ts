@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import useMediaStreamStore from '@/stores/useMediaStreamStore';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import { MediaStreamType } from '@/widgets/interviewSection/model/types';
 
 interface BindResult {

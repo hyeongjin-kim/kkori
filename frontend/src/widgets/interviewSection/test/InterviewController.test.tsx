@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import InterviewController from '@/widgets/interviewSection/ui/InterviewController';
-import usePracticeStore from '@/stores/usePracticeStore';
+import usePracticeStore from '@/entities/interviewRoom/model/usePracticeStore';
 
 describe('InterviewController', () => {
   const { setStatus } = usePracticeStore.getState();

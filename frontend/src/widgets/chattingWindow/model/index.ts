@@ -1,4 +1,4 @@
-import useChattingWindowStore from '@/stores/useChattingWindowStore';
+import useChattingWindowStore from '@/widgets/chattingWindow/model/useChattingWindowStore';
 import { FormEvent } from 'react';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 

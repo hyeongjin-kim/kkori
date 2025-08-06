@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import ScrollableList from '@/shared/ui/ScrollableList';
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
-import useChattingWindowStore from '@/stores/useChattingWindowStore';
+import useChattingWindowStore from '@/widgets/chattingWindow/model/useChattingWindowStore';
 import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
 
 describe('ScrollableList', () => {

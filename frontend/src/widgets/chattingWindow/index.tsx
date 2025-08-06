@@ -1,7 +1,7 @@
 import ChattingInputBar from '@/widgets/chattingWindow/ui/ChattingInputBar';
 import ScrollableList from '@/shared/ui/ScrollableList';
 import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
-import useChattingWindowStore from '@/stores/useChattingWindowStore';
+import useChattingWindowStore from '@/widgets/chattingWindow/model/useChattingWindowStore';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import QuestionAnswerMessage from '@/widgets/chattingWindow/ui/QuestionAnswerMessage';
 
