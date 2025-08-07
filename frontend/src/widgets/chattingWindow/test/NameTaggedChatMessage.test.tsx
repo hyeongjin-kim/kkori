@@ -15,6 +15,7 @@ describe('NameTaggedMessage', () => {
           text: 'test',
           timestamp: new Date().toISOString(),
           isMyMessage: false,
+          confirmed: true,
         }}
       />,
     );
