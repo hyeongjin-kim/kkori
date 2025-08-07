@@ -9,9 +9,12 @@ import com.kkori.entity.User;
 import com.kkori.entity.QuestionType;
 import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.exception.user.UserException;
+import com.kkori.repository.AnswerRepository;
 import com.kkori.repository.QuestionRepository;
+import com.kkori.repository.QuestionSetQuestionMapRepository;
 import com.kkori.repository.QuestionSetRepository;
 import com.kkori.repository.UserRepository;
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +45,12 @@ class QuestionSetServiceTest {
     @Mock
     private QuestionRepository questionRepository;
 
+    @Mock
+    private AnswerRepository answerRepository;
+
+    @Mock
+    private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
+
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
 
@@ -52,23 +61,25 @@ class QuestionSetServiceTest {
         Long userId = 1L;
         String title = "Java 기초 질문세트";
         String description = "Java 개발자를 위한 기초 질문 모음";
-        
+
         User owner = createUser(userId, "owner@test.com");
         CreateNewQuestionSetRequest request = createQuestionSetRequest(title, description);
         QuestionSet savedQuestionSet = createQuestionSet(1L, owner, title, description);
         Question savedQuestion = createQuestion(1L, "자바의 특징을 설명해주세요.");
-        
+
         given(userRepository.findById(userId)).willReturn(Optional.of(owner));
         given(questionSetRepository.save(any(QuestionSet.class))).willReturn(savedQuestionSet);
         given(questionRepository.save(any(Question.class))).willReturn(savedQuestion);
+        given(questionSetRepository.findById(savedQuestionSet.getId()))
+                .willReturn(Optional.of(savedQuestionSet));
 
         // When
         Long result = questionSetService.createQuestionSetWithInitialQuestions(userId, request, title);
 
         // Then
         assertThat(result).isEqualTo(1L);
-        
-        verify(userRepository, times(2)).findById(userId); // 한번은 질문세트 생성용, 한번은 질문 추가용
+
+        verify(userRepository, times(2)).findById(userId);
         verify(questionSetRepository).save(any(QuestionSet.class));
         verify(questionRepository).save(any(Question.class));
     }
@@ -267,13 +278,21 @@ class QuestionSetServiceTest {
     }
 
     private QuestionSet createQuestionSet(Long id, User owner, String title, String description) {
-        return QuestionSet.builder()
+        QuestionSet questionSet = QuestionSet.builder()
                 .ownerUserId(owner)
                 .title(title)
                 .description(description)
                 .versionNumber(1)
                 .isShared(false)
                 .build();
+        try {
+            Field idField = QuestionSet.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(questionSet, id);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return questionSet;
     }
 
     private Question createQuestion(Long id, String content) {
