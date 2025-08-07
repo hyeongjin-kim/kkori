@@ -101,6 +101,11 @@ pipeline {
                         export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
                         export KAKAO_REDIRECT_URL=${KAKAO_REDIRECT_URL}
                         export KAKAO_TOKEN_URL=${KAKAO_TOKEN_URL}
+                        # Jenkins 배포 시에는 MySQL 설정으로 오버라이드
+                        export DB_DIALECT="org.hibernate.dialect.MySQL8Dialect"
+                        export DB_PLATFORM="org.hibernate.dialect.MySQL8Dialect"
+                        export HIBERNATE_SHOW_SQL="false"
+                        export HIBERNATE_FORMAT_SQL="false"
                         ./gradlew clean test --no-daemon --stacktrace
                     '''
                 }
