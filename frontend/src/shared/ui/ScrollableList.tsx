@@ -1,19 +1,36 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
-const useScrollToBottom = ({ contents }: { contents: any }) => {
+interface useScrollToBottomProps {
+  dependencies: any[];
+  scrollRef: React.RefObject<HTMLElement | null>;
+}
+
+interface ScrollableListProps {
+  children: React.ReactNode;
+}
+
+const useScrollToBottom = ({
+  dependencies,
+  scrollRef,
+}: useScrollToBottomProps) => {
   useLayoutEffect(() => {
-    const list = document.querySelector('[aria-label="scrollable-list"]');
-    list?.scrollTo({ top: list.scrollHeight, behavior: 'instant' });
-  }, [contents]);
+    const scroll = scrollRef.current;
+    scroll?.scrollTo({ top: scroll.scrollHeight });
+  }, dependencies);
 };
 
-function ScrollableList({ children }: { children: React.ReactNode }) {
-  useScrollToBottom({ contents: children });
+function ScrollableList({ children }: ScrollableListProps) {
+  const listRef = useRef<HTMLUListElement>(null);
+  useScrollToBottom({
+    dependencies: [children],
+    scrollRef: listRef,
+  });
 
   return (
     <ul
       className="h-full w-full overflow-y-auto px-5"
       aria-label="scrollable-list"
+      ref={listRef}
     >
       {children}
     </ul>
