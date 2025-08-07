@@ -1,6 +1,6 @@
 import { QuestionSet } from '@/entities/questionSet/model/type';
 
-export const questionSetList: readonly QuestionSet[] = Object.freeze([
+export const questionSetList: QuestionSet[] = [
   {
     id: 1,
     nickname: '이찬',
@@ -467,4 +467,4 @@ export const questionSetList: readonly QuestionSet[] = Object.freeze([
       },
     ],
   },
-]);
+];
