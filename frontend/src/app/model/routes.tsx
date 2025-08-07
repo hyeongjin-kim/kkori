@@ -4,6 +4,7 @@ import PairPracticePage from '@/pages/pairPracticePage/page/index';
 import SoloPracticePage from '@/pages/soloPracticePage/page/index';
 import InterviewQuestionsPage from '@/pages/interviewQuestionsPage/page/index';
 import HomePage from '@/pages/homePage/page/index';
+import QuestionSetCreatePage from '@/pages/questionSetCreatePage/page/index';
 
 interface Route {
   path: string; // TODO: 타입 정의 필요
@@ -33,6 +34,11 @@ const mainLayoutRoutes: readonly Route[] = [
     path: '/interview-questions',
     element: <InterviewQuestionsPage />,
     label: 'interview-questions-page',
+  },
+  {
+    path: '/question-set-create',
+    element: <QuestionSetCreatePage />,
+    label: 'question-set-create-page',
   },
 ];
 

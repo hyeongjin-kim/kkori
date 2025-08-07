@@ -1,4 +1,4 @@
-import { QuestionSet } from '@/entities/questionSet/model/type';
+import { QuestionSet } from '@/entities/questionSet/model/response';
 
 export const questionSetList: QuestionSet[] = [
   {

@@ -1,4 +1,4 @@
-import { Tag } from '@/entities/questionSet/model/type';
+import { Tag } from '@/entities/questionSet/model/response';
 
 interface TagFilterProps {
   tag: Tag;

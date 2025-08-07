@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { QuestionSet, Tag } from '@/entities/questionSet/model/type';
+import { QuestionSet } from '@/entities/questionSet/model/response';
 import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
 import { questionSetList } from '@/entities/questionSet/model/mock';
 

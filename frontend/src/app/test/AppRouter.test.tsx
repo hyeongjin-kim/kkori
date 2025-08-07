@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import AppRouter from '@/app/routes/AppRouter';
-import { appRoutes } from '@/app/store/routes';
+import { appRoutes } from '@/app/model/routes';
 import { MemoryRouter } from 'react-router-dom';
 
 describe('AppRouter', () => {
