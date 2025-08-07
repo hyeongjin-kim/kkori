@@ -9,7 +9,7 @@ function TagInputForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const tag = inputRef.current?.value;
-    setSelectedTag(tag ?? TAG_FILTER_LIST[0].tag);
+    setSelectedTag(tag || TAG_FILTER_LIST[0].tag);
   };
 
   return (
