@@ -5,9 +5,9 @@ interface SharedToggleSwitchProps {
 }
 
 function SharedToggleSwitch({
+  displayTitle,
   value,
   onChange,
-  displayTitle,
 }: SharedToggleSwitchProps) {
   return (
     <div className="flex flex-col gap-2" aria-label="shared-toggle-switch">
@@ -17,6 +17,13 @@ function SharedToggleSwitch({
       <div
         role="switch"
         aria-checked={value}
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onChange(!value);
+          }
+        }}
         onClick={() => onChange(!value)}
         className={`relative flex h-10 w-28 cursor-pointer items-center rounded-full p-1 transition-all duration-500 ${
           value ? 'bg-point-400' : 'bg-gray-300'

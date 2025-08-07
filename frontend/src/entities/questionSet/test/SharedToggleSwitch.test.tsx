@@ -5,13 +5,11 @@ describe('SharedToggleSwitch', () => {
   test('SharedToggleSwitch 렌더링 된다.', () => {
     render(
       <SharedToggleSwitch
+        displayTitle="shared-toggle-switch"
         value={false}
         onChange={() => {}}
-        displayTitle="shared-toggle-switch"
       />,
     );
-    expect(
-      screen.getByRole('checkbox', { name: 'toggle-shared-checkbox' }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('shared-toggle-switch')).toBeInTheDocument();
   });
 });
