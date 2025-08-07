@@ -6,7 +6,7 @@ interface TagFilterProps {
   onClick?: (tag: Tag) => void;
 }
 
-const tagFilterStyle = {
+export const tagFilterStyle = {
   selected:
     'bg-point-400 text-white hover:bg-white hover:text-point border border-point',
   unselected:
