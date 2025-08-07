@@ -1,4 +1,4 @@
-package com.kkori.controller;
+package com.kkori.controller.interview;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,6 +19,8 @@ import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.test.helper.WebSocketTestHelper;
+import com.kkori.test.helper.WebSocketTestHelper.MessageSubscriber;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,36 +121,27 @@ public class WebSocketChatControllerTest {
     }
 
     @Test
-    @DisplayName("채팅을 보내면 자신과 상대방이 동일한 내용을 받는다")
+    @DisplayName("소속된 방에 채팅을 보내면 자신과 상대방이 동일한 내용을 받는다")
     void sendChat() throws Exception {
         // given
-
         given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_2))
                 .willReturn(TEST_ROOM_ID_1);
         doNothing().when(interviewSessionService).canSendChatMessage(any(), any());
 
-        RoomCreateRequest roomCreateRequest = new RoomCreateRequest("PAIR_INTERVIEW", 1l);
-        stompSession_user2.send("/app/room-create", roomCreateRequest);
-
-        Map<String, Object> response = personalSubscriber_user2.waitForMessage("room-created", 3);
-
-        Map<String, Object> responsePayload = (Map<String, Object>) response.get("data");
-        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(responsePayload, RoomCreateResponse.class);
-        String roomId = roomCreateResponse.getRoomId();
+        String roomId = createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW", 1l);
 
         CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
         stompSession_user2.send("/app/room-join", roomJoinRequest);
 
-        WebSocketTestHelper.MessageSubscriber chatSubscriber_user1 = testHelper.subscribeToRealRoomTopic(
-                stompSession_user1, roomId);
-        WebSocketTestHelper.MessageSubscriber chatSubscriber_user2 = testHelper.subscribeToRealRoomTopic(
-                stompSession_user2, roomId);
+        List<WebSocketTestHelper.MessageSubscriber> chatSubscriberList = subscribeChat(
+                stompSession_user1, roomId,
+                stompSession_user2, roomId
+        );
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user1 = chatSubscriberList.get(0);
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user2 = chatSubscriberList.get(1);
 
         // when
-        WebSocketChatMessage chatMessageSend = new WebSocketChatMessage(
-                roomId, user1.getNickname(), TEST_CHAT_MESSAGE, System.currentTimeMillis()
-        );
-        stompSession_user1.send("/app/chat", chatMessageSend);
+        sendChat(user1, stompSession_user1, roomId, TEST_CHAT_MESSAGE);
 
         // then
         Map<String, Object> chatResponse_user1 = chatSubscriber_user1.waitForMessage("chat", 3);
@@ -162,7 +155,7 @@ public class WebSocketChatControllerTest {
     }
 
     @Test
-    @DisplayName("자신이 포함되지 않은 방에 채팅을 보내면 해당 방의 유저는 아무것도 받지 않고, 자신은 에러 메시지를 받는다")
+    @DisplayName("소속되지 않은 방에 채팅을 보내면 해당 방의 유저는 아무것도 받지 않고, 자신은 에러 메시지를 받는다")
     void sendChatToWrongRoom() throws Exception {
         // given
         given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_1))
@@ -172,42 +165,19 @@ public class WebSocketChatControllerTest {
         doThrow(InterviewRoomException.userNotFoundInRoom()).when(interviewSessionService)
                 .canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_1));
 
-        RoomCreateRequest roomCreateRequest = new RoomCreateRequest("PAIR_INTERVIEW", 1l);
-        stompSession_user1.send("/app/room-create", roomCreateRequest);
+        String roomId_1 = createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW", 1l);
+        String roomId_2 = createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW", 1l);
 
-        Map<String, Object> response = personalSubscriber_user1.waitForMessage("room-created", 3);
-
-        Map<String, Object> responsePayload = (Map<String, Object>) response.get("data");
-        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(responsePayload, RoomCreateResponse.class);
-        String roomId_1 = roomCreateResponse.getRoomId();
-
-//        CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
-//        stompSession_user2.send("/app/room-join", roomJoinRequest);
-
-        RoomCreateRequest roomCreateRequest2 = new RoomCreateRequest("PAIR_INTERVIEW", 1l);
-        stompSession_user2.send("/app/room-create", roomCreateRequest2);
-
-        Map<String, Object> response2 = personalSubscriber_user2.waitForMessage("room-created", 3);
-
-        Map<String, Object> responsePayload2 = (Map<String, Object>) response2.get("data");
-        RoomCreateResponse roomCreateResponse2 = objectMapper.convertValue(responsePayload2, RoomCreateResponse.class);
-        String roomId_2 = roomCreateResponse2.getRoomId();
-
-        WebSocketTestHelper.MessageSubscriber chatSubscriber_user1 = testHelper.subscribeToRealRoomTopic(
-                stompSession_user1, roomId_1);
-        WebSocketTestHelper.MessageSubscriber chatSubscriber_user2 = testHelper.subscribeToRealRoomTopic(
-                stompSession_user2, roomId_2);
+        List<WebSocketTestHelper.MessageSubscriber> chatSubscriberList = subscribeChat(
+                stompSession_user1, roomId_1,
+                stompSession_user2, roomId_2
+        );
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user1 = chatSubscriberList.get(0);
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user2 = chatSubscriberList.get(1);
 
         // when
-        WebSocketChatMessage chatMessageSend = new WebSocketChatMessage(
-                roomId_2, user1.getNickname(), TEST_CHAT_MESSAGE_FAIL, System.currentTimeMillis()
-        );
-        stompSession_user1.send("/app/chat", chatMessageSend);
-
-        WebSocketChatMessage chatMessageSend2 = new WebSocketChatMessage(
-                roomId_2, user2.getNickname(), TEST_CHAT_MESSAGE, System.currentTimeMillis()
-        );
-        stompSession_user2.send("/app/chat", chatMessageSend2);
+        sendChat(user1, stompSession_user1, roomId_2, TEST_CHAT_MESSAGE_FAIL);
+        sendChat(user2, stompSession_user2, roomId_2, TEST_CHAT_MESSAGE);
 
         // then
         assertThrows(AssertionError.class, () -> chatSubscriber_user1.waitForMessage("chat", 3));
@@ -217,5 +187,36 @@ public class WebSocketChatControllerTest {
         WebSocketChatMessage chatMessage_user2 = objectMapper.convertValue(chatResponse_user2.get("data"),
                 WebSocketChatMessage.class);
         assertThat(chatMessage_user2.content()).isEqualTo(TEST_CHAT_MESSAGE);
+    }
+
+    // ==================== 헬퍼 메서드들 ====================
+    private List<MessageSubscriber> subscribeChat(StompSession user1, String roomId_1, StompSession user2,
+                                                  String roomId_2) throws Exception {
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user1 = testHelper.subscribeToRealRoomTopic(user1,
+                roomId_1);
+        WebSocketTestHelper.MessageSubscriber chatSubscriber_user2 = testHelper.subscribeToRealRoomTopic(user2,
+                roomId_2);
+        return List.of(chatSubscriber_user1, chatSubscriber_user2);
+    }
+
+    private String createRoomAndGetId(StompSession creatorSession,
+                                      WebSocketTestHelper.MessageSubscriber creatorSubscriber, String mode,
+                                      Long questionSetId) throws Exception {
+
+        RoomCreateRequest roomCreateRequest = new RoomCreateRequest(mode, questionSetId);
+        creatorSession.send("/app/room-create", roomCreateRequest);
+
+        Map<String, Object> response = creatorSubscriber.waitForMessage("room-created", 3);
+        Map<String, Object> responsePayload = (Map<String, Object>) response.get("data");
+        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(responsePayload, RoomCreateResponse.class);
+
+        return roomCreateResponse.getRoomId();
+    }
+
+    private void sendChat(User user, StompSession senderSession, String roomId, String message) {
+        WebSocketChatMessage chatMessage = new WebSocketChatMessage(
+                roomId, user.getNickname(), message, System.currentTimeMillis()
+        );
+        senderSession.send("/app/chat", chatMessage);
     }
 }

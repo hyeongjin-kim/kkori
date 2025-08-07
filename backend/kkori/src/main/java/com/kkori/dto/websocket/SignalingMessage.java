@@ -1,4 +1,4 @@
-package com.kkori.dto;
+package com.kkori.dto.websocket;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class SignalingMessage {
     public void setTypeReceivedOffer() {
         this.type = "received-offer";
     }
-
+    
     public void setTypeReceivedAnswer() {
         this.type = "received-answer";
     }

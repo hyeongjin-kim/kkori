@@ -2,13 +2,12 @@ package com.kkori.controller.interview;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.kkori.dto.SignalingMessage;
+import com.kkori.dto.websocket.SignalingMessage;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.test.helper.WebSocketTestHelper;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,7 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @DisplayName("WebRTC 시그널링 테스트")
 public class WebRTCControllerTest {
-    
+
     @LocalServerPort
     private int port;
 
@@ -114,8 +113,9 @@ public class WebRTCControllerTest {
     }
 
     // ==================== 헬퍼 메서드들 ====================
-    
-    private List<WebSocketTestHelper.MessageSubscriber> subscribeUsersToRoom(List<StompSession> sessions, String roomId) {
+
+    private List<WebSocketTestHelper.MessageSubscriber> subscribeUsersToRoom(List<StompSession> sessions,
+                                                                             String roomId) {
         return sessions.stream()
                 .map(session -> {
                     try {
@@ -126,7 +126,7 @@ public class WebRTCControllerTest {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     private void unsubscribeSafe(WebSocketTestHelper.MessageSubscriber subscriber) {
         if (subscriber != null) {
             subscriber.unsubscribe();
@@ -138,7 +138,7 @@ public class WebRTCControllerTest {
             session.disconnect();
         }
     }
-    
+
     private void cleanupWebRTCTest() throws Exception {
         // 구독 해제
         unsubscribeSafe(personalSubscriber1);
