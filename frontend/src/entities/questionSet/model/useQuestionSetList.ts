@@ -3,7 +3,7 @@ import {
   getQuestionSet,
   getQuestionSets,
 } from '@/shared/api/questionSet/getQuestionSets';
-import { FIVE_MINUTES_IN_MS } from '@/app/store/constants';
+import { FIVE_MINUTES_IN_MS } from '@/app/model/constants';
 
 export const useQuestionSetList = () => {
   return useQuery({

@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { mainLayoutRoutes } from '@/app/store/routes';
+import { mainLayoutRoutes } from '@/app/model/routes';
 
 interface MemoryRouterWrappedProps {
   component: React.ReactNode;

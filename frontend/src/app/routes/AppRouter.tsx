@@ -1,4 +1,4 @@
-import { appRoutes } from '@/app/store/routes';
+import { appRoutes } from '@/app/model/routes';
 import { Route, Routes } from 'react-router-dom';
 import MainLayout from '@/shared/ui/MainLayout';
 
