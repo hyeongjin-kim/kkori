@@ -39,7 +39,7 @@ public class QuestionSet extends BaseEntity {
     private QuestionSet parentVersionId;
 
     @Column(name = "is_shared", nullable = false)
-    private Boolean isShared = false;
+    private Boolean isPublic = false;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
@@ -56,13 +56,13 @@ public class QuestionSet extends BaseEntity {
 
     @Builder
     public QuestionSet(User ownerUserId, String title, String description,
-                       Integer versionNumber, QuestionSet parentVersionId, Boolean isShared) {
+                       Integer versionNumber, QuestionSet parentVersionId, Boolean isPublic) {
         this.ownerUserId = ownerUserId;
         this.title = title;
         this.description = description;
         this.versionNumber = versionNumber;
         this.parentVersionId = parentVersionId;
-        this.isShared = isShared != null ? isShared : false;
+        this.isPublic = isPublic != null ? isPublic : false;
     }
 
     public static QuestionSet createNew(User owner, String title, String description) {
@@ -72,7 +72,7 @@ public class QuestionSet extends BaseEntity {
                 .description(description)
                 .versionNumber(1)
                 .parentVersionId(null)
-                .isShared(false)
+                .isPublic(false)
                 .build();
     }
 
@@ -83,7 +83,7 @@ public class QuestionSet extends BaseEntity {
                 .description(description != null ? description : parent.getDescription())
                 .versionNumber(parent.getVersionNumber() + 1)
                 .parentVersionId(parent)
-                .isShared(false)
+                .isPublic(false)
                 .build();
     }
 
@@ -94,12 +94,12 @@ public class QuestionSet extends BaseEntity {
                 .description(newDescription != null ? newDescription : original.getDescription())
                 .versionNumber(1)
                 .parentVersionId(original)
-                .isShared(false)
+                .isPublic(false)
                 .build();
     }
 
     public void updateSharedStatus(Boolean isShared) {
-        this.isShared = isShared != null ? isShared : false;
+        this.isPublic = isShared != null ? isShared : false;
     }
 
     public void softDelete() {
@@ -107,7 +107,7 @@ public class QuestionSet extends BaseEntity {
     }
 
     public boolean canBeAccessedBy(Long userId) {
-        return this.ownerUserId.getUserId().equals(userId) || this.isShared;
+        return this.ownerUserId.getUserId().equals(userId) || this.isPublic;
     }
 
     public boolean isOwner(Long userId) {

@@ -60,5 +60,4 @@ public class Interview extends BaseEntity {
     public boolean isFinished() {
         return status.isCompleted();
     }
-
 }
