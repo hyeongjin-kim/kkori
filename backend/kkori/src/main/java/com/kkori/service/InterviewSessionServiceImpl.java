@@ -7,6 +7,7 @@ import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.dto.interview.response.InterviewCompletionResponse;
 import com.kkori.entity.*;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
@@ -79,7 +80,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
     @Override
     @Transactional
-    public void completeInterview(String roomId) {
+    public InterviewCompletionResponse completeInterview(String roomId) {
         // 1. 방 조회 (사용자 정보 보존을 위해 DB 저장 전에 조회)
         InterviewRoom room = roomManager.getRoom(roomId);
         if (!room.isStarted()) {
@@ -92,6 +93,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         saveInterviewData(interview, room.getSession());
         // 4. 메모리에서 방 정리
         roomManager.completeInterview(roomId);
+        
+        // 5. 완료 응답 생성
+        return InterviewCompletionResponse.builder()
+                .interviewId(interview.getInterviewId())
+                .status("COMPLETED")
+                .completedAt(interview.getCompletedAt())
+                .totalQuestions(0)  // TODO: 실제 값으로 계산 필요
+                .totalTailQuestions(0)  // TODO: 실제 값으로 계산 필요
+                .answeredTailQuestions(0)  // TODO: 실제 값으로 계산 필요
+                .interviewDuration("0분")  // TODO: 실제 시간 계산 필요
+                .build();
     }
     @Override
     @Transactional
@@ -275,7 +287,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private Answer saveAnswer(Question question, User user, String answerText) {
         // Answer 엔티티를 확인해서 생성자 사용
-        Answer answer = new Answer(question, user, answerText);
+        Answer answer = Answer.create(answerText, user);
         return answerRepository.save(answer);
     }
     /**

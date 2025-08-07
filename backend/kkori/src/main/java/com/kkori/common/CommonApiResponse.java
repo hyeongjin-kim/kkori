@@ -52,4 +52,14 @@ public class CommonApiResponse<T> {
                 .build();
     }
 
+    public static <T> CommonApiResponse<T> fail(int status, String message, T data) {
+        return CommonApiResponse.<T>builder()
+                .success(false)
+                .status(status)
+                .message(message)
+                .data(data)
+                .timestamp(Instant.now())
+                .build();
+    }
+
 }

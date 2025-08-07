@@ -3,12 +3,15 @@ package com.kkori.entity;
 import com.kkori.common.BaseEntity;
 import com.kkori.component.interview.RoomStatus;
 import jakarta.persistence.*;
+import java.util.Comparator;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -40,6 +43,9 @@ public class Interview extends BaseEntity {
 
     private LocalDateTime completedAt;
 
+    @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<InterviewTailQuestion> tailQuestions = new ArrayList<>();
+
     @Builder
     public Interview(User interviewer, User interviewee, QuestionSet usedQuestionSet, String roomId) {
         this.interviewer = interviewer;
@@ -57,4 +63,22 @@ public class Interview extends BaseEntity {
     public boolean isFinished() {
         return status.isCompleted();
     }
+
+    public void addTailQuestion(InterviewTailQuestion tailQuestion) {
+        this.tailQuestions.add(tailQuestion);
+    }
+
+    public List<InterviewTailQuestion> getTailQuestionsByOriginalQuestion(Question originalQuestion) {
+        return tailQuestions.stream()
+                .filter(tq -> tq.getOriginalQuestion().getId().equals(originalQuestion.getId()))
+                .sorted(Comparator.comparing(InterviewTailQuestion::getQuestionOrder))
+                .toList();
+    }
+
+    public List<InterviewTailQuestion> getUnansweredTailQuestions() {
+        return tailQuestions.stream()
+                .filter(tq -> !tq.isAnswered())
+                .toList();
+    }
+
 }

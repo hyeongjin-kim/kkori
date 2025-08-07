@@ -10,9 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @Table(name = "question_set_tag")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSetTag extends BaseEntity {
@@ -28,5 +30,12 @@ public class QuestionSetTag extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
     private Tag tag;
+
+    public static QuestionSetTag of(QuestionSet questionSet, Tag tag) {
+        QuestionSetTag questionSetTag = new QuestionSetTag();
+        questionSetTag.questionSet = questionSet;
+        questionSetTag.tag = tag;
+        return questionSetTag;
+    }
 
 }

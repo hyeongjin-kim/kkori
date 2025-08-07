@@ -3,6 +3,7 @@ package com.kkori.entity;
 import com.kkori.common.BaseEntity;
 import com.kkori.common.jpa.converter.QuestionTypeConverter;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,6 +29,7 @@ public class Question extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Convert(converter = QuestionTypeConverter.class)

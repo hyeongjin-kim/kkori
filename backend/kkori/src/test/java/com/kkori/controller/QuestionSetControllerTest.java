@@ -7,16 +7,22 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
 import com.kkori.dto.question.request.CreateQuestionRequest;
+import com.kkori.dto.question.response.QuestionSetResponse;
+import com.kkori.dto.question.response.QuestionSummaryResponse;
+import com.kkori.dto.question.response.TagResponse;
 import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.security.CustomUserDetails;
 import com.kkori.service.QuestionSetService;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -251,6 +257,175 @@ class QuestionSetControllerTest {
                 .title(title)
                 .description(TEST_DESCRIPTION)
                 .questions(questions)
+                .build();
+    }
+
+    // ===== GET API 테스트들 =====
+
+    @Test
+    @DisplayName("질문세트 상세 조회 성공")
+    void getQuestionSet_Success() throws Exception {
+        // Given
+        Long questionSetId = 100L;
+        QuestionSetResponse response = createQuestionSetResponse(questionSetId, TEST_TITLE, "테스트사용자");
+
+        given(questionSetService.getQuestionSetDetail(TEST_USER_ID, questionSetId))
+                .willReturn(response);
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/{questionSetId}", questionSetId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(questionSetId))
+                .andExpect(jsonPath("$.data.title").value(TEST_TITLE))
+                .andExpect(jsonPath("$.data.ownerNickname").value("테스트사용자"));
+
+        verify(questionSetService).getQuestionSetDetail(TEST_USER_ID, questionSetId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 질문세트 조회시 404")
+    void getQuestionSet_NotFound() throws Exception {
+        // Given
+        Long nonExistentId = 999L;
+
+        given(questionSetService.getQuestionSetDetail(TEST_USER_ID, nonExistentId))
+                .willThrow(QuestionSetException.questionSetNotFound());
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/{questionSetId}", nonExistentId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+
+        verify(questionSetService).getQuestionSetDetail(TEST_USER_ID, nonExistentId);
+    }
+
+    @Test
+    @DisplayName("내 질문세트 목록 조회 성공")
+    void getMyQuestionSets_Success() throws Exception {
+        // Given
+        QuestionSetResponse response1 = createQuestionSetResponse(1L, "질문세트1", "테스트사용자");
+        QuestionSetResponse response2 = createQuestionSetResponse(2L, "질문세트2", "테스트사용자");
+
+        given(questionSetService.getUserQuestionSets(TEST_USER_ID, 0, 10))
+                .willReturn(Arrays.asList(response1, response2));
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/my")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].title").value("질문세트1"))
+                .andExpect(jsonPath("$.data[1].title").value("질문세트2"));
+
+        verify(questionSetService).getUserQuestionSets(TEST_USER_ID, 0, 10);
+    }
+
+    @Test
+    @DisplayName("공유 질문세트 목록 조회 성공")
+    void getSharedQuestionSets_Success() throws Exception {
+        // Given
+        QuestionSetResponse sharedResponse = createQuestionSetResponse(100L, "공유된 질문세트", "다른사용자");
+        sharedResponse = QuestionSetResponse.builder()
+                .id(sharedResponse.getId())
+                .title(sharedResponse.getTitle())
+                .description(sharedResponse.getDescription())
+                .versionNumber(sharedResponse.getVersionNumber())
+                .isShared(true) // 공유됨으로 설정
+                .ownerNickname("다른사용자")
+                .questions(sharedResponse.getQuestions())
+                .tags(sharedResponse.getTags())
+                .createdAt(sharedResponse.getCreatedAt())
+                .build();
+
+        given(questionSetService.getSharedQuestionSets(TEST_USER_ID, 0, 10))
+                .willReturn(Arrays.asList(sharedResponse));
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/shared")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].title").value("공유된 질문세트"))
+                .andExpect(jsonPath("$.data[0].isShared").value(true))
+                .andExpect(jsonPath("$.data[0].ownerNickname").value("다른사용자"));
+
+        verify(questionSetService).getSharedQuestionSets(TEST_USER_ID, 0, 10);
+    }
+
+    @Test
+    @DisplayName("질문세트 버전 히스토리 조회 성공")
+    void getQuestionSetVersions_Success() throws Exception {
+        // Given
+        Long questionSetId = 100L;
+        QuestionSetResponse version1 = createVersionResponse(questionSetId, 1, "버전 1");
+        QuestionSetResponse version2 = createVersionResponse(questionSetId + 1, 2, "버전 2");
+
+        given(questionSetService.getQuestionSetVersions(TEST_USER_ID, questionSetId))
+                .willReturn(Arrays.asList(version1, version2));
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/{questionSetId}/versions", questionSetId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].versionNumber").value(1))
+                .andExpect(jsonPath("$.data[1].versionNumber").value(2));
+
+        verify(questionSetService).getQuestionSetVersions(TEST_USER_ID, questionSetId);
+    }
+
+    private QuestionSetResponse createQuestionSetResponse(Long id, String title, String ownerNickname) {
+        QuestionSummaryResponse question = QuestionSummaryResponse.builder()
+                .id(1L)
+                .content("테스트 질문")
+                .questionType(1)
+                .displayOrder(1)
+                .build();
+
+        TagResponse tag = TagResponse.builder()
+                .id(1L)
+                .tag("Java")
+                .build();
+
+        return QuestionSetResponse.builder()
+                .id(id)
+                .title(title)
+                .description(TEST_DESCRIPTION)
+                .versionNumber(1)
+                .isShared(false)
+                .ownerNickname(ownerNickname)
+                .questions(Arrays.asList(question))
+                .tags(Arrays.asList(tag))
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    private QuestionSetResponse createVersionResponse(Long id, int versionNumber, String title) {
+        return QuestionSetResponse.builder()
+                .id(id)
+                .title(title)
+                .description(TEST_DESCRIPTION)
+                .versionNumber(versionNumber)
+                .isShared(false)
+                .ownerNickname("테스트사용자")
+                .questions(Arrays.asList())
+                .tags(Arrays.asList())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
