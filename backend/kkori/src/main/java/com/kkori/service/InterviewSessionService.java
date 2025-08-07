@@ -37,7 +37,7 @@ public interface InterviewSessionService {
     /**
      * 면접 완료 - 메모리 데이터를 DB에 저장 후 방 정리
      */
-    InterviewCompletionResponse completeInterview(String roomId);
+    void completeInterview(String roomId);
 
     /**
      * 방 나가기 - 면접 진행 중이면 DB 저장 후 처리
