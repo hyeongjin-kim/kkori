@@ -18,6 +18,7 @@ function SharedToggleSwitch({
         role="switch"
         aria-checked={value}
         tabIndex={0}
+        aria-label={`shared-toggle`}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
