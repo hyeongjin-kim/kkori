@@ -1,4 +1,7 @@
-import { QuestionSet as QuestionSetType } from '@/entities/questionSet/model/type';
+import {
+  QuestionSet as QuestionSetType,
+  Tag,
+} from '@/entities/questionSet/model/response';
 
 interface QuestionSetProps {
   questionSet: QuestionSetType;
@@ -21,7 +24,7 @@ function QuestionSet({ questionSet }: QuestionSetProps) {
       )}
 
       <ul className="absolute right-4 bottom-4 flex flex-wrap gap-2 pt-1">
-        {questionSet.tags.map(tag => (
+        {questionSet.tags.map((tag: Tag) => (
           <li
             key={tag.id}
             className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
