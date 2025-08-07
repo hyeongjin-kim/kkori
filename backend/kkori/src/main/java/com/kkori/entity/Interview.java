@@ -43,9 +43,6 @@ public class Interview extends BaseEntity {
 
     private LocalDateTime completedAt;
 
-    @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<InterviewTailQuestion> tailQuestions = new ArrayList<>();
-
     @Builder
     public Interview(User interviewer, User interviewee, QuestionSet usedQuestionSet, String roomId) {
         this.interviewer = interviewer;
@@ -63,22 +60,4 @@ public class Interview extends BaseEntity {
     public boolean isFinished() {
         return status.isCompleted();
     }
-
-    public void addTailQuestion(InterviewTailQuestion tailQuestion) {
-        this.tailQuestions.add(tailQuestion);
-    }
-
-    public List<InterviewTailQuestion> getTailQuestionsByOriginalQuestion(Question originalQuestion) {
-        return tailQuestions.stream()
-                .filter(tq -> tq.getOriginalQuestion().getId().equals(originalQuestion.getId()))
-                .sorted(Comparator.comparing(InterviewTailQuestion::getQuestionOrder))
-                .toList();
-    }
-
-    public List<InterviewTailQuestion> getUnansweredTailQuestions() {
-        return tailQuestions.stream()
-                .filter(tq -> !tq.isAnswered())
-                .toList();
-    }
-
 }

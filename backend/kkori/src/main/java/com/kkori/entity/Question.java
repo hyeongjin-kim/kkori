@@ -10,6 +10,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
@@ -35,23 +37,30 @@ public class Question extends BaseEntity {
     @Convert(converter = QuestionTypeConverter.class)
     private QuestionType questionType;
 
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private Question parent; // nullable, 상위 질문
+
     private String expectedAnswer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Answer> answers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TailQuestion> tailQuestions = new ArrayList<>();
-
-    @Builder
-    public Question(String content, String expectedAnswer, QuestionType questionType) {
+    @Builder(builderMethodName = "defaultBuilder")
+    public Question(String content, String expectedAnswer) {
         this.content = content;
         this.expectedAnswer = expectedAnswer;
-        this.questionType = questionType;
+        this.questionType = QuestionType.DEFAULT;
     }
 
-    public static Question of(String content, String expectedAnswer, QuestionType questionType) {
-        return new Question(content, expectedAnswer, questionType);
+    @Builder(builderMethodName = "customBuilder")
+    public Question(String content) {
+        this.content = content;
+        this.questionType = QuestionType.CUSTOM;
+    }
+
+    @Builder(builderMethodName = "tailBuilder")
+    public Question(String content, Question parent) {
+        this.content = content;
+        this.questionType = QuestionType.TAIL;
+        this.parent = parent;
     }
 
 }
