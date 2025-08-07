@@ -38,7 +38,7 @@ public class QuestionSet extends BaseEntity {
     @JoinColumn(name = "parent_version_id")
     private QuestionSet parentVersionId;
 
-    @Column(name = "is_shared", nullable = false)
+    @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false;
 
     @Column(name = "is_deleted", nullable = false)

@@ -31,9 +31,14 @@ public interface QuestionSetService {
     CreateQuestionSetResponse copyQuestionSet(Long userId, CopyQuestionSetRequest request);
 
     /**
-     * 새로운 버전 생성 (불변 버전 관리)
+     * 새 질문-답변으로 새 버전 생성
      */
-    CreateQuestionSetResponse createNewVersion(Long userId, CreateNewVersionRequest request);
+    CreateQuestionSetResponse createVersionWithNewQA(Long userId, CreateVersionWithNewQARequest request);
+
+    /**
+     * 기존 질문 + 새 답변으로 새 버전 생성
+     */
+    CreateQuestionSetResponse createVersionWithAnswerModifications(Long userId, CreateVersionWithAnswerModificationsRequest request);
 
     // ===============================================
     // READ OPERATIONS - 조회 작업

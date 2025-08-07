@@ -22,7 +22,6 @@ public class QuestionSetDetailResponse {
     private String ownerNickname;
     
     private List<QuestionMapResponse> questionMaps;
-    private List<TailQuestionResponse> tailQuestions;
     private List<TagResponse> tags;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -34,8 +33,7 @@ public class QuestionSetDetailResponse {
     @Builder
     public QuestionSetDetailResponse(Long questionSetId, String title, String description,
                                    Integer versionNumber, Long parentVersionId, Boolean isShared,
-                                   String ownerNickname, List<QuestionMapResponse> questionMaps,
-                                   List<TailQuestionResponse> tailQuestions, List<TagResponse> tags,
+                                   String ownerNickname, List<QuestionMapResponse> questionMaps, List<TagResponse> tags,
                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.questionSetId = questionSetId;
         this.title = title;
@@ -45,7 +43,6 @@ public class QuestionSetDetailResponse {
         this.isShared = isShared;
         this.ownerNickname = ownerNickname;
         this.questionMaps = questionMaps;
-        this.tailQuestions = tailQuestions;
         this.tags = tags;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

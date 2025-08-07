@@ -12,7 +12,6 @@ import com.kkori.entity.*;
 import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.exception.user.UserException;
 import com.kkori.repository.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -37,7 +37,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
-    private final TailQuestionRepository tailQuestionRepository;
 
     @Override
     public Long createQuestionSetWithInitialQuestions(Long userId, CreateNewQuestionSetRequest request, String title) {
@@ -80,7 +79,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(description)
                 .versionNumber(versionNumber)
                 .parentVersionId(parentVersion)
-                .isPublic(DEFAULT_SHARED_STATUS)
+                .isShared(DEFAULT_SHARED_STATUS)
                 .build();
     }
 
@@ -98,7 +97,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         
         int displayOrder = (int) (questionSetQuestionMapRepository.countByQuestionSetId(questionSetId) + 1);
         QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                questionSet, savedQuestion, savedAnswer, (int) displayOrder);
+                questionSet, savedQuestion, savedAnswer, displayOrder);
         questionSetQuestionMapRepository.save(questionMap);
 
         return savedQuestion.getId();
@@ -191,7 +190,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      * - 소유자 권한 또는 공개 상태 검증
      */
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public QuestionSetResponse getQuestionSetDetail(Long userId, Long questionSetId) {
         QuestionSet questionSet = questionSetRepository.findByIdWithQuestionsAndTags(questionSetId)
                 .orElseThrow(QuestionSetException::questionSetNotFound);
@@ -207,7 +206,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      * - 성능 최적화를 위해 질문 상세 정보는 제외
      */
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<QuestionSetResponse> getUserQuestionSets(Long userId, int page, int size) {
         findUserById(userId); // 사용자 존재 검증
         
@@ -226,7 +225,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      * - 소유자만 접근 가능
      */
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<QuestionSetResponse> getQuestionSetVersions(Long userId, Long questionSetId) {
         // 기본 권한 검증
         QuestionSet baseQuestionSet = questionSetRepository.findByIdWithQuestionsAndTags(questionSetId)
@@ -249,7 +248,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      * - 페이징 처리
      */
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<QuestionSetResponse> getSharedQuestionSets(Long userId, int page, int size) {
         findUserById(userId); // 사용자 존재 검증
         
@@ -268,7 +267,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      */
     private void validateQuestionSetAccessPermission(QuestionSet questionSet, Long userId) {
         boolean isOwner = questionSet.getOwnerUserId().getUserId().equals(userId);
-        boolean isShared = questionSet.getIsPublic();
+        boolean isShared = questionSet.getIsShared();
         
         if (!isOwner && !isShared) {
             throw QuestionSetException.noPermission();
@@ -300,7 +299,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsPublic())
+                .isShared(questionSet.getIsShared())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questions(questions)
                 .tags(tags)
@@ -321,7 +320,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsPublic())
+                .isShared(questionSet.getIsShared())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .createdAt(questionSet.getCreatedAt())
                 .build();
@@ -348,7 +347,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     // ===============================================
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 30
@@ -364,7 +363,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         
         // 2. 질문과 답변들 생성 및 매핑
         List<QuestionMapResponse> questionMaps = new ArrayList<>();
-        List<TailQuestionResponse> tailQuestions = new ArrayList<>();
         
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
@@ -378,26 +376,13 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             // 답변 생성
             Answer answer = Answer.create(questionRequest.getExpectedAnswer(), user);
             Answer savedAnswer = answerRepository.save(answer);
-
+            
             // 질문-답변 매핑 생성
             QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
                     savedQuestionSet, savedQuestion, savedAnswer, displayOrder);
             questionSetQuestionMapRepository.save(questionMap);
-
-            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
             
-            // 꼬리질문들 생성
-            if (questionRequest.getTailQuestions() != null) {
-                int tailOrder = 1;
-                for (CreateTailQuestionRequest tailRequest : questionRequest.getTailQuestions()) {
-                    TailQuestion tailQuestion = TailQuestion.create(
-                            tailRequest.getContent(), savedQuestion, user, tailOrder);
-                    TailQuestion savedTailQuestion = tailQuestionRepository.save(tailQuestion);
-
-                    tailQuestions.add(convertToTailQuestionResponse(savedTailQuestion));
-                    tailOrder++;
-                }
-            }
+            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
             
             displayOrder++;
         }
@@ -410,10 +395,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(savedQuestionSet.getVersionNumber())
                 .parentVersionId(null)
-                .isShared(savedQuestionSet.getIsPublic())
+                .isShared(savedQuestionSet.getIsShared())
                 .ownerNickname(user.getNickname())
                 .questionMaps(questionMaps)
-                .tailQuestions(tailQuestions)
                 .tags(new ArrayList<>()) // TODO: 태그 처리
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
@@ -421,7 +405,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public QuestionSetDetailResponse getQuestionSetDetailNew(Long userId, Long questionSetId) {
         log.info("질문 세트 상세 조회 - userId: {}, questionSetId: {}", userId, questionSetId);
         
@@ -437,16 +421,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .findByQuestionSetIdWithDetails(questionSetId);
         
         List<QuestionMapResponse> questionMapResponses = new ArrayList<>();
-        List<TailQuestionResponse> allTailQuestions = new ArrayList<>();
         
         for (QuestionSetQuestionMap map : questionMaps) {
             questionMapResponses.add(convertToQuestionMapResponse(map, map.getQuestion(), map.getAnswer()));
-            
-            // 해당 질문의 꼬리질문들 조회
-            List<TailQuestion> tailQuestions = tailQuestionRepository.findByQuestionIdWithDetails(map.getQuestion().getId());
-            allTailQuestions.addAll(tailQuestions.stream()
-                    .map(this::convertToTailQuestionResponse)
-                    .collect(Collectors.toList()));
         }
         
         return QuestionSetDetailResponse.builder()
@@ -456,10 +433,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsPublic())
+                .isShared(questionSet.getIsShared())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionMaps(questionMapResponses)
-                .tailQuestions(allTailQuestions)
                 .tags(new ArrayList<>()) // TODO: 태그 처리
                 .createdAt(questionSet.getCreatedAt())
                 .updatedAt(questionSet.getUpdatedAt())
@@ -467,7 +443,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Page<QuestionSetListResponse> getMyQuestionSets(Long userId, int page, int size) {
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
@@ -477,7 +453,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public Page<QuestionSetListResponse> getSharedQuestionSetsNew(Long userId, int page, int size) {
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
@@ -487,7 +463,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 30
@@ -508,7 +484,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         // 2. 새로운 질문 세트 생성
         QuestionSet copiedQuestionSet = QuestionSet.copy(
                 originalQuestionSet, 
-                newOwner, 
+                newOwner,
                 request.getTitle(), 
                 request.getDescription()
         );
@@ -519,7 +495,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .findByQuestionSetIdWithDetails(request.getOriginalQuestionSetId());
         
         List<QuestionMapResponse> questionMaps = new ArrayList<>();
-        List<TailQuestionResponse> allTailQuestions = new ArrayList<>();
         
         for (QuestionSetQuestionMap originalMap : originalMaps) {
             // 새로운 매핑 생성 (기존 질문과 답변 재사용)
@@ -532,24 +507,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             questionSetQuestionMapRepository.save(newMapping);
             
             questionMaps.add(convertToQuestionMapResponse(newMapping, originalMap.getQuestion(), originalMap.getAnswer()));
-            
-            // 꼬리질문들도 복사 (필요시)
-            if (request.getCopyTags()) {
-                List<TailQuestion> originalTailQuestions = tailQuestionRepository
-                        .findByQuestionIdWithDetails(originalMap.getQuestion().getId());
-                
-                for (TailQuestion originalTail : originalTailQuestions) {
-                    // 꼬리질문은 새로 생성 (내용만 복사)
-                    TailQuestion copiedTailQuestion = TailQuestion.create(
-                            originalTail.getContent(),
-                            originalMap.getQuestion(),
-                            newOwner,
-                            originalTail.getDisplayOrder()
-                    );
-                    TailQuestion savedTailQuestion = tailQuestionRepository.save(copiedTailQuestion);
-                    allTailQuestions.add(convertToTailQuestionResponse(savedTailQuestion));
-                }
-            }
         }
         
         log.info("질문 세트 복사 완료 - newQuestionSetId: {}, 복사된 질문 수: {}", 
@@ -561,10 +518,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(savedQuestionSet.getVersionNumber())
                 .parentVersionId(originalQuestionSet.getId())  // 복사본의 부모는 원본
-                .isShared(savedQuestionSet.getIsPublic())
+                .isShared(savedQuestionSet.getIsShared())
                 .ownerNickname(newOwner.getNickname())
                 .questionMaps(questionMaps)
-                .tailQuestions(allTailQuestions)
                 .tags(new ArrayList<>()) // TODO: 태그 복사 처리
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
@@ -572,13 +528,13 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
-        timeout = 45
+        timeout = 30
     )
-    public CreateQuestionSetResponse createNewVersion(Long userId, CreateNewVersionRequest request) {
-        log.info("새 버전 생성 시작 - userId: {}, parentId: {}", userId, request.getParentQuestionSetId());
+    public CreateQuestionSetResponse createVersionWithNewQA(Long userId, CreateVersionWithNewQARequest request) {
+        log.info("새 질문-답변으로 새 버전 생성 시작 - userId: {}, parentId: {}", userId, request.getParentQuestionSetId());
         
         User user = findUserById(userId);
         
@@ -599,58 +555,33 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         );
         QuestionSet savedQuestionSet = questionSetRepository.save(newVersionQuestionSet);
         
-        // 3. 요청에 따라 질문들 처리
+        // 3. 새 질문-답변들 생성 (createQuestionSetWithQuestions와 유사한 로직)
         List<QuestionMapResponse> questionMaps = new ArrayList<>();
-        List<TailQuestionResponse> allTailQuestions = new ArrayList<>();
         
-        for (QuestionVersionRequest questionRequest : request.getQuestions()) {
-            if (questionRequest.isReuse()) {
-                // 기존 질문-답변 재사용
-                Question existingQuestion = questionRepository.findById(questionRequest.getQuestionId())
-                        .orElseThrow(QuestionSetException::questionSetNotFound);
-                Answer existingAnswer = answerRepository.findByIdWithCreatedBy(questionRequest.getAnswerId())
-                        .orElseThrow(QuestionSetException::questionSetNotFound);
-                
-                QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                        savedQuestionSet, existingQuestion, existingAnswer, questionRequest.getDisplayOrder());
-                questionSetQuestionMapRepository.save(questionMap);
-                
-                questionMaps.add(convertToQuestionMapResponse(questionMap, existingQuestion, existingAnswer));
-                
-            } else if (questionRequest.isNewQuestion()) {
-                // 새 질문-답변 생성
-                Question newQuestion = Question.builder()
-                        .content(questionRequest.getContent())
-                        .questionType(fromCode(questionRequest.getQuestionType()))
-                        .build();
-                Question savedQuestion = questionRepository.save(newQuestion);
-                
-                Answer newAnswer = Answer.create(questionRequest.getExpectedAnswer(), user);
-                Answer savedAnswer = answerRepository.save(newAnswer);
-                
-                QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                        savedQuestionSet, savedQuestion, savedAnswer, questionRequest.getDisplayOrder());
-                questionSetQuestionMapRepository.save(questionMap);
-                
-                questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
-                
-            } else if (questionRequest.isModifyAnswer()) {
-                // 기존 질문 + 새 답변
-                Question existingQuestion = questionRepository.findById(questionRequest.getQuestionId())
-                        .orElseThrow(QuestionSetException::questionSetNotFound);
-                
-                Answer newAnswer = Answer.create(questionRequest.getNewExpectedAnswer(), user);
-                Answer savedAnswer = answerRepository.save(newAnswer);
-                
-                QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                        savedQuestionSet, existingQuestion, savedAnswer, questionRequest.getDisplayOrder());
-                questionSetQuestionMapRepository.save(questionMap);
-                
-                questionMaps.add(convertToQuestionMapResponse(questionMap, existingQuestion, savedAnswer));
-            }
+        int displayOrder = 1;
+        for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
+            // 새 질문 생성
+            Question newQuestion = Question.builder()
+                    .content(questionRequest.getContent())
+                    .questionType(fromCode(questionRequest.getQuestionType()))
+                    .build();
+            Question savedQuestion = questionRepository.save(newQuestion);
+            
+            // 새 답변 생성
+            Answer newAnswer = Answer.create(questionRequest.getExpectedAnswer(), user);
+            Answer savedAnswer = answerRepository.save(newAnswer);
+            
+            // 질문-답변 매핑 생성
+            QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
+                    savedQuestionSet, savedQuestion, savedAnswer, displayOrder);
+            questionSetQuestionMapRepository.save(questionMap);
+            
+            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
+            
+            displayOrder++;
         }
         
-        log.info("새 버전 생성 완료 - newQuestionSetId: {}, version: {}, 질문 수: {}", 
+        log.info("새 질문-답변으로 새 버전 생성 완료 - newQuestionSetId: {}, version: {}, 질문 수: {}", 
                 savedQuestionSet.getId(), nextVersionNumber, questionMaps.size());
         
         return CreateQuestionSetResponse.builder()
@@ -659,10 +590,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(nextVersionNumber)
                 .parentVersionId(parentQuestionSet.getId())
-                .isShared(savedQuestionSet.getIsPublic())
+                .isShared(savedQuestionSet.getIsShared())
                 .ownerNickname(user.getNickname())
                 .questionMaps(questionMaps)
-                .tailQuestions(allTailQuestions)
                 .tags(new ArrayList<>()) // TODO: 태그 처리
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
@@ -670,7 +600,73 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(
+        isolation = Isolation.READ_COMMITTED, 
+        rollbackFor = Exception.class,
+        timeout = 30
+    )
+    public CreateQuestionSetResponse createVersionWithAnswerModifications(Long userId, CreateVersionWithAnswerModificationsRequest request) {
+        log.info("기존 질문+새 답변으로 새 버전 생성 시작 - userId: {}, parentId: {}", userId, request.getParentQuestionSetId());
+        
+        User user = findUserById(userId);
+        
+        // 1. 부모 질문 세트 조회 및 권한 검증
+        QuestionSet parentQuestionSet = questionSetRepository.findByIdAndNotDeleted(request.getParentQuestionSetId())
+                .orElseThrow(QuestionSetException::questionSetNotFound);
+        
+        if (!parentQuestionSet.isOwner(userId)) {
+            throw QuestionSetException.noPermission();
+        }
+        
+        // 2. 새 버전 생성
+        Integer nextVersionNumber = getNextVersionNumber(request.getParentQuestionSetId());
+        QuestionSet newVersionQuestionSet = QuestionSet.createVersion(
+                parentQuestionSet, user, 
+                parentQuestionSet.getTitle(),  // 제목은 부모와 동일
+                parentQuestionSet.getDescription()  // 설명도 부모와 동일
+        );
+        QuestionSet savedQuestionSet = questionSetRepository.save(newVersionQuestionSet);
+        
+        // 3. 기존 질문 + 새 답변으로 매핑 생성
+        List<QuestionMapResponse> questionMaps = new ArrayList<>();
+        
+        for (QuestionAnswerModificationRequest questionRequest : request.getQuestions()) {
+            // 기존 질문 조회
+            Question existingQuestion = questionRepository.findById(questionRequest.getQuestionId())
+                    .orElseThrow(QuestionSetException::questionSetNotFound);
+            
+            // 새 답변 생성
+            Answer newAnswer = Answer.create(questionRequest.getNewExpectedAnswer(), user);
+            Answer savedAnswer = answerRepository.save(newAnswer);
+            
+            // 질문-답변 매핑 생성
+            QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
+                    savedQuestionSet, existingQuestion, savedAnswer, questionRequest.getDisplayOrder());
+            questionSetQuestionMapRepository.save(questionMap);
+            
+            questionMaps.add(convertToQuestionMapResponse(questionMap, existingQuestion, savedAnswer));
+        }
+        
+        log.info("기존 질문+새 답변으로 새 버전 생성 완료 - newQuestionSetId: {}, version: {}, 질문 수: {}", 
+                savedQuestionSet.getId(), nextVersionNumber, questionMaps.size());
+        
+        return CreateQuestionSetResponse.builder()
+                .questionSetId(savedQuestionSet.getId())
+                .title(savedQuestionSet.getTitle())
+                .description(savedQuestionSet.getDescription())
+                .versionNumber(nextVersionNumber)
+                .parentVersionId(parentQuestionSet.getId())
+                .isShared(savedQuestionSet.getIsShared())
+                .ownerNickname(user.getNickname())
+                .questionMaps(questionMaps)
+                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .createdAt(savedQuestionSet.getCreatedAt())
+                .updatedAt(savedQuestionSet.getUpdatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<QuestionSetListResponse> getQuestionSetList(Long userId, int page, int size, String sort, String createdBy, Boolean isShared, List<String> tags) {
         log.info("질문 세트 목록 조회 - userId: {}, page: {}, size: {}, createdBy: {}, isShared: {}, tags: {}", 
                 userId, page, size, createdBy, isShared, tags);
@@ -698,7 +694,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<QuestionSetListResponse> getQuestionSetVersionsNew(Long userId, Long questionSetId) {
         log.info("질문 세트 버전 히스토리 조회 - userId: {}, questionSetId: {}", userId, questionSetId);
         
@@ -720,7 +716,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 15
@@ -744,7 +740,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                     .description(request.getDescription() != null ? request.getDescription() : questionSet.getDescription())
                     .versionNumber(questionSet.getVersionNumber())
                     .parentVersionId(questionSet.getParentVersionId())
-                    .isShared(request.getIsShared() != null ? request.getIsShared() : questionSet.getIsPublic())
+                    .isShared(request.getIsShared() != null ? request.getIsShared() : questionSet.getIsShared())
                     .build();
             
             questionSetRepository.save(updatedQuestionSet);
@@ -758,7 +754,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                         .description(request.getDescription())
                         .versionNumber(questionSet.getVersionNumber())
                         .parentVersionId(questionSet.getParentVersionId())
-                        .isShared(questionSet.getIsPublic())
+                        .isShared(questionSet.getIsShared())
                         .build();
                 questionSetRepository.save(questionSet);
             }
@@ -775,7 +771,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 15
@@ -823,7 +819,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 10
@@ -860,10 +856,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsPublic())
+                .isShared(questionSet.getIsShared())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionMaps(new ArrayList<>()) // 삭제된 상태이므로 빈 목록
-                .tailQuestions(new ArrayList<>()) // 삭제된 상태이므로 빈 목록
                 .tags(new ArrayList<>())
                 .createdAt(questionSet.getCreatedAt())
                 .updatedAt(questionSet.getUpdatedAt())
@@ -871,7 +866,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(
+    @Transactional(
         isolation = Isolation.READ_COMMITTED, 
         rollbackFor = Exception.class,
         timeout = 15
@@ -943,19 +938,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .build();
     }
 
-    private TailQuestionResponse convertToTailQuestionResponse(TailQuestion tailQuestion) {
-        return TailQuestionResponse.builder()
-                .id(tailQuestion.getId())
-                .content(tailQuestion.getContent())
-                .questionId(tailQuestion.getQuestion().getId())
-                .createdBy(tailQuestion.getCreatedBy().getNickname())
-                .userAnswer(tailQuestion.getUserAnswer())
-                .displayOrder(tailQuestion.getDisplayOrder())
-                .createdAt(tailQuestion.getCreatedAt())
-                .answeredAt(tailQuestion.getAnsweredAt())
-                .build();
-    }
-
     private QuestionSetListResponse convertToQuestionSetListResponse(QuestionSet questionSet) {
         // 질문 개수 조회
         long questionCount = questionSetQuestionMapRepository.countByQuestionSetId(questionSet.getId());
@@ -967,7 +949,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsPublic())
+                .isShared(questionSet.getIsShared())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionCount((int) questionCount)
                 .tags(new ArrayList<>()) // TODO: 태그 처리

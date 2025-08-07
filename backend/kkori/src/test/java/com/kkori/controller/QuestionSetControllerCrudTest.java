@@ -62,7 +62,6 @@ class QuestionSetControllerCrudTest {
                     .content("Spring Boot란 무엇인가요?")
                     .questionType(1)
                     .expectedAnswer("Spring Boot는 스프링 프레임워크 기반의...")
-                    .tailQuestions(new ArrayList<>())
                     .build();
 
             CreateQuestionSetWithQuestionsRequest request = CreateQuestionSetWithQuestionsRequest.builder()
@@ -81,7 +80,6 @@ class QuestionSetControllerCrudTest {
                     .isShared(false)
                     .ownerNickname("김개발")
                     .questionMaps(Arrays.asList(createQuestionMapResponse()))
-                    .tailQuestions(new ArrayList<>())
                     .tags(Arrays.asList(createTagResponse("Spring Boot"), createTagResponse("JPA")))
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -130,7 +128,6 @@ class QuestionSetControllerCrudTest {
                     .isShared(false)
                     .ownerNickname("이신입")
                     .questionMaps(Arrays.asList(createQuestionMapResponse()))
-                    .tailQuestions(new ArrayList<>())
                     .tags(new ArrayList<>())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -156,53 +153,143 @@ class QuestionSetControllerCrudTest {
         }
 
         @Test
-        @DisplayName("POST /api/questionsets/versions - 새 버전 생성 성공")
-        void createNewVersion_Success() throws Exception {
+        @DisplayName("POST /api/questionsets/{id}/versions/with-new-qa - 새 질문-답변으로 새 버전 생성 성공")
+        void createVersionWithNewQA_Success() throws Exception {
             // Given
-            QuestionVersionRequest questionRequest = QuestionVersionRequest.builder()
-                    .questionId(45L)
-                    .answerId(67L)
-                    .displayOrder(1)
-                    .action("REUSE")
+            CreateQuestionWithAnswerRequest questionRequest = CreateQuestionWithAnswerRequest.builder()
+                    .content("마이크로서비스 아키텍처에 대해 설명해주세요.")
+                    .questionType(1)
+                    .expectedAnswer("마이크로서비스 아키텍처는 대규모 애플리케이션을...")
                     .build();
 
-            CreateNewVersionRequest request = CreateNewVersionRequest.builder()
+            CreateVersionWithNewQARequest request = CreateVersionWithNewQARequest.builder()
                     .parentQuestionSetId(1L)
                     .questions(Arrays.asList(questionRequest))
-                    .tagIds(Arrays.asList(1L, 2L, 3L, 13L))
+                    .tagIds(Arrays.asList(1L, 2L))
                     .build();
 
             CreateQuestionSetResponse response = CreateQuestionSetResponse.builder()
                     .questionSetId(9L)
                     .title("백엔드 개발자 면접 질문세트")
                     .description("Spring Boot, JPA, MSA를 활용한 백엔드 개발 역량 평가")
-                    .versionNumber(4)
+                    .versionNumber(2)
                     .parentVersionId(1L)
                     .isShared(false)
                     .ownerNickname("김개발")
                     .questionMaps(Arrays.asList(createQuestionMapResponse()))
-                    .tailQuestions(new ArrayList<>())
                     .tags(new ArrayList<>())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
 
-            given(questionSetService.createNewVersion(eq(TEST_USER_ID), any(CreateNewVersionRequest.class)))
+            given(questionSetService.createVersionWithNewQA(eq(TEST_USER_ID), any(CreateVersionWithNewQARequest.class)))
                     .willReturn(response);
 
             // When & Then
-            mockMvc.perform(post("/api/questionsets/versions")
+            mockMvc.perform(post("/api/questionsets/1/versions/with-new-qa")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("X-User-Id", TEST_USER_ID)
                             .content(objectMapper.writeValueAsString(request)))
                     .andDo(print())
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.success").value(true))
-                    .andExpect(jsonPath("$.message").value("새 버전이 생성되었습니다."))
-                    .andExpect(jsonPath("$.data.versionNumber").value(4))
+                    .andExpect(jsonPath("$.message").value("새 질문-답변으로 새 버전이 생성되었습니다."))
+                    .andExpect(jsonPath("$.data.versionNumber").value(2))
                     .andExpect(jsonPath("$.data.parentVersionId").value(1));
 
-            verify(questionSetService).createNewVersion(eq(TEST_USER_ID), any(CreateNewVersionRequest.class));
+            verify(questionSetService).createVersionWithNewQA(eq(TEST_USER_ID), any(CreateVersionWithNewQARequest.class));
+        }
+
+        @Test
+        @DisplayName("POST /api/questionsets/{id}/versions/with-answer-modifications - 기존 질문+새 답변으로 새 버전 생성 성공")
+        void createVersionWithAnswerModifications_Success() throws Exception {
+            // Given
+            QuestionAnswerModificationRequest questionRequest = QuestionAnswerModificationRequest.builder()
+                    .questionId(45L)
+                    .newExpectedAnswer("Spring Boot는 자동 설정과 Starter 의존성을 통해...")
+                    .displayOrder(1)
+                    .build();
+
+            CreateVersionWithAnswerModificationsRequest request = CreateVersionWithAnswerModificationsRequest.builder()
+                    .parentQuestionSetId(1L)
+                    .questions(Arrays.asList(questionRequest))
+                    .tagIds(Arrays.asList(1L, 2L))
+                    .build();
+
+            CreateQuestionSetResponse response = CreateQuestionSetResponse.builder()
+                    .questionSetId(10L)
+                    .title("백엔드 개발자 면접 질문세트")
+                    .description("Spring Boot, JPA, MSA를 활용한 백엔드 개발 역량 평가")
+                    .versionNumber(3)
+                    .parentVersionId(1L)
+                    .isShared(false)
+                    .ownerNickname("김개발")
+                    .questionMaps(Arrays.asList(createQuestionMapResponse()))
+                    .tags(new ArrayList<>())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            given(questionSetService.createVersionWithAnswerModifications(eq(TEST_USER_ID), any(CreateVersionWithAnswerModificationsRequest.class)))
+                    .willReturn(response);
+
+            // When & Then
+            mockMvc.perform(post("/api/questionsets/1/versions/with-answer-modifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-User-Id", TEST_USER_ID)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.message").value("기존 질문+새 답변으로 새 버전이 생성되었습니다."))
+                    .andExpect(jsonPath("$.data.versionNumber").value(3))
+                    .andExpect(jsonPath("$.data.parentVersionId").value(1));
+
+            verify(questionSetService).createVersionWithAnswerModifications(eq(TEST_USER_ID), any(CreateVersionWithAnswerModificationsRequest.class));
+        }
+
+        // 예외 케이스 테스트 추가
+        @Test
+        @DisplayName("POST /api/questionsets/{id}/versions/with-new-qa - 빈 질문 리스트로 실패")
+        void createVersionWithNewQA_EmptyQuestions_Fail() throws Exception {
+            // Given
+            CreateVersionWithNewQARequest request = CreateVersionWithNewQARequest.builder()
+                    .parentQuestionSetId(1L)
+                    .questions(new ArrayList<>()) // 빈 리스트
+                    .tagIds(Arrays.asList(1L, 2L))
+                    .build();
+
+            // When & Then
+            mockMvc.perform(post("/api/questionsets/1/versions/with-new-qa")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-User-Id", TEST_USER_ID)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("POST /api/questionsets/{id}/versions/with-answer-modifications - 유효하지 않은 질문 ID로 실패")
+        void createVersionWithAnswerModifications_InvalidQuestionId_Fail() throws Exception {
+            // Given
+            QuestionAnswerModificationRequest questionRequest = QuestionAnswerModificationRequest.builder()
+                    .questionId(null) // null ID
+                    .newExpectedAnswer("새로운 답변")
+                    .displayOrder(1)
+                    .build();
+
+            CreateVersionWithAnswerModificationsRequest request = CreateVersionWithAnswerModificationsRequest.builder()
+                    .parentQuestionSetId(1L)
+                    .questions(Arrays.asList(questionRequest))
+                    .build();
+
+            // When & Then
+            mockMvc.perform(post("/api/questionsets/1/versions/with-answer-modifications")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("X-User-Id", TEST_USER_ID)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
         }
     }
 
@@ -266,7 +353,6 @@ class QuestionSetControllerCrudTest {
                     .isShared(true)
                     .ownerNickname("김개발")
                     .questionMaps(Arrays.asList(createQuestionMapResponse()))
-                    .tailQuestions(Arrays.asList(createTailQuestionResponse()))
                     .tags(Arrays.asList(createTagResponse("Spring Boot")))
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -281,8 +367,7 @@ class QuestionSetControllerCrudTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.questionSetId").value(1))
-                    .andExpect(jsonPath("$.data.questionMaps").isArray())
-                    .andExpect(jsonPath("$.data.tailQuestions").isArray());
+                    .andExpect(jsonPath("$.data.questionMaps").isArray());
 
             verify(questionSetService).getQuestionSetDetailNew(TEST_USER_ID, 1L);
         }
@@ -334,7 +419,6 @@ class QuestionSetControllerCrudTest {
                     .isShared(true)
                     .ownerNickname("김개발")
                     .questionMaps(new ArrayList<>())
-                    .tailQuestions(new ArrayList<>())
                     .tags(new ArrayList<>())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -404,7 +488,6 @@ class QuestionSetControllerCrudTest {
                     .isShared(false)
                     .ownerNickname("김개발")
                     .questionMaps(new ArrayList<>())
-                    .tailQuestions(new ArrayList<>())
                     .tags(new ArrayList<>())
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
@@ -469,19 +552,6 @@ class QuestionSetControllerCrudTest {
                 .build();
     }
 
-    private TailQuestionResponse createTailQuestionResponse() {
-        return TailQuestionResponse.builder()
-                .id(12L)
-                .content("특정 자동 설정을 비활성화하는 방법은 무엇인가요?")
-                .questionId(45L)
-                .createdBy("김개발")
-                .userAnswer("자동 설정 비활성화는 application.properties에서 설정하거나 @EnableAutoConfiguration의 exclude 옵션을 사용합니다.")
-                .answeredAt(LocalDateTime.now())
-                .displayOrder(1)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
     private TagResponse createTagResponse(String tagName) {
         return TagResponse.builder()
                 .id(1L)
@@ -504,4 +574,5 @@ class QuestionSetControllerCrudTest {
                 .lastModifiedAt(LocalDateTime.now())
                 .build();
     }
+
 }

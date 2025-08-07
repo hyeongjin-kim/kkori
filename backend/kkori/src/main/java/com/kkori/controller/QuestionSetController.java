@@ -43,14 +43,40 @@ public class QuestionSetController {
                 .body(CommonApiResponse.ok(response, "질문세트가 복사되었습니다."));
     }
 
-    @PostMapping("/versions")
-    public ResponseEntity<CommonApiResponse<CreateQuestionSetResponse>> createNewVersion(
+    @PostMapping("/{questionSetId}/versions/with-new-qa")
+    public ResponseEntity<CommonApiResponse<CreateQuestionSetResponse>> createVersionWithNewQA(
             @LoginUser Long userId,
-            @RequestBody @Valid CreateNewVersionRequest request
+            @PathVariable Long questionSetId,
+            @RequestBody @Valid CreateVersionWithNewQARequest request
     ) {
-        CreateQuestionSetResponse response = questionSetService.createNewVersion(userId, request);
+        // PathVariable에서 받은 ID를 request에 설정
+        CreateVersionWithNewQARequest updatedRequest = CreateVersionWithNewQARequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .questions(request.getQuestions())
+                .tagIds(request.getTagIds())
+                .build();
+        
+        CreateQuestionSetResponse response = questionSetService.createVersionWithNewQA(userId, updatedRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(CommonApiResponse.ok(response, "새 버전이 생성되었습니다."));
+                .body(CommonApiResponse.ok(response, "새 질문-답변으로 새 버전이 생성되었습니다."));
+    }
+
+    @PostMapping("/{questionSetId}/versions/with-answer-modifications")
+    public ResponseEntity<CommonApiResponse<CreateQuestionSetResponse>> createVersionWithAnswerModifications(
+            @LoginUser Long userId,
+            @PathVariable Long questionSetId,
+            @RequestBody @Valid CreateVersionWithAnswerModificationsRequest request
+    ) {
+        // PathVariable에서 받은 ID를 request에 설정
+        CreateVersionWithAnswerModificationsRequest updatedRequest = CreateVersionWithAnswerModificationsRequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .questions(request.getQuestions())
+                .tagIds(request.getTagIds())
+                .build();
+        
+        CreateQuestionSetResponse response = questionSetService.createVersionWithAnswerModifications(userId, updatedRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonApiResponse.ok(response, "기존 질문+새 답변으로 새 버전이 생성되었습니다."));
     }
 
     // ===== READ OPERATIONS =====
@@ -97,15 +123,6 @@ public class QuestionSetController {
     ) {
         Page<QuestionSetListResponse> responses = questionSetService.getSharedQuestionSetsNew(userId, page, size);
         return ResponseEntity.ok(CommonApiResponse.ok(responses, "공유 질문세트 목록 조회가 완료되었습니다."));
-    }
-
-    @GetMapping("/{questionSetId}/versions")
-    public ResponseEntity<CommonApiResponse<List<QuestionSetListResponse>>> getQuestionSetVersions(
-            @LoginUser Long userId,
-            @PathVariable Long questionSetId
-    ) {
-        List<QuestionSetListResponse> responses = questionSetService.getQuestionSetVersionsNew(userId, questionSetId);
-        return ResponseEntity.ok(CommonApiResponse.ok(responses, "질문세트 버전 히스토리 조회가 완료되었습니다."));
     }
 
     // ===== UPDATE OPERATIONS =====
