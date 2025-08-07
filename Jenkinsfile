@@ -83,13 +83,12 @@ pipeline {
                 echo '🧪 Running tests...'
                 dir('backend/kkori') {
                     sh '''
-                        # 테스트 실행 (prod 프로파일 사용, 실제 API 사용)
+                        # 테스트 실행 (prod 프로파일 사용, H2 테스트 DB 사용)
                         export SPRING_PROFILES_ACTIVE=prod
-                        export DB_HOST=localhost
-                        export DB_PORT=3306
-                        export DB_NAME=test_db
-                        export DB_USERNAME=test
-                        export DB_PASSWORD=test
+                        export DB_URL="jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+                        export DB_DRIVER_CLASS_NAME="org.h2.Driver"
+                        export DB_USERNAME=sa
+                        export DB_PASSWORD=""
                         export DDL_AUTO=create-drop
                         # 실제 API 키들 사용 (Jenkins Credentials에서 가져옴)
                         export GMS_API_KEY=${GMS_API_KEY}

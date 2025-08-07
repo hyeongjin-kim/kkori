@@ -1,0 +1,90 @@
+spring:
+  datasource:
+    # RDS MySQL 연결 정보 - Jenkins 환경변수에서 주입
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME:kkori}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # 커넥션 풀 설정
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      # 첫 배포: create, 이후: validate 또는 update
+      ddl-auto: ${DDL_AUTO:create}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        show_sql: false
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: false
+
+  # 배포 환경에서는 환경변수로 설정 주입
+
+# JWT 설정 (Jenkins 환경변수에서 주입)
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  ACCESS_TOKEN_MINUTE_TIME: ${JWT_ACCESS_TOKEN_MINUTE_TIME:30}
+  REFRESH_TOKEN_MINUTE_TIME: ${JWT_REFRESH_TOKEN_MINUTE_TIME:10080}
+
+# Kakao OAuth2 설정 (Jenkins 환경변수에서 주입)
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-url: ${KAKAO_REDIRECT_URL}
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  token-url: ${KAKAO_TOKEN_URL:https://kauth.kakao.com/oauth/token}
+
+# GMS API 설정 (Jenkins 환경변수에서 주입)
+gms:
+  api-key: ${GMS_API_KEY}
+  whisper-url: ${GMS_WHISPER_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/audio/transcriptions}
+  gpt-url: ${GMS_GPT_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions}
+
+# Actuator 설정 (헬스체크용)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  health:
+    db:
+      enabled: true
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.kkori: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 서버 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  tomcat:
+    max-threads: 200
+    accept-count: 100
+    connection-timeout: 20000
