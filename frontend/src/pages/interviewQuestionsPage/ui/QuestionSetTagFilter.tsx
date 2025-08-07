@@ -16,8 +16,8 @@ function QuestionSetTagFilter() {
           <TagFilter
             key={tag.id}
             tag={tag}
-            selected={selectedTag.id === tag.id}
-            onClick={setSelectedTag}
+            selected={selectedTag === tag.tag}
+            onClick={() => setSelectedTag(tag.tag)}
           />
         ))}
       </ul>

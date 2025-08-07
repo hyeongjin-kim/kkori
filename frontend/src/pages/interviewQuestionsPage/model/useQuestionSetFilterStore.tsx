@@ -4,17 +4,17 @@ import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants'
 import { questionSetList } from '@/entities/questionSet/model/mock';
 
 interface QuestionSetFilterState {
-  selectedTag: Tag;
+  selectedTag: string;
   questionSets: QuestionSet[];
 }
 
 interface QuestionSetFilterAction {
-  setSelectedTag: (tag: Tag) => void;
+  setSelectedTag: (tag: string) => void;
   setQuestionSets: (questionSets: QuestionSet[]) => void;
 }
 
 const initialState: QuestionSetFilterState = {
-  selectedTag: TAG_FILTER_LIST[0],
+  selectedTag: TAG_FILTER_LIST[0].tag,
   questionSets: questionSetList,
 };
 
