@@ -109,7 +109,7 @@ pipeline {
             post {
                 always {
                     // 테스트 결과 리포트 (junit 사용)
-                    junit testResultsPattern: 'backend/kkori/build/test-results/test/*.xml', allowEmptyResults: true
+                    junit testResults: 'backend/kkori/build/test-results/test/*.xml', allowEmptyResults: true
                     
                     // 테스트 리포트 HTML 게시
                     publishHTML([
