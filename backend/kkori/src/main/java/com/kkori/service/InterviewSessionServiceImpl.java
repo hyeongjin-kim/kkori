@@ -38,7 +38,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     private final InterviewRoomManager roomManager;
     private final Transcriber transcriber;
     private final TailQuestionGenerator tailQuestionGenerator;
+
     // ==================== 방 생성 및 참여 ====================
+
     @Override
     public String createSoloRoom(Long questionSetId, Long creatorId) {
         List<QuestionForm> defaultQuestions = loadQuestionSet(questionSetId);
@@ -55,7 +57,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     public void joinRoom(String roomId, Long userId) {
         roomManager.joinRoom(roomId, userId);
     }
+
     // ==================== 면접 라이프사이클 ====================
+
     @Override
     @Transactional
     public Long startInterview(String roomId, Long userId) {
@@ -78,9 +82,10 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         roomManager.startInterview(roomId, savedInterview.getInterviewId());
         return savedInterview.getInterviewId();
     }
+
     @Override
     @Transactional
-    public InterviewCompletionResponse completeInterview(String roomId) {
+    public void completeInterview(String roomId) {
         // 1. 방 조회 (사용자 정보 보존을 위해 DB 저장 전에 조회)
         InterviewRoom room = roomManager.getRoom(roomId);
         if (!room.isStarted()) {
@@ -93,18 +98,8 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         saveInterviewData(interview, room.getSession());
         // 4. 메모리에서 방 정리
         roomManager.completeInterview(roomId);
-        
-        // 5. 완료 응답 생성
-        return InterviewCompletionResponse.builder()
-                .interviewId(interview.getInterviewId())
-                .status("COMPLETED")
-                .completedAt(interview.getCompletedAt())
-                .totalQuestions(0)  // TODO: 실제 값으로 계산 필요
-                .totalTailQuestions(0)  // TODO: 실제 값으로 계산 필요
-                .answeredTailQuestions(0)  // TODO: 실제 값으로 계산 필요
-                .interviewDuration("0분")  // TODO: 실제 시간 계산 필요
-                .build();
     }
+
     @Override
     @Transactional
     public void exitRoom(String roomId, Long userId) {
@@ -119,7 +114,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         // 메모리에서 사용자 제거 및 방 정리
         roomManager.exitRoom(roomId, userId);
     }
+
     // ==================== 답변 처리 ====================
+
     @Override
     public String processAudioAnswer(String roomId, Long userId, String audioBase64) {
         // 권한 검증
@@ -141,7 +138,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
     }
+
     // ==================== 질문 관리 ====================
+
     @Override
     public QuestionForm getCurrentQuestion(String roomId) {
         InterviewSession session = getSession(roomId);
@@ -193,7 +192,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
     }
+
     // ==================== 역할 및 상태 관리 ====================
+
     @Override
     public void swapRoles(String roomId) {
         roomManager.swapRoles(roomId);
@@ -211,7 +212,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     public InterviewRoom getRoom(String roomId) {
         return roomManager.getRoom(roomId);
     }
+
     // ==================== Private 헬퍼 메서드들 ====================
+
     /**
      * 답변 처리 공통 로직
      */
@@ -219,6 +222,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         InterviewSession session = getSession(roomId);
         session.saveAnswer(answerText);
     }
+
     /**
      * 질문-답변 데이터를 DB에 저장
      */
@@ -236,6 +240,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             saveInterviewRecord(interview, question, answer, orderNum++);
         }
     }
+
     /**
      * 질문 타입별 Question 엔티티 저장
      */
@@ -246,6 +251,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             case TAIL -> saveTailQuestion(questionForm);
         };
     }
+
     /**
      * 기본 질문 조회 또는 생성
      */
@@ -253,27 +259,29 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionRepository.findById((long) questionForm.getQuestionId())
                 .orElseThrow(InterviewSessionException::defaultQuestionNotFound);
     }
+
     /**
      * 커스텀 질문 저장
      */
     private Question saveCustomQuestion(QuestionForm questionForm) {
-        Question question = Question.builder()
+        Question question = Question.customBuilder()
                 .content(questionForm.getQuestionText())
-                .questionType(com.kkori.entity.QuestionType.CUSTOM)
                 .build();
         return questionRepository.save(question);
     }
+
     /**
      * 꼬리 질문 저장
      */
     private Question saveTailQuestion(QuestionForm questionForm) {
         Question parentQuestion = findParentQuestion(questionForm);
-        Question question = Question.builder()
+        Question question = Question.tailBuilder()
                 .content(questionForm.getQuestionText())
-                .questionType(com.kkori.entity.QuestionType.DEFAULT)
+                .parent(parentQuestion)
                 .build();
         return questionRepository.save(question);
     }
+
     /**
      * 꼬리질문의 부모 질문 찾기
      */
@@ -282,6 +290,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionRepository.findById((long) parentId)
                 .orElseThrow(InterviewSessionException::parentQuestionNotFound);
     }
+
     /**
      * 답변 저장
      */
@@ -290,6 +299,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         Answer answer = Answer.create(answerText, user);
         return answerRepository.save(answer);
     }
+
     /**
      * 면접 기록 저장
      */
@@ -302,6 +312,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 .build();
         interviewRecordRepository.save(record);
     }
+
     /**
      * 질문셋 로딩
      */
@@ -316,13 +327,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 ))
                 .collect(Collectors.toList());
     }
+
     /**
      * 세션 조회
      */
+
     private InterviewSession getSession(String roomId) {
         return roomManager.getSession(roomId);
     }
+
     // ==================== 검증 메서드들 ====================
+
     /**
      * 면접 시작 권한 검증
      */
@@ -331,6 +346,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw InterviewSessionException.permissionDenied();
         }
     }
+
     /**
      * 답변 제출 권한 검증
      */
@@ -342,7 +358,9 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw InterviewRoomException.interviewNotStarted();
         }
     }
+
     // ==================== 엔티티 조회 메서드들 ====================
+
     /**
      * 사용자 조회
      */
@@ -350,6 +368,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return userRepository.findById(userId)
                 .orElseThrow(UserException::userNotFound);
     }
+
     /**
      * 질문셋 조회
      */
@@ -357,6 +376,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionSetRepository.findById(questionSetId)
                 .orElseThrow(InterviewSessionException::questionSetNotFound);
     }
+
     /**
      * 면접 조회
      */
