@@ -4,6 +4,7 @@ interface LabeledTextFieldProps {
   placeholder: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit?: () => void;
 }
 
 function LabeledTextField({
@@ -12,10 +13,11 @@ function LabeledTextField({
   placeholder,
   value,
   onChange,
+  onSubmit,
 }: LabeledTextFieldProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={label} className="text-sm font-medium text-gray-500">
+      <label htmlFor={label} className="text-sm font-medium text-gray-700">
         {displayTitle}
       </label>
       <input
@@ -25,6 +27,12 @@ function LabeledTextField({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onSubmit?.();
+          }
+        }}
       />
     </div>
   );
