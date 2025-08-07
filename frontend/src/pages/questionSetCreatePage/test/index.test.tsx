@@ -8,4 +8,11 @@ describe('QuestionSetCreatePage', () => {
       screen.getByRole('main', { name: 'question-set-create-page' }),
     ).toBeInTheDocument();
   });
+
+  test('QuestionSetForm이 렌더링 된다.', () => {
+    render(<QuestionSetCreatePage />);
+    expect(
+      screen.getByRole('region', { name: 'question-set-form' }),
+    ).toBeInTheDocument();
+  });
 });
