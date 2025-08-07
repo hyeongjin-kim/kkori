@@ -1,10 +1,10 @@
 export const CHAT_TYPES = {
-  QUESTION: 'question',
-  ANSWER: 'answer',
-  CHAT: 'chat',
+  question: 'question',
+  answer: 'answer',
+  chat: 'chat',
 } as const;
 
-export interface NameTaggedMessageProps {
+export interface NameTaggedChatMessageProps {
   message: Message;
 }
 

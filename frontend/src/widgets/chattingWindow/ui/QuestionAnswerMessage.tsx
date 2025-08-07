@@ -5,7 +5,7 @@ import {
 import { QUESTION_ANSWER_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 function QuestionAnswerMessage({ message }: { message: Message }) {
   const { sender, text, type } = message;
-  const isQuestion = type === CHAT_TYPES.QUESTION;
+  const isQuestion = type === CHAT_TYPES.question;
 
   return (
     <div
@@ -15,7 +15,7 @@ function QuestionAnswerMessage({ message }: { message: Message }) {
       <div
         role="listitem"
         aria-label="question-answer-message"
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap shadow-sm ${
+        className={`max-w-3/4 rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap shadow-sm ${
           isQuestion
             ? QUESTION_ANSWER_MESSAGE_STYLE.question
             : QUESTION_ANSWER_MESSAGE_STYLE.answer

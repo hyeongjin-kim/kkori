@@ -10,7 +10,7 @@ describe('NameTaggedMessage', () => {
       <NameTaggedMessage
         message={{
           id: '1',
-          type: CHAT_TYPES.QUESTION,
+          type: CHAT_TYPES.question,
           sender: 'tester',
           text: 'test',
           timestamp: new Date().toISOString(),

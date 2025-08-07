@@ -1,7 +1,7 @@
-import { NameTaggedMessageProps } from '@/widgets/chattingWindow/model/chattingWindowType';
+import { NameTaggedChatMessageProps } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { CHAT_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 
-function NameTaggedMessage({ message }: NameTaggedMessageProps) {
+function NameTaggedChatMessage({ message }: NameTaggedChatMessageProps) {
   const { sender, text, isMyMessage = false } = message;
 
   return (
@@ -12,7 +12,7 @@ function NameTaggedMessage({ message }: NameTaggedMessageProps) {
       <div
         role="listitem"
         aria-label="name-tagged-message"
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap shadow-sm ${
+        className={`max-w-3/4 rounded-2xl px-4 py-2 text-sm break-words whitespace-pre-wrap shadow-sm ${
           isMyMessage ? CHAT_MESSAGE_STYLE.me : CHAT_MESSAGE_STYLE.opponent
         }`}
       >
@@ -22,4 +22,4 @@ function NameTaggedMessage({ message }: NameTaggedMessageProps) {
   );
 }
 
-export default NameTaggedMessage;
+export default NameTaggedChatMessage;
