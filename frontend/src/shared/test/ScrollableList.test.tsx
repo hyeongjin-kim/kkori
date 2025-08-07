@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import ScrollableList from '@/shared/ui/ScrollableList';
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
-import useChattingWindowStore from '@/widgets/chattingWindow/model/useChattingWindowStore';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
 
 describe('ScrollableList', () => {
   beforeEach(() => {
-    useChattingWindowStore.setState({ messages: mockMessageExamples });
+    usePracticeSessionStore.setState({ messages: mockMessageExamples });
     render(
       <ScrollableList>
         {mockMessageExamples.map(example => (
