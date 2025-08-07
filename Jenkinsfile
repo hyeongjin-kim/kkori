@@ -13,7 +13,7 @@ pipeline {
         DB_HOST = "kkori-mysql-db.cbgecwou8vyh.ap-northeast-2.rds.amazonaws.com"
         DB_PORT = "3306"
         DB_NAME = "kkori"
-        DB_USERNAME = "admin"
+        DB_USERNAME = credentials('mysql-username')
         DB_PASSWORD = credentials('mysql-password')  // Jenkins Secret 사용
         
         // GMS API 설정 - Jenkins Credentials에서 보안 관리
