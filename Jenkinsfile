@@ -83,8 +83,25 @@ pipeline {
                 echo '🧪 Running tests...'
                 dir('backend/kkori') {
                     sh '''
-                        # 테스트 실행 (H2 DB 사용)
-                        export SPRING_PROFILES_ACTIVE=test
+                        # 테스트 실행 (prod 프로파일 사용, 실제 API 사용)
+                        export SPRING_PROFILES_ACTIVE=prod
+                        export DB_HOST=localhost
+                        export DB_PORT=3306
+                        export DB_NAME=test_db
+                        export DB_USERNAME=test
+                        export DB_PASSWORD=test
+                        export DDL_AUTO=create-drop
+                        # 실제 API 키들 사용 (Jenkins Credentials에서 가져옴)
+                        export GMS_API_KEY=${GMS_API_KEY}
+                        export GMS_WHISPER_URL=${GMS_WHISPER_URL}
+                        export GMS_GPT_URL=${GMS_GPT_URL}
+                        export JWT_SECRET_KEY=${JWT_SECRET_KEY}
+                        export JWT_ACCESS_TOKEN_MINUTE_TIME=${JWT_ACCESS_TOKEN_MINUTE_TIME}
+                        export JWT_REFRESH_TOKEN_MINUTE_TIME=${JWT_REFRESH_TOKEN_MINUTE_TIME}
+                        export KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+                        export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+                        export KAKAO_REDIRECT_URL=${KAKAO_REDIRECT_URL}
+                        export KAKAO_TOKEN_URL=${KAKAO_TOKEN_URL}
                         ./gradlew clean test --no-daemon --stacktrace
                     '''
                 }
