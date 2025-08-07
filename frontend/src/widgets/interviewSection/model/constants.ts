@@ -41,3 +41,16 @@ export const preInterviewControlButtonProps = [
     text: '나가기',
   },
 ];
+
+export const INTERVIEW_MESSAGE_TYPE = {
+  USER_EXITED: 'user-exited',
+  INTERVIEW_STARTED: 'interview-started',
+  INTERVIEW_ENDED: 'interview-ended',
+  ANSWER_RECORDING_START: 'answer-recording-start',
+  STT_RESULT: 'stt-result',
+  NEXT_QUESTION_CHOICE: 'next-question-choice',
+  NEXT_QUESTION_SELECTED: 'next-question-selected',
+  CUSTOM_QUESTION_START: 'custom-question-start',
+  CUSTOM_QUESTION_CREATED: 'custom-question-created',
+  CHAT: 'chat',
+};

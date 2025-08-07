@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
-import PairPracticePage from '@/pages/pairPracticePage/page/index';
+import PairPracticePage from '@/pages/pairPracticePage';
 
 describe('PairPracticePage', () => {
   beforeEach(() => {

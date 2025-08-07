@@ -9,10 +9,11 @@ export interface NameTaggedChatMessageProps {
 }
 
 export interface Message {
-  id: string;
+  id?: string;
   type: (typeof CHAT_TYPES)[keyof typeof CHAT_TYPES];
   sender: string;
   text: string;
   timestamp: string;
   isMyMessage?: boolean;
+  confirmed: boolean;
 }

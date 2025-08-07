@@ -1,15 +1,17 @@
 import ChattingWindowContainer from '@/widgets/chattingWindow';
 import InterviewSection from '@/widgets/interviewSection';
 import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
-import { useWebSocketStore } from '@/shared/lib/useWebSocketStore';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
+import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 
 function PairPracticePage() {
   const { error } = useInitMediaStream();
-  const { connect, disconnect } = useWebSocketStore();
+  const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    connect();
+    //TODO: 1은 질문 넘버로 대체
+    connect(PRACTICE_MODE.PAIR_PRACTICE, 1);
 
     return () => {
       disconnect();
