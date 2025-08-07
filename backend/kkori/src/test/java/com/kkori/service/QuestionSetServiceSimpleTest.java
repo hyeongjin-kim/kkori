@@ -38,7 +38,6 @@ class QuestionSetServiceSimpleTest {
     @Mock private QuestionRepository questionRepository;
     @Mock private AnswerRepository answerRepository;
     @Mock private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
-    @Mock private TailQuestionRepository tailQuestionRepository;
 
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
@@ -62,7 +61,6 @@ class QuestionSetServiceSimpleTest {
                 .content("Spring Boot란?")
                 .questionType(1)
                 .expectedAnswer("Spring Boot는...")
-                .tailQuestions(new ArrayList<>())
                 .build();
 
         CreateQuestionSetWithQuestionsRequest request = CreateQuestionSetWithQuestionsRequest.builder()
@@ -238,4 +236,5 @@ class QuestionSetServiceSimpleTest {
 
         verify(questionSetRepository).findByIdAndNotDeleted(999L);
     }
+
 }

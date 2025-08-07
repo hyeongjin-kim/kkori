@@ -40,9 +40,6 @@ public class Question extends BaseEntity {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Answer> answers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TailQuestion> tailQuestions = new ArrayList<>();
-
     @Builder
     public Question(String content, String expectedAnswer, QuestionType questionType) {
         this.content = content;

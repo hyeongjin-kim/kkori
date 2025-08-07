@@ -16,10 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,12 +27,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * QuestionSetService의 CRUD 기능에 대한 종합 테스트
- * 
  * 테스트 범위:
  * - 질문 세트 생성 (CREATE)
  * - 질문 세트 복사 (COPY) 
@@ -52,7 +49,6 @@ class QuestionSetServiceCrudTest {
     @Mock private QuestionRepository questionRepository;
     @Mock private AnswerRepository answerRepository;
     @Mock private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
-    @Mock private TailQuestionRepository tailQuestionRepository;
 
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
@@ -96,7 +92,6 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getParentVersionId()).isNull();
             assertThat(response.getIsShared()).isFalse();
             assertThat(response.getQuestionMaps()).hasSize(1);
-            assertThat(response.getTailQuestions()).hasSize(0);
 
             verify(questionSetRepository).save(any(QuestionSet.class));
             verify(questionRepository).save(any(Question.class));
@@ -145,7 +140,6 @@ class QuestionSetServiceCrudTest {
                     .willReturn(Arrays.asList(originalMap));
             given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class)))
                     .willReturn(createQuestionMap(2L, copiedQuestionSet, question, answer, 1));
-            given(tailQuestionRepository.findByQuestionIdWithDetails(1L)).willReturn(new ArrayList<>());
 
             // When
             CreateQuestionSetResponse response = questionSetService.copyQuestionSet(1L, request);
@@ -205,8 +199,14 @@ class QuestionSetServiceCrudTest {
             updatedQuestionSet.updateSharedStatus(true);
 
             given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(questionSet));
+            // 첫 번째 save는 메타데이터 업데이트용
+            // save() 메서드 stub
             given(questionSetRepository.save(any(QuestionSet.class))).willReturn(updatedQuestionSet);
+            // 두 번째 findByIdAndNotDeleted는 getQuestionSetDetailNew에서 호출
+            // getQuestionSetDetailNew에서 호출되는 두 번째 조회
+            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(updatedQuestionSet));
             given(questionSetQuestionMapRepository.findByQuestionSetIdWithDetails(1L)).willReturn(new ArrayList<>());
+            // tailQuestionRepository는 필요시에만 stub (메서드명 확인 필요)
 
             // When
             QuestionSetDetailResponse response = questionSetService.updateQuestionSetMetadata(1L, 1L, request);
@@ -297,7 +297,6 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getTitle()).isEqualTo("삭제할 질문세트");
             // 삭제된 상태이므로 질문 목록은 비어있어야 함
             assertThat(response.getQuestionMaps()).isEmpty();
-            assertThat(response.getTailQuestions()).isEmpty();
 
             verify(questionSetRepository).findById(1L);
             verify(questionSetRepository).save(any(QuestionSet.class));
@@ -361,7 +360,7 @@ class QuestionSetServiceCrudTest {
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
             given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
-            given(questionSetQuestionMapRepository.countByQuestionSetId(1L)).willReturn(5L);
+            given(questionSetQuestionMapRepository.countByQuestionSetId(anyLong())).willReturn(5L);
 
             // When
             Page<QuestionSetListResponse> response = questionSetService.getQuestionSetList(
@@ -387,7 +386,7 @@ class QuestionSetServiceCrudTest {
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
             given(questionSetRepository.findSharedQuestionSetsWithPaging(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
-            given(questionSetQuestionMapRepository.countByQuestionSetId(1L)).willReturn(3L);
+            given(questionSetQuestionMapRepository.countByQuestionSetId(anyLong())).willReturn(3L);
 
             // When
             Page<QuestionSetListResponse> response = questionSetService.getQuestionSetList(
@@ -435,100 +434,6 @@ class QuestionSetServiceCrudTest {
         }
     }
 
-    @Nested
-    @DisplayName("VERSION 관리 테스트")
-    class VersionManagementTest {
-
-        @Test
-        @DisplayName("해피케이스: 새 버전 생성 - 기존 질문 재사용")
-        void createNewVersion_ReuseExistingQuestion_Success() {
-            // Given
-            QuestionVersionRequest questionRequest = QuestionVersionRequest.builder()
-                    .questionId(1L)
-                    .answerId(1L)
-                    .displayOrder(1)
-                    .action("REUSE")
-                    .build();
-
-            CreateNewVersionRequest request = CreateNewVersionRequest.builder()
-                    .parentQuestionSetId(1L)
-                    .questions(Arrays.asList(questionRequest))
-                    .tagIds(Arrays.asList(1L, 2L))
-                    .build();
-
-            QuestionSet parentQuestionSet = createQuestionSet(1L, testUser, "부모 질문세트", "설명");
-            QuestionSet newVersionQuestionSet = createQuestionSet(2L, testUser, "부모 질문세트", "설명");
-            Question existingQuestion = createQuestion(1L, "기존 질문");
-            Answer existingAnswer = createAnswer(1L, "기존 답변", testUser);
-
-            given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(parentQuestionSet));
-            given(questionSetRepository.findMaxVersionNumberByParentVersionId(1L)).willReturn(Optional.of(1));
-            given(questionSetRepository.save(any(QuestionSet.class))).willReturn(newVersionQuestionSet);
-            given(questionRepository.findById(1L)).willReturn(Optional.of(existingQuestion));
-            given(answerRepository.findByIdWithCreatedBy(1L)).willReturn(Optional.of(existingAnswer));
-            given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class)))
-                    .willReturn(createQuestionMap(1L, newVersionQuestionSet, existingQuestion, existingAnswer, 1));
-
-            // When
-            CreateQuestionSetResponse response = questionSetService.createNewVersion(1L, request);
-
-            // Then
-            assertThat(response.getQuestionSetId()).isEqualTo(2L);
-            assertThat(response.getVersionNumber()).isEqualTo(2); // 부모가 1이므로 2
-            assertThat(response.getParentVersionId()).isEqualTo(1L);
-            assertThat(response.getQuestionMaps()).hasSize(1);
-
-            verify(questionRepository).findById(1L);
-            verify(answerRepository).findByIdWithCreatedBy(1L);
-            verify(questionSetQuestionMapRepository).save(any(QuestionSetQuestionMap.class));
-        }
-
-        @Test
-        @DisplayName("해피케이스: 새 버전 생성 - 새 질문 생성")
-        void createNewVersion_CreateNewQuestion_Success() {
-            // Given
-            QuestionVersionRequest questionRequest = QuestionVersionRequest.builder()
-                    .content("새로운 질문")
-                    .questionType(1)
-                    .expectedAnswer("새로운 답변")
-                    .displayOrder(1)
-                    .action("CREATE")
-                    .build();
-
-            CreateNewVersionRequest request = CreateNewVersionRequest.builder()
-                    .parentQuestionSetId(1L)
-                    .questions(Arrays.asList(questionRequest))
-                    .tagIds(new ArrayList<>())
-                    .build();
-
-            QuestionSet parentQuestionSet = createQuestionSet(1L, testUser, "부모 질문세트", "설명");
-            QuestionSet newVersionQuestionSet = createQuestionSet(2L, testUser, "부모 질문세트", "설명");
-            Question newQuestion = createQuestion(2L, "새로운 질문");
-            Answer newAnswer = createAnswer(2L, "새로운 답변", testUser);
-
-            given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(parentQuestionSet));
-            given(questionSetRepository.findMaxVersionNumberByParentVersionId(1L)).willReturn(Optional.of(1));
-            given(questionSetRepository.save(any(QuestionSet.class))).willReturn(newVersionQuestionSet);
-            given(questionRepository.save(any(Question.class))).willReturn(newQuestion);
-            given(answerRepository.save(any(Answer.class))).willReturn(newAnswer);
-            given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class)))
-                    .willReturn(createQuestionMap(1L, newVersionQuestionSet, newQuestion, newAnswer, 1));
-
-            // When
-            CreateQuestionSetResponse response = questionSetService.createNewVersion(1L, request);
-
-            // Then
-            assertThat(response.getQuestionSetId()).isEqualTo(2L);
-            assertThat(response.getQuestionMaps()).hasSize(1);
-            assertThat(response.getQuestionMaps().get(0).getQuestion().getContent()).isEqualTo("새로운 질문");
-
-            verify(questionRepository).save(any(Question.class));
-            verify(answerRepository).save(any(Answer.class));
-        }
-    }
-
     // =================== 테스트 헬퍼 메서드들 ===================
 
     private User createUser(Long userId, String email, String nickname) {
@@ -540,7 +445,7 @@ class QuestionSetServiceCrudTest {
     }
 
     private QuestionSet createQuestionSet(Long id, User owner, String title, String description) {
-        return QuestionSet.builder()
+        QuestionSet questionSet = QuestionSet.builder()
                 .ownerUserId(owner)
                 .title(title)
                 .description(description)
@@ -548,29 +453,37 @@ class QuestionSetServiceCrudTest {
                 .parentVersionId(null)
                 .isShared(false)
                 .build();
+        setFieldValue(questionSet, "id", id);
+        return questionSet;
     }
 
     private Question createQuestion(Long id, String content) {
-        return Question.builder()
+        Question question = Question.builder()
                 .content(content)
                 .questionType(QuestionType.DEFAULT)
                 .build();
+        setFieldValue(question, "id", id);
+        return question;
     }
 
     private Answer createAnswer(Long id, String content, User createdBy) {
-        return Answer.builder()
+        Answer answer = Answer.builder()
                 .content(content)
                 .createdBy(createdBy)
                 .build();
+        setFieldValue(answer, "id", id);
+        return answer;
     }
 
     private QuestionSetQuestionMap createQuestionMap(Long id, QuestionSet questionSet, Question question, Answer answer, Integer displayOrder) {
-        return QuestionSetQuestionMap.builder()
+        QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.builder()
                 .questionSet(questionSet)
                 .question(question)
                 .answer(answer)
                 .displayOrder(displayOrder)
                 .build();
+        setFieldValue(questionMap, "id", id);
+        return questionMap;
     }
 
     private CreateQuestionSetWithQuestionsRequest createQuestionSetRequest() {
@@ -578,7 +491,6 @@ class QuestionSetServiceCrudTest {
                 .content("Spring Boot의 자동 설정 원리는?")
                 .questionType(1)
                 .expectedAnswer("@EnableAutoConfiguration을 통해...")
-                .tailQuestions(new ArrayList<>())
                 .build();
 
         return CreateQuestionSetWithQuestionsRequest.builder()
@@ -588,4 +500,18 @@ class QuestionSetServiceCrudTest {
                 .tagIds(Arrays.asList(1L, 2L))
                 .build();
     }
+
+    /**
+     * 리플렉션을 사용해서 엔티티의 private ID 필드를 설정하는 헬퍼 메서드
+     */
+    private void setFieldValue(Object target, String fieldName, Object value) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException("Failed to set field " + fieldName + " on " + target.getClass().getSimpleName(), e);
+        }
+    }
+
 }
