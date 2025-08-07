@@ -54,6 +54,11 @@ pipeline {
         stage('🔧 Prepare Environment') {
             steps {
                 echo '🔧 Preparing build environment...'
+                script {
+                    // NodeJS 도구 설정
+                    def nodeJS = tool name: 'NodeJS-22', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodeJS}/bin:${env.PATH}"
+                }
                 sh '''
                     # Gradle wrapper 실행 권한 부여
                     chmod +x backend/kkori/gradlew
@@ -127,6 +132,11 @@ pipeline {
         stage('🎨 Build Frontend') {
             steps {
                 echo '🎨 Building frontend...'
+                script {
+                    // NodeJS 도구 설정 (다시 한 번 확실히)
+                    def nodeJS = tool name: 'NodeJS-22', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
+                    env.PATH = "${nodeJS}/bin:${env.PATH}"
+                }
                 dir('frontend') {
                     sh '''
                         # Node.js 및 npm 버전 확인
