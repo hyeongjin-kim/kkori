@@ -1,4 +1,4 @@
-import { Tag } from '@/entities/questionSet/model/type';
+import { Tag } from '@/entities/questionSet/model/response';
 
 export const TAG_FILTER_LIST: readonly Tag[] = Object.freeze([
   {
