@@ -16,6 +16,7 @@ describe('QuestionAnswerMessage', () => {
             text: 'test',
             timestamp: new Date().toISOString(),
             isMyMessage: false,
+            confirmed: true,
           }}
         />,
       );

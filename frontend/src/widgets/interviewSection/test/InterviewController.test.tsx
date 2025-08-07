@@ -6,7 +6,7 @@ describe('InterviewController', () => {
   const { setStatus } = useInterviewRoomStore.getState();
 
   beforeEach(() => {
-    setStatus('pre-interview');
+    setStatus('BEFORE_INTERVIEW');
   });
 
   test('InterviewController가 렌더링 되어야 한다.', () => {
@@ -24,7 +24,7 @@ describe('InterviewController', () => {
   });
 
   test('InterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
-    setStatus('interview');
+    setStatus('QUESTION_PRESENTED');
     render(<InterviewController />);
     const interviewController = screen.getByLabelText('interview-controller');
     expect(interviewController).toBeInTheDocument();

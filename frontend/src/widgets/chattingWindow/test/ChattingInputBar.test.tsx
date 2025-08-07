@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-jest.mock('@/widgets/chattingWindow/model');
+jest.mock('@/widgets/chattingWindow/model/index');
 import userEvent from '@testing-library/user-event';
 import ChattingInputBar from '@/widgets/chattingWindow/ui/ChattingInputBar';
 import { submitChatting } from '@/widgets/chattingWindow/model';

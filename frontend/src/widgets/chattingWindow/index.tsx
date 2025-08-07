@@ -1,12 +1,12 @@
 import ChattingInputBar from '@/widgets/chattingWindow/ui/ChattingInputBar';
 import ScrollableList from '@/shared/ui/ScrollableList';
 import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
-import useChattingWindowStore from '@/widgets/chattingWindow/model/useChattingWindowStore';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import QuestionAnswerMessage from '@/widgets/chattingWindow/ui/QuestionAnswerMessage';
 
 function ChattingWindowContainer() {
-  const messages = useChattingWindowStore(state => state.messages);
+  const messages = usePracticeSessionStore(state => state.messages);
 
   return (
     <div
@@ -19,7 +19,10 @@ function ChattingWindowContainer() {
           message.type === CHAT_TYPES.chat ? (
             <NameTaggedMessage key={message.id} message={message} />
           ) : (
-            <QuestionAnswerMessage key={message.id} message={message} />
+            <QuestionAnswerMessage
+              key={message.timestamp + message.sender}
+              message={message}
+            />
           ),
         )}
       </ScrollableList>

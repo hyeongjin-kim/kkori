@@ -1,16 +1,16 @@
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import { PracticeType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import {
   interviewControlButtonProps,
   preInterviewControlButtonProps,
 } from '@/widgets/interviewSection/model/constants';
 import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 
-const switchStatus = (status: PracticeType) => {
+const switchStatus = (status: keyof typeof interviewStatus) => {
   switch (status) {
-    case 'pre-interview':
+    case interviewStatus.BEFORE_INTERVIEW:
       return preInterviewControlButtonProps;
-    case 'interview':
+    case interviewStatus.QUESTION_PRESENTED:
       return interviewControlButtonProps;
   }
 };
@@ -27,7 +27,7 @@ function InterviewController() {
         aria-label="pre-interview-control-button-container"
         className="flex gap-4"
       >
-        {switchStatus(status).map(({ onClick, label, text }) => (
+        {switchStatus(status)?.map(({ onClick, label, text }) => (
           <ControlButton
             key={label}
             onClick={onClick}
