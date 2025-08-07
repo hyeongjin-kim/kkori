@@ -27,9 +27,15 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.31'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'
@@ -58,7 +64,7 @@ tasks.named('asciidoctor') {
     sources {
         include("**/index.adoc")
     }
-	
+
     baseDirFollowsSourceFile()
     dependsOn(tasks.named('test'))
 }

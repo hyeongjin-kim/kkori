@@ -1,35 +1,55 @@
 package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
-import jakarta.persistence.Column;
+import com.kkori.common.jpa.converter.QuestionTypeConverter;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@Table(name = "question")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Question extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long questionId;
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "set_id")
-    private QuestionSet questionSet;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Question parent; // nullable, 상위 질문
-
-    @Column(length = 20, nullable = false)
-    private String type; // SET, DIRECT, FOLLOWUP 등
-
-    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private Integer sortOrder;
+    @Convert(converter = QuestionTypeConverter.class)
+    private QuestionType questionType;
+
+    private String expectedAnswer;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Answer> answers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TailQuestion> tailQuestions = new ArrayList<>();
+
+    @Builder
+    public Question(String content, String expectedAnswer, QuestionType questionType) {
+        this.content = content;
+        this.expectedAnswer = expectedAnswer;
+        this.questionType = questionType;
+    }
+
+    public static Question of(String content, String expectedAnswer, QuestionType questionType) {
+        return new Question(content, expectedAnswer, questionType);
+    }
 
 }

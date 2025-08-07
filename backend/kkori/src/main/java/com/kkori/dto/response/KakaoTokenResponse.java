@@ -1,0 +1,51 @@
+package com.kkori.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class KakaoTokenResponse {
+
+    @JsonProperty("token_type")
+    public String tokenType;
+
+    @JsonProperty("access_token")
+    public String accessToken;
+
+    @JsonProperty("id_token")
+    public String idToken;
+
+    @JsonProperty("expires_in")
+    public Integer expiresIn;
+
+    @JsonProperty("refresh_token")
+    public String refreshToken;
+
+    @JsonProperty("refresh_token_expires_in")
+    public Integer refreshTokenExpiresIn;
+
+    @JsonProperty("scope")
+    public String scope;
+
+    @Override
+    public String toString() {
+        return "KakaoTokenResponse{" +
+                "tokenType='" + tokenType + '\'' +
+                ", accessToken='" + accessToken + '\'' +
+                ", idToken='" + idToken + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", refreshTokenExpiresIn=" + refreshTokenExpiresIn +
+                ", scope='" + scope + '\'' +
+                '}';
+    }
+
+}

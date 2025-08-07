@@ -1,15 +1,15 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* 공통 폰트 설정 */
 @font-face {
-  font-family: "Pretendard-Regular";
-  src: url("/src/assets/fonts/PretendardVariable.woff2") format("woff2");
+  font-family: 'Pretendard-Regular';
+  src: url('/src/assets/fonts/PretendardVariable.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
 }
 
 * {
-  font-family: "Pretendard-Regular", sans-serif;
+  font-family: 'Pretendard-Regular', sans-serif;
 }
 
 html,
@@ -53,38 +53,42 @@ body,
 
 @theme {
   --color-point: #3384fa;
-  --color-background: #17171c;
-  --color-text-white: #fbfbfb;
+  --color-background: #fbfbfb;
+  --color-text-white: #17171c;
+  --color-text-gray: #6b7280;
+  --color-text-black: #fbfbfb;
   --color-gray-1: #2c2c35;
   --color-logo-white: #eae7e6;
   --color-black-chat: #101014;
   --color-input-gray: #272932;
-  --color-primary-purple-100: #a78bfa;
-  --color-primary-purple-200: #8b5cf6;
-  --color-primary-purple-300: #7c3aed;
-  --color-primary-purple-400: #6d28d9;
-  --color-primary-purple-500: #5b21b6;
+  --color-point-100: #e3f0fe;
+  --color-point-200: #b3d6fc;
+  --color-point-300: #7bb8fa;
+  --color-point-400: #3384fa;
+  --color-point-500: #2563eb;
+  --color-hover-gray: #dbeafe;
+  --color-underline-gray: #e5e7eb;
 }
 
 /* Chrome, Safari, Edge */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
 /* Chrome, Safari, Edge */
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   display: none;
   -webkit-appearance: none;
 }
 
 /* Firefox */
-input[type="date"]::-moz-calendar-picker-indicator {
+input[type='date']::-moz-calendar-picker-indicator {
   display: none;
 }
