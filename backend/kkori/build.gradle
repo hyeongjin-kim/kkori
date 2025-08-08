@@ -55,6 +55,12 @@ ext {
 tasks.named('test') {
     outputs.dir snippetsDir
     useJUnitPlatform()
+
+    if (project.hasProperty('excludeTags')) {
+        useJUnitPlatform {
+            excludeTags project.property('excludeTags')
+        }
+    }
 }
 
 tasks.named('asciidoctor') {
