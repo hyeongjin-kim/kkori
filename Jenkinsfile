@@ -258,7 +258,7 @@ pipeline {
                             docker run -d \\
                                 --name kkori-backend \\
                                 --restart unless-stopped \\
-                                -p 80:8080 \\
+                                -p 8080:8080 \\
                                 -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} \\
                                 -e DB_HOST=${DB_HOST} \\
                                 -e DB_PORT=${DB_PORT} \\
@@ -375,7 +375,7 @@ pipeline {
                             
                             // HTTP 헬스체크
                             def healthResponse = sh(
-                                script: 'curl -f -s http://localhost/actuator/health',
+                                script: 'curl -f -s http://localhost:8080/actuator/health',
                                 returnStatus: true
                             )
                             
@@ -386,10 +386,10 @@ pipeline {
                                 // 헬스체크 상세 정보 출력
                                 sh '''
                                     echo "Application health status:"
-                                    curl -s http://localhost/actuator/health | python3 -m json.tool || curl -s http://localhost/actuator/health
+                                    curl -s http://localhost:8080/actuator/health | python3 -m json.tool || curl -s http://localhost:8080/actuator/health
                                     
                                     echo "Application info:"
-                                    curl -s http://localhost/actuator/info | python3 -m json.tool || curl -s http://localhost/actuator/info
+                                    curl -s http://localhost:8080/actuator/info | python3 -m json.tool || curl -s http://localhost:8080/actuator/info
                                 '''
                             } else {
                                 echo "⚠️ Health check failed, retrying in 10 seconds..."
