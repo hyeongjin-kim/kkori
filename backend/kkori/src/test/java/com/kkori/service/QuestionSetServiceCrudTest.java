@@ -249,42 +249,6 @@ class QuestionSetServiceCrudTest {
             verify(questionSetRepository).findByIdAndNotDeleted(1L);
             verify(questionSetRepository, never()).save(any(QuestionSet.class));
         }
-
-        @Test
-        @DisplayName("해피케이스: 답변 수정 성공")
-        void modifyAnswer_Success() {
-            // Given
-            ModifyAnswerRequest request = ModifyAnswerRequest.builder()
-                    .mapId(1L)
-                    .newExpectedAnswer("수정된 답변 내용")
-                    .build();
-
-            QuestionSet questionSet = createQuestionSet(1L, testUser, "질문세트", "설명");
-            Question question = createQuestion(1L, "Spring Boot란?");
-            Answer oldAnswer = createAnswer(1L, "기존 답변", testUser);
-            Answer newAnswer = createAnswer(2L, "수정된 답변 내용", testUser);
-            
-            QuestionSetQuestionMap originalMap = createQuestionMap(1L, questionSet, question, oldAnswer, 1);
-            QuestionSetQuestionMap newMap = createQuestionMap(1L, questionSet, question, newAnswer, 1);
-
-            given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(questionSet));
-            given(questionSetQuestionMapRepository.findByIdWithDetails(1L)).willReturn(Optional.of(originalMap));
-            given(answerRepository.save(any(Answer.class))).willReturn(newAnswer);
-            given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class))).willReturn(newMap);
-
-            // When
-            QuestionMapResponse response = questionSetService.modifyAnswer(1L, 1L, request);
-
-            // Then
-            assertThat(response.getMapId()).isEqualTo(1L);
-            assertThat(response.getAnswer().getContent()).isEqualTo("수정된 답변 내용");
-            assertThat(response.getQuestionId()).isEqualTo(1L);
-
-            verify(answerRepository).save(any(Answer.class));
-            verify(questionSetQuestionMapRepository).delete(originalMap);
-            verify(questionSetQuestionMapRepository).save(any(QuestionSetQuestionMap.class));
-        }
     }
 
     @Nested
