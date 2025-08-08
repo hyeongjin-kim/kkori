@@ -10,7 +10,10 @@ describe('ScrollableList', () => {
     render(
       <ScrollableList>
         {mockMessageExamples.map(example => (
-          <NameTaggedMessage key={example.id} message={example} />
+          <NameTaggedMessage
+            key={example.timestamp + example.sender}
+            message={example}
+          />
         ))}
       </ScrollableList>,
     );
@@ -24,7 +27,7 @@ describe('ScrollableList', () => {
 
   test('스크롤 가능한 리스트에 메시지가 랜더링 되어야 한다.', () => {
     mockMessageExamples.forEach(example => {
-      expect(screen.getByText(example.text)).toBeInTheDocument();
+      expect(screen.getByText(example.content)).toBeInTheDocument();
       expect(screen.getByText(example.sender)).toBeInTheDocument();
     });
   });

@@ -8,14 +8,12 @@ export const submitChatting = (e: FormEvent<HTMLFormElement>) => {
   if (formData.get('text') === '') return;
   e.currentTarget.reset();
   const text = formData.get('text') as string;
-  const id = Date.now().toString();
-  //TODO: 스크롤 최하단으로 유지하는 기능 추가
+  const timestamp = new Date().getTime();
   usePracticeSessionStore.getState().addMessage({
-    id,
     type: CHAT_TYPES.chat,
-    text,
+    content: text,
     sender: 'me', // TODO: 유저 이름 받아오기
-    timestamp: new Date().toISOString(),
+    timestamp,
     isMyMessage: true,
     confirmed: false,
   });

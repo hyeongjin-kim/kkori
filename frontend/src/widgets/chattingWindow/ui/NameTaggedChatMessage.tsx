@@ -2,7 +2,7 @@ import { NameTaggedChatMessageProps } from '@/widgets/chattingWindow/model/chatt
 import { CHAT_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 
 function NameTaggedChatMessage({ message }: NameTaggedChatMessageProps) {
-  const { sender, text, isMyMessage = false } = message;
+  const { sender, content, isMyMessage = false } = message;
 
   return (
     <div
@@ -16,7 +16,7 @@ function NameTaggedChatMessage({ message }: NameTaggedChatMessageProps) {
           isMyMessage ? CHAT_MESSAGE_STYLE.me : CHAT_MESSAGE_STYLE.opponent
         }`}
       >
-        {text}
+        {content}
       </div>
     </div>
   );
