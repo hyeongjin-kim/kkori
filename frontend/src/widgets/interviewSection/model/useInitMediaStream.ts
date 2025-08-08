@@ -5,7 +5,7 @@ function useInitMediaStream() {
   const setMyStream = useMediaStreamStore(state => state.setMyStream);
   const setIsMyVideoOn = useMediaStreamStore(state => state.setIsMyVideoOn);
   const setIsMyAudioOn = useMediaStreamStore(state => state.setIsMyAudioOn);
-
+  const setMyRecorder = useMediaStreamStore(state => state.setMyRecorder);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -16,6 +16,7 @@ function useInitMediaStream() {
           audio: true,
         });
         setMyStream(stream);
+        setMyRecorder(new MediaRecorder(stream));
         setIsMyVideoOn(true);
         setIsMyAudioOn(true);
       } catch (error) {
