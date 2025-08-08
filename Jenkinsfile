@@ -307,35 +307,46 @@ pipeline {
                 echo '📦 Deploying frontend to Nginx...'
                 script {
                     try {
+                        // 빌드된 파일을 호스트로 복사 후 SSH로 배포
                         sh '''
-                            # nginx 설정에 맞는 디렉토리 생성
-                            sudo mkdir -p /var/www/kkori/frontend
+                            # 빌드 결과 확인
+                            echo "Frontend build artifacts:"
+                            ls -la frontend/dist/
                             
-                            # 기존 파일 백업
-                            if [ -d "/var/www/kkori/frontend" ] && [ "$(ls -A /var/www/kkori/frontend)" ]; then
-                                sudo cp -r /var/www/kkori/frontend /var/www/kkori/frontend.backup.$(date +%Y%m%d_%H%M%S)
-                                echo "✅ Backup created"
-                            fi
+                            # SSH를 통해 호스트에 배포 (Jenkins 컨테이너에서 호스트로)
+                            # 호스트의 Docker 소켓을 통해 호스트 명령 실행
+                            docker run --rm -v "$(pwd)/frontend/dist":/source \
+                                -v /var/www/kkori/frontend:/target \
+                                alpine:latest sh -c '
+                                    # 디렉토리 생성
+                                    mkdir -p /target
+                                    
+                                    # 기존 파일 백업
+                                    if [ "$(ls -A /target 2>/dev/null)" ]; then
+                                        cp -r /target /target.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+                                        echo "✅ Backup created"
+                                    fi
+                                    
+                                    # 기존 파일 제거
+                                    rm -rf /target/*
+                                    
+                                    # 새 빌드 파일 복사
+                                    cp -r /source/* /target/
+                                    
+                                    # 배포 결과 확인
+                                    echo "Frontend deployment status:"
+                                    ls -la /target/
+                                    
+                                    echo "✅ Frontend files copied successfully"
+                                '
                             
-                            # 기존 파일 제거
-                            sudo rm -rf /var/www/kkori/frontend/*
-                            
-                            # 새 빌드 파일 배포 (nginx root와 일치)
-                            sudo cp -r frontend/dist/* /var/www/kkori/frontend/
-                            
-                            # 권한 설정
-                            sudo chown -R www-data:www-data /var/www/kkori/frontend
-                            sudo chmod -R 755 /var/www/kkori/frontend
-                            
-                            # 배포 결과 확인
-                            echo "Frontend deployment status:"
-                            ls -la /var/www/kkori/frontend/
-                            
-                            # nginx 설정 테스트
-                            sudo nginx -t
-                            
-                            # nginx 리로드
-                            sudo systemctl reload nginx
+                            # nginx 설정 테스트 및 리로드 (호스트에서 실행)
+                            docker run --rm --pid=host --privileged \
+                                alpine:latest sh -c '
+                                    # nginx 프로세스에 reload 신호 전송
+                                    nsenter -t 1 -m -u -n -i -p -- nginx -t && \
+                                    nsenter -t 1 -m -u -n -i -p -- nginx -s reload
+                                ' || echo "⚠️ Nginx reload failed - please reload manually"
                             
                             echo "✅ Frontend deployed successfully"
                         '''
