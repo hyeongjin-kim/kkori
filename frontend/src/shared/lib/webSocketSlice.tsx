@@ -33,10 +33,10 @@ interface WebSocketAction {
   sendMessage: (sender: string, content: string, timestamp: number) => void;
   roomExit: () => void;
   answerStart: () => void;
-  answerSubmit: (blob: Blob) => void;
+  answerSubmit: (base64data: string) => void;
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
-  customQuestionCreate: (blob: Blob) => void;
+  customQuestionCreate: (base64data: string) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -136,12 +136,12 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  answerSubmit: (blob: Blob) => {
+  answerSubmit: (base64data: string) => {
     get().client?.publish({
       destination: `/app/answer-submit`,
       body: JSON.stringify({
         roomId: get().roomID,
-        audioBase64: blob,
+        audioBase64: base64data,
       }),
     });
   },
@@ -162,12 +162,12 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  customQuestionCreate: (blob: Blob) => {
+  customQuestionCreate: (base64data: string) => {
     get().client?.publish({
       destination: `/app/custom-question-create`,
       body: JSON.stringify({
         roomId: get().roomID,
-        audioBase64: blob,
+        audioBase64: base64data,
       }),
     });
   },
