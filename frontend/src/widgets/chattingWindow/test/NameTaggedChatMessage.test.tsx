@@ -9,11 +9,10 @@ describe('NameTaggedMessage', () => {
     render(
       <NameTaggedMessage
         message={{
-          id: '1',
           type: CHAT_TYPES.question,
           sender: 'tester',
-          text: 'test',
-          timestamp: new Date().toISOString(),
+          content: 'test',
+          timestamp: new Date().getTime(),
           isMyMessage: false,
           confirmed: true,
         }}
@@ -30,7 +29,10 @@ describe('NameTaggedMessage', () => {
     render(
       <>
         {mockMessageExamples.map(example => (
-          <NameTaggedMessage key={example.id} message={example} />
+          <NameTaggedMessage
+            key={example.timestamp + example.sender}
+            message={example}
+          />
         ))}
       </>,
     );

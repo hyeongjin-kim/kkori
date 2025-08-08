@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
 import QuestionAnswerMessage from '@/widgets/chattingWindow/ui/QuestionAnswerMessage';
@@ -10,11 +9,10 @@ describe('QuestionAnswerMessage', () => {
       render(
         <QuestionAnswerMessage
           message={{
-            id: '1',
             type,
             sender: 'tester',
-            text: 'test',
-            timestamp: new Date().toISOString(),
+            content: 'test',
+            timestamp: new Date().getTime(),
             isMyMessage: false,
             confirmed: true,
           }}
@@ -33,7 +31,10 @@ describe('QuestionAnswerMessage', () => {
     render(
       <>
         {mockMessageExamples.map(example => (
-          <QuestionAnswerMessage key={example.id} message={example} />
+          <QuestionAnswerMessage
+            key={example.timestamp + example.sender}
+            message={example}
+          />
         ))}
       </>,
     );

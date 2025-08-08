@@ -20,7 +20,7 @@ out/
 
 # Gradle files
 .gradle/
-gradle/wrapper/gradle-wrapper.jar
+# gradle/wrapper/gradle-wrapper.jar  # Docker 빌드에 필요하므로 주석 처리
 
 # IDE files
 .idea/

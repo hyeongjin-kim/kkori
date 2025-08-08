@@ -6,9 +6,12 @@ WORKDIR /app
 
 # Gradle wrapper와 빌드 파일들 먼저 복사 (캐싱 최적화)
 COPY gradlew .
-COPY gradle gradle
+COPY gradle/ gradle/
 COPY build.gradle .
 COPY settings.gradle .
+
+# Gradle wrapper 파일 확인
+RUN ls -la gradle/wrapper/
 
 # gradlew 실행 권한 부여
 RUN chmod +x ./gradlew
@@ -26,7 +29,7 @@ RUN ./gradlew bootJar --no-daemon --stacktrace
 RUN ls -la build/libs/
 
 # ===== Runtime Stage =====
-FROM openjdk:21-jre-slim
+FROM openjdk:21-jdk-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app

@@ -4,7 +4,7 @@ import {
 } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { QUESTION_ANSWER_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 function QuestionAnswerMessage({ message }: { message: Message }) {
-  const { sender, text, type } = message;
+  const { sender, content, type } = message;
   const isQuestion = type === CHAT_TYPES.question;
 
   return (
@@ -21,7 +21,7 @@ function QuestionAnswerMessage({ message }: { message: Message }) {
             : QUESTION_ANSWER_MESSAGE_STYLE.answer
         }`}
       >
-        {text}
+        {content}
       </div>
     </div>
   );
