@@ -14,14 +14,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
-import com.kkori.dto.question.request.CreateQuestionRequest;
+import com.kkori.dto.question.request.CreateQuestionSetWithQuestionsRequest;
+import com.kkori.dto.question.request.CreateQuestionWithAnswerRequest;
 import com.kkori.dto.question.request.UpdateQuestionSetMetadataRequest;
 import com.kkori.dto.question.response.QuestionSetResponse;
 import com.kkori.dto.question.response.QuestionSetListResponse;
 import com.kkori.dto.question.response.QuestionSetDetailResponse;
 import com.kkori.dto.question.response.QuestionSummaryResponse;
 import com.kkori.dto.question.response.TagResponse;
+import com.kkori.dto.question.response.CreateQuestionSetResponse;
+import com.kkori.dto.question.response.QuestionMapResponse;
 import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.security.CustomUserDetails;
 import com.kkori.service.QuestionSetService;
@@ -54,7 +56,7 @@ class QuestionSetControllerTest {
     private static final Long MOCK_QUESTION_SET_ID = 1L;
 
     private static final String API_URL = "/api/questionsets";
-    private static final String SUCCESS_MESSAGE = "질문 세트와 첫 질문이 생성되었습니다";
+    private static final String SUCCESS_MESSAGE = "질문세트가 성공적으로 생성되었습니다.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -80,14 +82,24 @@ class QuestionSetControllerTest {
     @Test
     @DisplayName("새 질문 세트 생성 API 성공 테스트")
     void createQuestionSet_Success() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
+        CreateQuestionWithAnswerRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createQuestionSetWithInitialQuestions(
+        CreateQuestionSetResponse mockResponse = CreateQuestionSetResponse.builder()
+                .questionSetId(MOCK_QUESTION_SET_ID)
+                .title(TEST_TITLE)
+                .description(TEST_DESCRIPTION)
+                .versionNumber(1)
+                .isPublic(false)
+                .ownerNickname("테스트사용자")
+                .questionMaps(List.of())
+                .tags(List.of())
+                .build();
+
+        given(questionSetService.createQuestionSetWithQuestions(
                 anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willReturn(MOCK_QUESTION_SET_ID);
+                any(CreateQuestionSetWithQuestionsRequest.class)
+        )).willReturn(mockResponse);
 
         setAuthentication();
 
@@ -97,20 +109,14 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").value(MOCK_QUESTION_SET_ID))
+                .andExpect(jsonPath("$.data.questionSetId").value(MOCK_QUESTION_SET_ID))
                 .andExpect(jsonPath("$.message").value(SUCCESS_MESSAGE));
     }
 
     @Test
     @DisplayName("질문 리스트가 비어 있을 때 400 Bad Request")
     void createQuestionSet_Fail_EmptyQuestions() throws Exception {
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of());
-
-        given(questionSetService.createQuestionSetWithInitialQuestions(
-                anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willThrow(QuestionSetException.emptyQuestions());
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of());
 
         setAuthentication();
 
@@ -120,20 +126,16 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("질문 리스트는 필수입니다."));
+                .andExpect(jsonPath("$.message").value("입력 데이터 검증에 실패했습니다."))
+                .andExpect(jsonPath("$.data.errors[0].field").value("questions"))
+                .andExpect(jsonPath("$.data.errors[0].message").value("질문 리스트는 필수입니다."));
     }
 
     @Test
     @DisplayName("질문 세트 제목이 없을 때 400 Bad Request")
     void createQuestionSet_Fail_NoTitle() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest(null, of(question));
-
-        given(questionSetService.createQuestionSetWithInitialQuestions(
-                anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willThrow(QuestionSetException.noTitle());
+        CreateQuestionWithAnswerRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(null, of(question));
 
         setAuthentication();
 
@@ -143,20 +145,16 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("질문 세트 제목은 필수입니다."));
+                .andExpect(jsonPath("$.message").value("입력 데이터 검증에 실패했습니다."))
+                .andExpect(jsonPath("$.data.errors[0].field").value("title"))
+                .andExpect(jsonPath("$.data.errors[0].message").value("질문 세트 제목은 필수입니다."));
     }
 
     @Test
     @DisplayName("질문 세트 제목이 빈 문자열일 때 400 Bad Request")
     void createQuestionSet_Fail_BlankTitle() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest("", of(question));
-
-        given(questionSetService.createQuestionSetWithInitialQuestions(
-                anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willThrow(QuestionSetException.blankTitle());
+        CreateQuestionWithAnswerRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest("", of(question));
 
         setAuthentication();
 
@@ -166,20 +164,16 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("질문 세트 제목은 필수입니다."));
+                .andExpect(jsonPath("$.message").value("입력 데이터 검증에 실패했습니다."))
+                .andExpect(jsonPath("$.data.errors[0].field").value("title"))
+                .andExpect(jsonPath("$.data.errors[0].message").value("질문 세트 제목은 필수입니다."));
     }
 
     @Test
     @DisplayName("질문 내용이 없을 때 400 Bad Request")
     void createQuestionSet_Fail_NoQuestionContent() throws Exception {
-        CreateQuestionRequest question = buildQuestion(null, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
-
-        given(questionSetService.createQuestionSetWithInitialQuestions(
-                anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willThrow(QuestionSetException.noQuestionContent());
+        CreateQuestionWithAnswerRequest question = buildQuestion(null, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
         setAuthentication();
 
@@ -189,20 +183,19 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("질문 내용은 필수입니다."));
+                .andExpect(jsonPath("$.message").value("입력 데이터 검증에 실패했습니다."))
+                .andExpect(jsonPath("$.data.errors[0].field").value("questions[0].content"))
+                .andExpect(jsonPath("$.data.errors[0].message").value("질문 내용은 필수입니다."));
     }
 
     @Test
-    @DisplayName("질문 타입이 없을 때 400 Bad Request")
-    void createQuestionSet_Fail_NoQuestionType() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, null);
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
-
-        given(questionSetService.createQuestionSetWithInitialQuestions(
-                anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
-        )).willThrow(QuestionSetException.noQuestionType());
+    @DisplayName("예상 답변이 없을 때 400 Bad Request")
+    void createQuestionSet_Fail_NoExpectedAnswer() throws Exception {
+        CreateQuestionWithAnswerRequest question = CreateQuestionWithAnswerRequest.builder()
+                .content(TEST_QUESTION_CONTENT)
+                .expectedAnswer(null) // 예상 답변 누락
+                .build();
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
         setAuthentication();
 
@@ -212,19 +205,20 @@ class QuestionSetControllerTest {
                         .with(csrf())
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("질문 타입은 필수입니다."));
+                .andExpect(jsonPath("$.message").value("입력 데이터 검증에 실패했습니다."))
+                .andExpect(jsonPath("$.data.errors[0].field").value("questions[0].expectedAnswer"))
+                .andExpect(jsonPath("$.data.errors[0].message").value("예상 답변은 필수입니다."));
     }
 
     @Test
     @DisplayName("서비스 예외 발생 시 500 Internal Server Error")
     void createQuestionSet_Fail_ServiceException() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
+        CreateQuestionWithAnswerRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
-        given(questionSetService.createQuestionSetWithInitialQuestions(
+        given(questionSetService.createQuestionSetWithQuestions(
                 anyLong(),
-                any(CreateNewQuestionSetRequest.class),
-                anyString()
+                any(CreateQuestionSetWithQuestionsRequest.class)
         )).willThrow(QuestionSetException.internalError());
 
         setAuthentication();
@@ -241,8 +235,8 @@ class QuestionSetControllerTest {
     @Test
     @DisplayName("로그인 사용자 정보가 없을 때 401 Unauthorized")
     void createQuestionSet_Fail_NoLoginUser() throws Exception {
-        CreateQuestionRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
-        CreateNewQuestionSetRequest requestDto = buildRequest(TEST_TITLE, of(question));
+        CreateQuestionWithAnswerRequest question = buildQuestion(TEST_QUESTION_CONTENT, TEST_QUESTION_TYPE);
+        CreateQuestionSetWithQuestionsRequest requestDto = buildRequest(TEST_TITLE, of(question));
 
         // 로그인 없이 요청
         mockMvc.perform(post(API_URL)
@@ -252,15 +246,15 @@ class QuestionSetControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    private CreateQuestionRequest buildQuestion(String content, Integer questionType) {
-        return CreateQuestionRequest.builder()
+    private CreateQuestionWithAnswerRequest buildQuestion(String content, Integer questionType) {
+        return CreateQuestionWithAnswerRequest.builder()
                 .content(content)
                 .expectedAnswer(TEST_EXPECTED_ANSWER)
                 .build();
     }
 
-    private CreateNewQuestionSetRequest buildRequest(String title, List<CreateQuestionRequest> questions) {
-        return CreateNewQuestionSetRequest.builder()
+    private CreateQuestionSetWithQuestionsRequest buildRequest(String title, List<CreateQuestionWithAnswerRequest> questions) {
+        return CreateQuestionSetWithQuestionsRequest.builder()
                 .title(title)
                 .description(TEST_DESCRIPTION)
                 .questions(questions)
