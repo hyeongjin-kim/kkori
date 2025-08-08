@@ -26,7 +26,7 @@ RUN ./gradlew bootJar --no-daemon --stacktrace
 RUN ls -la build/libs/
 
 # ===== Runtime Stage =====
-FROM openjdk:21-jre-slim
+FROM openjdk:21-jdk-slim
 
 # 작업 디렉토리 설정
 WORKDIR /app
