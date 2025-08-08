@@ -27,6 +27,8 @@ import com.kkori.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -380,16 +382,21 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * Base64 디코딩된 오디오 데이터로 임시 WebM 파일 생성
      */
     private String createTempAudioFile(byte[] audioData) {
-        String tempFilePath = System.getProperty("java.io.tmpdir") +
-                "audio_" + System.currentTimeMillis() + ".webm";
-
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath)) {
-            fos.write(audioData);
+        // Jenkins 환경 호환을 위해 Files.createTempFile 사용
+        // String tempFilePath = System.getProperty("java.io.tmpdir") +
+        //         "audio_" + System.currentTimeMillis() + ".webm";
+        
+        try {
+            Path tempFilePath = Files.createTempFile("audio_" + System.currentTimeMillis(), ".webm");
+            
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath.toFile())) {
+                fos.write(audioData);
+            }
+            
+            return tempFilePath.toString();
         } catch (java.io.IOException e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
-
-        return tempFilePath;
     }
 
     /**
