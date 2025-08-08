@@ -16,6 +16,7 @@ interface WebSocketState {
   roomID: string | null;
   practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE];
   questionSetId: number;
+  opponentNickname: string;
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
 
@@ -26,15 +27,16 @@ interface WebSocketAction {
   ) => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
-  interviewStart: (roomID: string) => void;
-  interviewEnd: (roomID: string) => void;
-  roomJoin: (roomID: string) => void;
-  roomExit: (roomID: string) => void;
-  answerStart: (roomID: string, questionID: string) => void;
-  answerSubmit: (roomID: string, questionID: string) => void;
-  nextQuestionSelect: (roomID: string) => void;
-  customQuestionStart: (roomID: string) => void;
-  customQuestionCreate: (roomID: string, questionText: string) => void;
+  interviewStart: () => void;
+  interviewEnd: () => void;
+  roomJoin: () => void;
+  sendMessage: (sender: string, content: string, timestamp: number) => void;
+  roomExit: () => void;
+  answerStart: () => void;
+  answerSubmit: () => void;
+  nextQuestionSelect: () => void;
+  customQuestionStart: () => void;
+  customQuestionCreate: () => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -45,6 +47,7 @@ const initialState: WebSocketState = {
   roomID: null,
   practiceMode: PRACTICE_MODE.SOLO_PRACTICE,
   questionSetId: 0,
+  opponentNickname: '',
 };
 
 export const createWebSocketSlice: StateCreator<
@@ -92,73 +95,78 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify(request),
     });
   },
-  interviewStart: (roomID: string) => {
+  interviewStart: () => {
     get().client?.publish({
       destination: `/app/interview-start`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  interviewEnd: (roomID: string) => {
+  interviewEnd: () => {
     get().client?.publish({
       destination: `/app/interview-end`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  roomJoin: (roomID: string) => {
+  roomJoin: () => {
     get().client?.publish({
       destination: `/app/room-join`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  roomExit: (roomID: string) => {
+  roomExit: () => {
     get().client?.publish({
       destination: `/app/room-exit`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  sendMessage: (roomID: string, sender: string, text: string) => {
+  sendMessage: (sender: string, content: string, timestamp: number) => {
     get().client?.publish({
       destination: `/app/chat`,
-      body: JSON.stringify({ roomId: roomID, sender: sender, text: text }),
+      body: JSON.stringify({
+        roomId: get().roomID,
+        senderNickname: sender,
+        content: content,
+        timestamp: timestamp,
+      }),
     });
   },
-  answerStart: (roomID: string) => {
+  answerStart: () => {
     get().client?.publish({
       destination: `/app/answer-start`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  answerSubmit: (roomID: string) => {
+  answerSubmit: () => {
     get().client?.publish({
       destination: `/app/answer-submit`,
       body: JSON.stringify({
-        roomId: roomID,
+        roomId: get().roomID,
         //TODO: 오디오 파일 같이 전달해야함
       }),
     });
   },
-  nextQuestionSelect: (roomID: string) => {
+  nextQuestionSelect: () => {
     get().client?.publish({
       destination: `/app/next-question-select`,
       body: JSON.stringify({
-        roomId: roomID,
+        roomId: get().roomID,
         questionType: 'DEFAULT',
         questionId: '1',
         questionText: 'test',
       }),
     });
   },
-  customQuestionStart: (roomID: string) => {
+  customQuestionStart: () => {
     get().client?.publish({
       destination: `/app/custom-question-start`,
-      body: JSON.stringify({ roomId: roomID }),
+      body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  customQuestionCreate: (roomID: string) => {
+  customQuestionCreate: () => {
     get().client?.publish({
       destination: `/app/custom-question-create`,
       body: JSON.stringify({
-        roomId: roomID,
+        roomId: get().roomID,
         //TODO: 커스텀 질문 오디오 파일 전달해야 함
       }),
     });
@@ -212,6 +220,7 @@ const roomCreatedHandler = (
 };
 
 const existingUserHandler = async (client: Client, set: any, response: any) => {
+  set({ opponentNickname: response.nickname });
   const peerConnection = new RTCPeerConnection();
   const myStream = useMediaStreamStore.getState().myStream;
   if (myStream) {
@@ -230,20 +239,29 @@ const existingUserHandler = async (client: Client, set: any, response: any) => {
   });
 };
 
-const joinedUserHandler = (client: Client, set: any, response: any) => {};
+const joinedUserHandler = (client: Client, set: any, response: any) => {
+  set({ opponentNickname: response.nickname });
+};
 
 const roomStatusHandler = (client: Client, set: any, response: any) => {
-  console.log(response);
+  console.log(response.data);
 };
 
 const offerHandler = async (client: Client, set: any, response: any) => {
-  const peerConnection = new RTCPeerConnection();
+  const peerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: '',
+        credential: '',
+        username: '',
+      },
+    ],
+  });
   const myStream = useMediaStreamStore.getState().myStream;
-  if (myStream) {
-    myStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, myStream);
-    });
-  }
+  if (!myStream) return;
+  myStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, myStream);
+  });
   peerConnection.setRemoteDescription(response.offer);
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
@@ -257,7 +275,9 @@ const offerHandler = async (client: Client, set: any, response: any) => {
 };
 
 const answerHandler = (client: Client, set: any, response: any) => {
-  console.log(response);
+  const peerConnection = new RTCPeerConnection();
+  peerConnection.setRemoteDescription(response.answer);
+  useMediaStreamStore.getState().setPeerStream(response.answer.stream);
 };
 
 const errorHandler = (client: Client, set: any, response: any) => {
