@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kkori.component.interview.InterviewRoom;
 import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.RoomCreateRequest;
 import com.kkori.dto.interview.response.RoomCreateResponse;
@@ -124,11 +125,11 @@ public class WebSocketChatControllerTest {
     @DisplayName("소속된 방에 채팅을 보내면 자신과 상대방이 동일한 내용을 받는다")
     void sendChat() throws Exception {
         // given
-        given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_2))
+        given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_1))
                 .willReturn(TEST_ROOM_ID_1);
         doNothing().when(interviewSessionService).canSendChatMessage(any(), any());
 
-        String roomId = createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW", 1l);
+        String roomId = createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW", 1l);
 
         CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
         stompSession_user2.send("/app/room-join", roomJoinRequest);
@@ -162,8 +163,15 @@ public class WebSocketChatControllerTest {
                 .willReturn(TEST_ROOM_ID_1);
         given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_2))
                 .willReturn(TEST_ROOM_ID_2);
+
+        InterviewRoom mockRoom1 = InterviewRoom.createPairRoom(TEST_ROOM_ID_1, 1L, TEST_USER_ID_1);
+        InterviewRoom mockRoom2 = InterviewRoom.createPairRoom(TEST_ROOM_ID_2, 1L, TEST_USER_ID_2);
+        given(interviewSessionService.getRoom(TEST_ROOM_ID_1)).willReturn(mockRoom1);
+        given(interviewSessionService.getRoom(TEST_ROOM_ID_2)).willReturn(mockRoom2);
+
         doThrow(InterviewRoomException.userNotFoundInRoom()).when(interviewSessionService)
                 .canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_1));
+        doNothing().when(interviewSessionService).canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_2));
 
         String roomId_1 = createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW", 1l);
         String roomId_2 = createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW", 1l);
