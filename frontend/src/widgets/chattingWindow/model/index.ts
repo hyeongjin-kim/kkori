@@ -17,4 +17,5 @@ export const submitChatting = (e: FormEvent<HTMLFormElement>) => {
     isMyMessage: true,
     confirmed: false,
   });
+  usePracticeSessionStore.getState().sendMessage('me', text, timestamp);
 };

@@ -37,9 +37,6 @@ export const createChattingWindowSlice: StateCreator<
   ...initialState,
   addMessage: (message: Message) => {
     set(state => ({ messages: [...state.messages, message] }));
-    usePracticeSessionStore
-      .getState()
-      .sendMessage(message.sender, message.content, message.timestamp);
   },
   confirmMessage: (myMessage: Message) =>
     set(state => ({
