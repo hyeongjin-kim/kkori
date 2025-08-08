@@ -318,26 +318,37 @@ pipeline {
                             docker run --rm -v "$(pwd)/frontend/dist":/source \
                                 -v /var/www/kkori/frontend:/target \
                                 alpine:latest sh -c '
+                                    echo "=== Debugging Info ==="
+                                    echo "Source directory contents:"
+                                    ls -la /source/ || echo "Source not accessible"
+                                    
+                                    echo "Target directory contents:"
+                                    ls -la /target/ || echo "Target not accessible"
+                                    
                                     # 디렉토리 생성
                                     mkdir -p /target
                                     
-                                    # 기존 파일 백업
-                                    if [ "$(ls -A /target 2>/dev/null)" ]; then
+                                    # 기존 파일 백업 (선택적)
+                                    if [ -d "/target" ] && [ "$(ls -A /target 2>/dev/null)" ]; then
                                         cp -r /target /target.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
                                         echo "✅ Backup created"
                                     fi
                                     
                                     # 기존 파일 제거
-                                    rm -rf /target/*
+                                    rm -rf /target/* 2>/dev/null || true
                                     
-                                    # 새 빌드 파일 복사
-                                    cp -r /source/* /target/
+                                    # 파일 복사 (개선된 방식)
+                                    if [ -d "/source" ] && [ "$(ls -A /source 2>/dev/null)" ]; then
+                                        cp -r /source/. /target/
+                                        echo "✅ Files copied successfully"
+                                    else
+                                        echo "❌ Source directory is empty or not accessible"
+                                        exit 1
+                                    fi
                                     
                                     # 배포 결과 확인
                                     echo "Frontend deployment status:"
                                     ls -la /target/
-                                    
-                                    echo "✅ Frontend files copied successfully"
                                 '
                             
                             # nginx 설정 테스트 및 리로드 (호스트에서 실행)
