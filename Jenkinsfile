@@ -315,40 +315,42 @@ pipeline {
                             
                             # SSH를 통해 호스트에 배포 (Jenkins 컨테이너에서 호스트로)
                             # 호스트의 Docker 소켓을 통해 호스트 명령 실행
-                            docker run --rm -v "$(pwd)/frontend/dist":/source \
+                            # Jenkins 컨테이너의 볼륨을 직접 사용
+                            docker run --rm \
+                                --volumes-from jenkins \
                                 -v /var/www/kkori/frontend:/target \
                                 alpine:latest sh -c '
                                     echo "=== Debugging Info ==="
-                                    echo "Source directory contents:"
-                                    ls -la /source/ || echo "Source not accessible"
+                                    echo "Finding frontend dist directory..."
+                                    find /var/jenkins_home -name "dist" -type d | head -5
                                     
-                                    echo "Target directory contents:"
-                                    ls -la /target/ || echo "Target not accessible"
+                                    # Jenkins 워크스페이스에서 dist 디렉토리 찾기
+                                    DIST_PATH=$(find /var/jenkins_home/workspace -name "dist" -path "*/frontend/dist" | head -1)
+                                    echo "Found dist path: $DIST_PATH"
                                     
-                                    # 디렉토리 생성
-                                    mkdir -p /target
-                                    
-                                    # 기존 파일 백업 (선택적)
-                                    if [ -d "/target" ] && [ "$(ls -A /target 2>/dev/null)" ]; then
-                                        cp -r /target /target.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
-                                        echo "✅ Backup created"
-                                    fi
-                                    
-                                    # 기존 파일 제거
-                                    rm -rf /target/* 2>/dev/null || true
-                                    
-                                    # 파일 복사 (개선된 방식)
-                                    if [ -d "/source" ] && [ "$(ls -A /source 2>/dev/null)" ]; then
-                                        cp -r /source/. /target/
+                                    if [ -n "$DIST_PATH" ] && [ -d "$DIST_PATH" ]; then
+                                        echo "Source directory contents:"
+                                        ls -la "$DIST_PATH/"
+                                        
+                                        # 디렉토리 생성
+                                        mkdir -p /target
+                                        
+                                        # 기존 파일 제거
+                                        rm -rf /target/* 2>/dev/null || true
+                                        
+                                        # 파일 복사
+                                        cp -r "$DIST_PATH"/. /target/
                                         echo "✅ Files copied successfully"
+                                        
+                                        # 배포 결과 확인
+                                        echo "Frontend deployment status:"
+                                        ls -la /target/
                                     else
-                                        echo "❌ Source directory is empty or not accessible"
+                                        echo "❌ Could not find frontend dist directory"
+                                        echo "Available workspaces:"
+                                        ls -la /var/jenkins_home/workspace/ || echo "No workspace found"
                                         exit 1
                                     fi
-                                    
-                                    # 배포 결과 확인
-                                    echo "Frontend deployment status:"
-                                    ls -la /target/
                                 '
                             
                             # nginx 설정 테스트 및 리로드 (호스트에서 실행)
