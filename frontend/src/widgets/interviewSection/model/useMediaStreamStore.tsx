@@ -10,6 +10,7 @@ interface MediaStreamState {
   mainStreamType: MediaStreamType;
   subStreamType: MediaStreamType;
   myRecorder: MediaRecorder | null;
+  data: BlobPart[] | null;
 }
 
 interface MediaStreamActions {
@@ -23,6 +24,7 @@ interface MediaStreamActions {
   reset: () => void;
   setMainStreamType: (mainStreamType: MediaStreamType) => void;
   setSubStreamType: (subStreamType: MediaStreamType) => void;
+  setData: (data: BlobPart[]) => void;
 }
 
 const initialState: MediaStreamState = {
@@ -35,6 +37,7 @@ const initialState: MediaStreamState = {
   mainStreamType: 'my',
   subStreamType: 'peer',
   myRecorder: null,
+  data: [],
 };
 
 const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
@@ -50,6 +53,7 @@ const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
     reset: () => set(initialState),
     setMainStreamType: mainStreamType => set({ mainStreamType }),
     setSubStreamType: subStreamType => set({ subStreamType }),
+    setData: data => set({ data }),
   }),
 );
 

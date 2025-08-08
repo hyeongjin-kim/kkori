@@ -9,7 +9,6 @@ import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 const switchStatus = (
   status: (typeof interviewStatus)[keyof typeof interviewStatus],
 ) => {
-  console.log(status);
   if (status === interviewStatus.BEFORE_INTERVIEW) {
     return preInterviewControlButtonProps;
   }
