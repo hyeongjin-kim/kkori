@@ -8,7 +8,7 @@ describe('QuestionSetForm', () => {
       screen.getByRole('region', { name: 'question-set-form' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: '질문 세트 생성' }),
+      screen.getByRole('heading', { name: '질문 세트 설정' }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText('title-input')).toBeInTheDocument();
     expect(screen.getByLabelText('description-input')).toBeInTheDocument();

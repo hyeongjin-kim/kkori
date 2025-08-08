@@ -44,7 +44,7 @@ function QuestionSetForm() {
   return (
     <section
       aria-label="question-set-form"
-      className="w-2/3 rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+      className="w-2/3 min-w-[500px] rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
     >
       <h3 className="mb-6 text-xl font-bold text-gray-900">질문 세트 설정</h3>
       <form className="flex flex-col gap-6">

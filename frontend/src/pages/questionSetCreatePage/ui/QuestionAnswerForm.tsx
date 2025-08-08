@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import LabeledTextField from '@/shared/ui/LabeledTextField';
+import LabeledTextAreaField from '@/shared/ui/LabeledTextAreaField';
 
 interface QuestionAnswer {
   question: string;
@@ -35,20 +35,20 @@ function QuestionAnswerForm() {
   return (
     <section
       aria-label="question-answer-form"
-      className="w-2/3 rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+      className="w-2/3 min-w-[500px] rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
     >
       <h3 className="mb-6 text-xl font-bold text-gray-900">질문 답변 생성</h3>
       {questionAnswerList.map((qa, index) => (
         <div
           key={index}
-          className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 p-6 shadow-inner"
+          className="mb-6 rounded-2xl border border-gray-100 p-6"
         >
-          <h4 className="mb-4 text-sm font-medium text-gray-500">
-            질문 {index + 1}
+          <h4 className="mb-4 text-sm font-medium text-gray-900">
+            {index + 1}번째 질문 / 답변
           </h4>
 
           <div className="space-y-4">
-            <LabeledTextField
+            <LabeledTextAreaField
               displayTitle="질문"
               label="질문"
               placeholder="질문을 입력하세요"
@@ -56,7 +56,7 @@ function QuestionAnswerForm() {
               onChange={e => handleQuestionChange(index, e.target.value)}
             />
 
-            <LabeledTextField
+            <LabeledTextAreaField
               displayTitle="답변"
               label="답변"
               placeholder="답변을 입력하세요"
@@ -70,9 +70,17 @@ function QuestionAnswerForm() {
       <button
         type="button"
         onClick={addNewQuestionAnswer}
-        className="rounded-md bg-blue-500 px-4 py-2 text-white"
+        className="ml-auto block items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.99]"
       >
+        <span aria-hidden>➕</span>
         질문 추가하기
+      </button>
+
+      <button
+        type="button"
+        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
+      >
+        질문 세트 생성하기
       </button>
     </section>
   );
