@@ -5,23 +5,37 @@ import { useState } from 'react';
 import TagListInput from '@/entities/questionSet/ui/TagListInput';
 import TagDisplay from '@/entities/questionSet/ui/TagDisplay';
 
-function QuestionSetForm() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [isShared, setIsShared] = useState(false);
+interface QuestionSetFormProps {
+  title: string;
+  description: string;
+  isShared: boolean;
+  tagList: Set<string>;
+  onChange: {
+    title: (title: string) => void;
+    description: (description: string) => void;
+    isShared: (isShared: boolean) => void;
+    tagList: (tagList: Set<string>) => void;
+  };
+}
+
+function QuestionSetForm({
+  title,
+  description,
+  isShared,
+  tagList,
+  onChange,
+}: QuestionSetFormProps) {
   const [tagInput, setTagInput] = useState('');
-  const [tagList, setTagList] = useState<Set<string>>(new Set());
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
+    onChange.title(e.target.value);
   };
-
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDescription(e.target.value);
+    onChange.description(e.target.value);
   };
 
   const handleIsSharedChange = (value: boolean) => {
-    setIsShared(value);
+    onChange.isShared(value);
   };
 
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,16 +43,12 @@ function QuestionSetForm() {
   };
 
   const handleTagSubmit = () => {
-    setTagList(prev => new Set([...prev, tagInput]));
+    onChange.tagList(new Set([...tagList, tagInput]));
     setTagInput('');
   };
 
   const handleTagClick = (tag: string) => {
-    setTagList(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(tag);
-      return newSet;
-    });
+    onChange.tagList(new Set([...tagList].filter(t => t !== tag)));
   };
 
   return (

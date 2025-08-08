@@ -6,16 +6,24 @@ interface QuestionAnswer {
   answer: string;
 }
 
-const initialQuestionAnswer: QuestionAnswer = {
-  question: '',
-  answer: '',
+const createInitialQuestionAnswer = (): QuestionAnswer => {
+  return {
+    question: '',
+    answer: '',
+  };
 };
 
-function QuestionAnswerForm() {
-  const [questionAnswerList, setQuestionAnswerList] = useState<
-    QuestionAnswer[]
-  >([initialQuestionAnswer]);
+interface QuestionAnswerFormProps {
+  questionAnswerList: QuestionAnswer[];
+  setQuestionAnswerList: (questionAnswerList: QuestionAnswer[]) => void;
+  onSubmit: () => void;
+}
 
+function QuestionAnswerForm({
+  questionAnswerList,
+  setQuestionAnswerList,
+  onSubmit,
+}: QuestionAnswerFormProps) {
   const handleQuestionChange = (index: number, value: string) => {
     const newList = [...questionAnswerList];
     newList[index].question = value;
@@ -29,7 +37,10 @@ function QuestionAnswerForm() {
   };
 
   const addNewQuestionAnswer = () => {
-    setQuestionAnswerList(prev => [...prev, { question: '', answer: '' }]);
+    setQuestionAnswerList([
+      ...questionAnswerList,
+      createInitialQuestionAnswer(),
+    ]);
   };
 
   return (
@@ -50,7 +61,7 @@ function QuestionAnswerForm() {
           <div className="space-y-4">
             <LabeledTextAreaField
               displayTitle="질문"
-              label="질문"
+              label="question-input"
               placeholder="질문을 입력하세요"
               value={qa.question}
               onChange={e => handleQuestionChange(index, e.target.value)}
@@ -58,7 +69,7 @@ function QuestionAnswerForm() {
 
             <LabeledTextAreaField
               displayTitle="답변"
-              label="답변"
+              label="answer-input"
               placeholder="답변을 입력하세요"
               value={qa.answer}
               onChange={e => handleAnswerChange(index, e.target.value)}
@@ -66,19 +77,20 @@ function QuestionAnswerForm() {
           </div>
         </div>
       ))}
-
       <button
         type="button"
+        aria-label="add-question-button"
         onClick={addNewQuestionAnswer}
         className="ml-auto block items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.99]"
       >
-        <span aria-hidden>➕</span>
-        질문 추가하기
+        <span aria-hidden>➕ 질문 추가하기</span>
       </button>
 
       <button
         type="button"
-        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
+        aria-label="submit-button"
+        className="m-auto mt-8 block rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
+        onClick={onSubmit}
       >
         질문 세트 생성하기
       </button>

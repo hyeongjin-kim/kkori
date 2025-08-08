@@ -2,8 +2,26 @@ import { render, screen } from '@testing-library/react';
 import QuestionSetForm from '@/pages/questionSetCreatePage/ui/QuestionSetForm';
 
 describe('QuestionSetForm', () => {
+  const title = 'test';
+  const description = 'test';
+  const isShared = false;
+  const tagList = new Set(['test']);
+
   test('QuestionSetForm이 렌더링 된다.', () => {
-    render(<QuestionSetForm />);
+    render(
+      <QuestionSetForm
+        title={title}
+        description={description}
+        isShared={isShared}
+        tagList={tagList}
+        onChange={{
+          title: () => {},
+          description: () => {},
+          isShared: () => {},
+          tagList: () => {},
+        }}
+      />,
+    );
     expect(
       screen.getByRole('region', { name: 'question-set-form' }),
     ).toBeInTheDocument();
