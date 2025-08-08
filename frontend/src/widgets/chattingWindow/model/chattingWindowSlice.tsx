@@ -1,4 +1,5 @@
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { StateCreator } from 'zustand';
 import { Message } from '@/widgets/chattingWindow/model/chattingWindowType';
 
@@ -34,8 +35,12 @@ export const createChattingWindowSlice: StateCreator<
   ChattingWindowSlice
 > = set => ({
   ...initialState,
-  addMessage: message =>
-    set(state => ({ messages: [...state.messages, message] })),
+  addMessage: (message: Message) => {
+    set(state => ({ messages: [...state.messages, message] }));
+    usePracticeSessionStore
+      .getState()
+      .sendMessage(message.sender, message.content, message.timestamp);
+  },
   confirmMessage: (myMessage: Message) =>
     set(state => ({
       messages: state.messages.map(message =>
