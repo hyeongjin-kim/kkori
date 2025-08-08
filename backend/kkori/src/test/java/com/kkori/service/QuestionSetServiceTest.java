@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.kkori.entity.QuestionType.DEFAULT;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -162,7 +163,7 @@ class QuestionSetServiceTest {
 
         // Then
         assertThat(response.getId()).isEqualTo(questionSetId);
-        assertThat(response.getIsShared()).isTrue();
+        assertThat(response.getIsPublic()).isTrue();
         
         verify(questionSetRepository).findByIdWithQuestionsAndTags(questionSetId);
     }
@@ -262,7 +263,7 @@ class QuestionSetServiceTest {
         // Then
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getTitle()).isEqualTo("공유 질문세트");
-        assertThat(responses.get(0).getIsShared()).isTrue();
+        assertThat(responses.get(0).getIsPublic()).isTrue();
         
         verify(userRepository).findById(userId);
         verify(questionSetRepository).findSharedQuestionSets(userId, pageable);
@@ -283,7 +284,7 @@ class QuestionSetServiceTest {
                 .title(title)
                 .description(description)
                 .versionNumber(1)
-                .isShared(false)
+                .isPublic(false)
                 .build();
         try {
             Field idField = QuestionSet.class.getDeclaredField("id");
@@ -296,17 +297,16 @@ class QuestionSetServiceTest {
     }
 
     private Question createQuestion(Long id, String content) {
-        return Question.builder()
+        return Question.defaultBuilder()
                 .content(content)
-                .questionType(QuestionType.DEFAULT)
-                .expectedAnswer("예상 답변")
+                .expectedAnswer("테스트 예상 답변")
                 .build();
     }
 
     private CreateNewQuestionSetRequest createQuestionSetRequest(String title, String description) {
         CreateQuestionRequest questionRequest = CreateQuestionRequest.builder()
                 .content("자바의 특징을 설명해주세요.")
-                .questionType(QuestionType.DEFAULT.getCode())
+                .questionType(DEFAULT.getCode())
                 .expectedAnswer("플랫폼 독립적, 객체지향적")
                 .build();
         

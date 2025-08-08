@@ -9,13 +9,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
 import com.kkori.dto.question.request.CreateQuestionRequest;
+import com.kkori.dto.question.request.UpdateQuestionSetMetadataRequest;
 import com.kkori.dto.question.response.QuestionSetResponse;
+import com.kkori.dto.question.response.QuestionSetListResponse;
+import com.kkori.dto.question.response.QuestionSetDetailResponse;
 import com.kkori.dto.question.response.QuestionSummaryResponse;
 import com.kkori.dto.question.response.TagResponse;
 import com.kkori.exception.questionset.QuestionSetException;
@@ -33,6 +37,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @WebMvcTest(QuestionSetController.class)
 class QuestionSetControllerTest {
@@ -330,39 +337,30 @@ class QuestionSetControllerTest {
     }
 
     @Test
-    @DisplayName("공유 질문세트 목록 조회 성공")
-    void getSharedQuestionSets_Success() throws Exception {
+    @DisplayName("공개 질문세트 목록 조회 성공")
+    void getPublicQuestionSets_Success() throws Exception {
         // Given
-        QuestionSetResponse sharedResponse = createQuestionSetResponse(100L, "공유된 질문세트", "다른사용자");
-        sharedResponse = QuestionSetResponse.builder()
-                .id(sharedResponse.getId())
-                .title(sharedResponse.getTitle())
-                .description(sharedResponse.getDescription())
-                .versionNumber(sharedResponse.getVersionNumber())
-                .isShared(true) // 공유됨으로 설정
-                .ownerNickname("다른사용자")
-                .questions(sharedResponse.getQuestions())
-                .tags(sharedResponse.getTags())
-                .createdAt(sharedResponse.getCreatedAt())
-                .build();
-
-        given(questionSetService.getSharedQuestionSets(TEST_USER_ID, 0, 10))
-                .willReturn(Arrays.asList(sharedResponse));
+        Page<QuestionSetListResponse> publicResponsePage = createMockPage(Arrays.asList(
+                createQuestionSetListResponse(100L, "공개된 질문세트", "다른사용자", true)
+        ));
+        
+        given(questionSetService.getSharedQuestionSetsNew(TEST_USER_ID, 0, 10))
+                .willReturn(publicResponsePage);
 
         setAuthentication();
 
         // When & Then
-        mockMvc.perform(get(API_URL + "/shared")
+        mockMvc.perform(get(API_URL + "/public")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data[0].title").value("공유된 질문세트"))
-                .andExpect(jsonPath("$.data[0].isShared").value(true))
-                .andExpect(jsonPath("$.data[0].ownerNickname").value("다른사용자"));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].title").value("공개된 질문세트"))
+                .andExpect(jsonPath("$.data.content[0].isPublic").value(true))
+                .andExpect(jsonPath("$.data.content[0].ownerNickname").value("다른사용자"));
 
-        verify(questionSetService).getSharedQuestionSets(TEST_USER_ID, 0, 10);
+        verify(questionSetService).getSharedQuestionSetsNew(TEST_USER_ID, 0, 10);
     }
 
     @Test
@@ -407,7 +405,7 @@ class QuestionSetControllerTest {
                 .title(title)
                 .description(TEST_DESCRIPTION)
                 .versionNumber(1)
-                .isShared(false)
+                .isPublic(false)
                 .ownerNickname(ownerNickname)
                 .questions(Arrays.asList(question))
                 .tags(Arrays.asList(tag))
@@ -421,12 +419,192 @@ class QuestionSetControllerTest {
                 .title(title)
                 .description(TEST_DESCRIPTION)
                 .versionNumber(versionNumber)
-                .isShared(false)
+                .isPublic(false)
                 .ownerNickname("테스트사용자")
                 .questions(Arrays.asList())
                 .tags(Arrays.asList())
                 .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    @Test
+    @DisplayName("공개 질문세트만 필터링 조회 성공")
+    void getQuestionSetList_FilterByPublic_Success() throws Exception {
+        // Given
+        QuestionSetListResponse publicResponse = createQuestionSetListResponse(100L, "공개된 질문세트", "다른사용자", true);
+        Page<QuestionSetListResponse> responsePage = createMockPage(Arrays.asList(publicResponse));
+
+        given(questionSetService.getQuestionSetList(eq(TEST_USER_ID), eq(0), eq(10), 
+                anyString(), any(), eq(true), any()))
+                .willReturn(responsePage);
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("isPublic", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].isPublic").value(true));
+
+        verify(questionSetService).getQuestionSetList(eq(TEST_USER_ID), eq(0), eq(10), 
+                anyString(), any(), eq(true), any());
+    }
+
+    @Test
+    @DisplayName("비공개 질문세트만 필터링 조회 성공")
+    void getQuestionSetList_FilterByPrivate_Success() throws Exception {
+        // Given
+        QuestionSetListResponse privateResponse = createQuestionSetListResponse(100L, "비공개 질문세트", "테스트사용자", false);
+        Page<QuestionSetListResponse> responsePage = createMockPage(Arrays.asList(privateResponse));
+
+        given(questionSetService.getQuestionSetList(eq(TEST_USER_ID), eq(0), eq(10), 
+                anyString(), any(), eq(false), any()))
+                .willReturn(responsePage);
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL)
+                        .param("page", "0")
+                        .param("size", "10")
+                        .param("isPublic", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content[0].isPublic").value(false));
+
+        verify(questionSetService).getQuestionSetList(eq(TEST_USER_ID), eq(0), eq(10), 
+                anyString(), any(), eq(false), any());
+    }
+
+    @Test
+    @DisplayName("질문세트 공개 상태 변경 테스트")
+    void updateQuestionSetMetadata_ChangePublicStatus() throws Exception {
+        // Given
+        Long questionSetId = 1L;
+        UpdateQuestionSetMetadataRequest request = UpdateQuestionSetMetadataRequest.builder()
+                .title("업데이트된 제목")
+                .description("업데이트된 설명")
+                .isPublic(true)
+                .build();
+
+        QuestionSetDetailResponse response = createQuestionSetDetailResponse(questionSetId, "업데이트된 제목", true);
+
+        given(questionSetService.updateQuestionSetMetadata(eq(TEST_USER_ID), eq(questionSetId), any(UpdateQuestionSetMetadataRequest.class)))
+                .willReturn(response);
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(put(API_URL + "/" + questionSetId + "/metadata")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.isPublic").value(true))
+                .andExpect(jsonPath("$.message").value("질문세트 메타데이터가 업데이트되었습니다."));
+
+        verify(questionSetService).updateQuestionSetMetadata(eq(TEST_USER_ID), eq(questionSetId), any(UpdateQuestionSetMetadataRequest.class));
+    }
+
+    @Test
+    @DisplayName("공개되지 않은 다른 사용자의 비공개 질문세트에는 접근 불가")
+    void getQuestionSetDetail_AccessOthersPrivateSet_Forbidden() throws Exception {
+        // Given
+        Long privateQuestionSetId = 999L;
+        
+//        given(questionSetService.getQuestionSetDetailNew(TEST_USER_ID, privateQuestionSetId))
+//                .willThrow(QuestionSetException.accessDenied());
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/" + privateQuestionSetId))
+                .andExpect(status().isForbidden());
+
+        verify(questionSetService).getQuestionSetDetailNew(TEST_USER_ID, privateQuestionSetId);
+    }
+
+    @Test
+    @DisplayName("공개 질문세트는 소유자가 아니어도 조회 가능")
+    void getQuestionSetDetail_AccessPublicSet_Success() throws Exception {
+        // Given
+        Long publicQuestionSetId = 888L;
+        QuestionSetDetailResponse publicResponse = createQuestionSetDetailResponse(publicQuestionSetId, "다른 사용자의 공개 질문세트", true);
+        publicResponse = QuestionSetDetailResponse.builder()
+                .questionSetId(publicResponse.getQuestionSetId())
+                .title(publicResponse.getTitle())
+                .description(publicResponse.getDescription())
+                .versionNumber(publicResponse.getVersionNumber())
+                .parentVersionId(publicResponse.getParentVersionId())
+                .isPublic(true)
+                .ownerNickname("다른사용자")
+                .questionMaps(publicResponse.getQuestionMaps())
+                .tags(publicResponse.getTags())
+                .createdAt(publicResponse.getCreatedAt())
+                .updatedAt(publicResponse.getUpdatedAt())
+                .build();
+
+        given(questionSetService.getQuestionSetDetailNew(TEST_USER_ID, publicQuestionSetId))
+                .willReturn(publicResponse);
+
+        setAuthentication();
+
+        // When & Then
+        mockMvc.perform(get(API_URL + "/" + publicQuestionSetId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.isPublic").value(true))
+                .andExpect(jsonPath("$.data.ownerNickname").value("다른사용자"))
+                .andExpect(jsonPath("$.message").value("질문세트 상세 조회가 완료되었습니다."));
+
+        verify(questionSetService).getQuestionSetDetailNew(TEST_USER_ID, publicQuestionSetId);
+    }
+
+    // Helper methods for new tests
+    private QuestionSetListResponse createQuestionSetListResponse(Long id, String title, String ownerNickname, boolean isPublic) {
+        return QuestionSetListResponse.builder()
+                .questionSetId(id)
+                .title(title)
+                .description(TEST_DESCRIPTION)
+                .versionNumber(1)
+                .isPublic(isPublic)
+                .ownerNickname(ownerNickname)
+                .tags(Arrays.asList(createTagResponse("Test")))
+                .createdAt(LocalDateTime.now())
+//                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private QuestionSetDetailResponse createQuestionSetDetailResponse(Long id, String title, boolean isPublic) {
+        return QuestionSetDetailResponse.builder()
+                .questionSetId(id)
+                .title(title)
+                .description(TEST_DESCRIPTION)
+                .versionNumber(1)
+                .parentVersionId(null)
+                .isPublic(isPublic)
+                .ownerNickname("테스트사용자")
+                .questionMaps(Arrays.asList())
+                .tags(Arrays.asList(createTagResponse("Test")))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private TagResponse createTagResponse(String tagName) {
+        return TagResponse.builder()
+                .id(1L)
+                .tag(tagName)
+                .build();
+    }
+
+    private <T> Page<T> createMockPage(List<T> content) {
+        return new PageImpl<>(content, PageRequest.of(0, 10), content.size());
     }
 
 }

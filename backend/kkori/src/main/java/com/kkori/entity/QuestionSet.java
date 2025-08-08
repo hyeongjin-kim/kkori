@@ -98,8 +98,8 @@ public class QuestionSet extends BaseEntity {
                 .build();
     }
 
-    public void updateSharedStatus(Boolean isShared) {
-        this.isPublic = isShared != null ? isShared : false;
+    public void updateSharedStatus(Boolean isPublic) {
+        this.isPublic = isPublic != null ? isPublic : false;
     }
 
     public void softDelete() {
