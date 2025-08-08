@@ -16,6 +16,12 @@ export function switchScreen() {
 }
 
 export function startAnswer() {
+  if (
+    useMediaStreamStore.getState().myRecorder === null ||
+    useMediaStreamStore.getState().myRecorder?.state !== 'inactive'
+  )
+    return;
+
   const myMediaStream = useMediaStreamStore.getState().myStream;
   if (!myMediaStream) return;
   const recorder = new MediaRecorder(myMediaStream);
@@ -26,7 +32,8 @@ export function startAnswer() {
   };
   recorder.onstop = () => {
     const blob = new Blob(data, { type: 'audio/webm' });
-    const url = URL.createObjectURL(blob);
+    useMediaStreamStore.getState().setData([]);
+    usePracticeSessionStore.getState().answerSubmit(blob);
   };
   recorder.start();
   setTimeout(() => {
@@ -38,11 +45,16 @@ export function startAnswer() {
 }
 
 export function endAnswer() {
-  console.log('endAnswer');
+  if (
+    useMediaStreamStore.getState().myRecorder === null ||
+    useMediaStreamStore.getState().myRecorder?.state !== 'recording'
+  )
+    return;
+  useMediaStreamStore.getState().myRecorder?.stop();
 }
 
 export function endInterview() {
-  console.log('endInterview');
+  usePracticeSessionStore.getState().interviewEnd();
 }
 
 export function startInterview() {
