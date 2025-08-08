@@ -3,16 +3,13 @@ import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 export function switchScreen() {
-  useMediaStreamStore
-    .getState()
-    .setMainStreamType(
-      useMediaStreamStore.getState().mainStreamType === 'my' ? 'peer' : 'my',
-    );
-  useMediaStreamStore
-    .getState()
-    .setSubStreamType(
-      useMediaStreamStore.getState().subStreamType === 'my' ? 'peer' : 'my',
-    );
+  const { mainStreamType, subStreamType, setMainStreamType, setSubStreamType } =
+    useMediaStreamStore.getState();
+  const switchStreamType = (streamType: 'my' | 'peer') =>
+    streamType === 'my' ? 'peer' : 'my';
+
+  setMainStreamType(switchStreamType(mainStreamType));
+  setSubStreamType(switchStreamType(subStreamType));
 }
 
 export function startAnswer() {
@@ -21,9 +18,9 @@ export function startAnswer() {
     useMediaStreamStore.getState().myRecorder?.state !== 'inactive'
   )
     return;
-
   const myMediaStream = useMediaStreamStore.getState().myStream;
   if (!myMediaStream) return;
+  console.log('미디어 스트림 준비');
   const recorder = new MediaRecorder(myMediaStream);
   useMediaStreamStore.getState().setMyRecorder(recorder);
   let data: BlobPart[] = [];
@@ -32,10 +29,18 @@ export function startAnswer() {
   };
   recorder.onstop = () => {
     const blob = new Blob(data, { type: 'audio/webm' });
+    const reader = new FileReader();
+    let base64data = '';
+    reader.onload = () => {
+      base64data = reader.result as string;
+    };
+    reader.readAsDataURL(blob);
     useMediaStreamStore.getState().setData([]);
-    usePracticeSessionStore.getState().answerSubmit(blob);
+    usePracticeSessionStore.getState().answerSubmit(base64data);
+    console.log(base64data);
   };
   recorder.start();
+  console.log('미디어 스트림 녹화 시작');
   setTimeout(() => {
     if (recorder.state === 'recording') {
       recorder.stop();
@@ -45,6 +50,8 @@ export function startAnswer() {
 }
 
 export function endAnswer() {
+  console.log(useMediaStreamStore.getState().myRecorder);
+  console.log(useMediaStreamStore.getState().myRecorder?.state);
   if (
     useMediaStreamStore.getState().myRecorder === null ||
     useMediaStreamStore.getState().myRecorder?.state !== 'recording'
@@ -52,7 +59,7 @@ export function endAnswer() {
     return;
   useMediaStreamStore.getState().myRecorder?.stop();
 }
-
+console.log('endAnswer');
 export function endInterview() {
   usePracticeSessionStore.getState().interviewEnd();
 }
