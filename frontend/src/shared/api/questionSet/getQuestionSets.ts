@@ -1,5 +1,5 @@
 import { get } from '@/shared/api/api';
-import { QuestionSet } from '@/entities/questionSet/model/type';
+import { QuestionSet } from '@/entities/questionSet/model/response';
 
 export const getQuestionSets = async () => {
   const response = await get<QuestionSet[]>('/api/question-sets');
