@@ -1,5 +1,7 @@
 package com.kkori.entity;
 
+import static com.kkori.entity.QuestionType.*;
+
 import com.kkori.common.BaseEntity;
 import com.kkori.common.jpa.converter.QuestionTypeConverter;
 import jakarta.persistence.CascadeType;
@@ -47,19 +49,19 @@ public class Question extends BaseEntity {
     public Question(String content, String expectedAnswer) {
         this.content = content;
         this.expectedAnswer = expectedAnswer;
-        this.questionType = QuestionType.DEFAULT;
+        this.questionType = DEFAULT;
     }
 
     @Builder(builderMethodName = "customBuilder")
     public Question(String content) {
         this.content = content;
-        this.questionType = QuestionType.CUSTOM;
+        this.questionType = CUSTOM;
     }
 
     @Builder(builderMethodName = "tailBuilder")
     public Question(String content, Question parent) {
         this.content = content;
-        this.questionType = QuestionType.TAIL;
+        this.questionType = TAIL;
         this.parent = parent;
     }
 

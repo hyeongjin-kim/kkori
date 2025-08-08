@@ -79,11 +79,6 @@ public interface QuestionSetService {
      */
     QuestionSetDetailResponse updateQuestionSetMetadata(Long userId, Long questionSetId, UpdateQuestionSetMetadataRequest request);
 
-    /**
-     * 특정 질문의 답변 수정 (새로운 Answer 엔티티 생성)
-     */
-    QuestionMapResponse modifyAnswer(Long userId, Long questionSetId, ModifyAnswerRequest request);
-
     // ===============================================
     // DELETE OPERATIONS - 삭제 작업
     // ===============================================
