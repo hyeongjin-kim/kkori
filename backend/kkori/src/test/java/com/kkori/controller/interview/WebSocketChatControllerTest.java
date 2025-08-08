@@ -9,7 +9,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kkori.component.interview.InterviewRoom;
 import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.RoomCreateRequest;
 import com.kkori.dto.interview.response.RoomCreateResponse;
@@ -163,11 +162,6 @@ public class WebSocketChatControllerTest {
                 .willReturn(TEST_ROOM_ID_1);
         given(interviewSessionService.createPairRoom(1L, TEST_USER_ID_2))
                 .willReturn(TEST_ROOM_ID_2);
-
-        InterviewRoom mockRoom1 = InterviewRoom.createPairRoom(TEST_ROOM_ID_1, 1L, TEST_USER_ID_1);
-        InterviewRoom mockRoom2 = InterviewRoom.createPairRoom(TEST_ROOM_ID_2, 1L, TEST_USER_ID_2);
-        given(interviewSessionService.getRoom(TEST_ROOM_ID_1)).willReturn(mockRoom1);
-        given(interviewSessionService.getRoom(TEST_ROOM_ID_2)).willReturn(mockRoom2);
 
         doThrow(InterviewRoomException.userNotFoundInRoom()).when(interviewSessionService)
                 .canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_1));

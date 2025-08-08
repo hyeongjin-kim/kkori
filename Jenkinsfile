@@ -83,8 +83,8 @@ pipeline {
                 echo '🧪 Running tests...'
                 dir('backend/kkori') {
                     sh '''
-                        # 테스트 실행 (test 프로파일 사용, H2 테스트 DB 사용)
-                        export SPRING_PROFILES_ACTIVE=test
+                        # 테스트 실행 (prod 프로파일 사용, H2 테스트 DB 사용)
+                        export SPRING_PROFILES_ACTIVE=prod
                         # H2 테스트 DB 설정
                         export DB_URL="jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE"
                         export DB_DRIVER_CLASS_NAME="org.h2.Driver"
