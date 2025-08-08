@@ -19,7 +19,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -45,24 +44,37 @@ public class Question extends BaseEntity {
 
     private String expectedAnswer;
 
-    @Builder(builderMethodName = "defaultBuilder")
-    public Question(String content, String expectedAnswer) {
+    // 기본 질문 생성자
+    private Question(String content, String expectedAnswer) {
         this.content = content;
         this.expectedAnswer = expectedAnswer;
         this.questionType = DEFAULT;
     }
 
-    @Builder(builderMethodName = "customBuilder")
-    public Question(String content) {
+    // 커스텀 질문 생성자
+    private Question(String content) {
         this.content = content;
         this.questionType = CUSTOM;
     }
 
-    @Builder(builderMethodName = "tailBuilder")
-    public Question(String content, Question parent) {
+    // 꼬리 질문 생성자
+    private Question(String content, Question parent) {
         this.content = content;
         this.questionType = TAIL;
         this.parent = parent;
+    }
+
+    // 정적 팩토리 메서드들
+    public static Question createDefault(String content, String expectedAnswer) {
+        return new Question(content, expectedAnswer);
+    }
+
+    public static Question createCustom(String content) {
+        return new Question(content);
+    }
+
+    public static Question createTail(String content, Question parent) {
+        return new Question(content, parent);
     }
 
 }

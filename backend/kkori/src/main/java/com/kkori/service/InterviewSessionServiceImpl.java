@@ -228,27 +228,34 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private void saveInterviewData(Interview interview, InterviewSession session) {
         Map<QuestionForm, String> questionAnswers = session.getQuestionAnswer();
+        Question currentQuestion = null;  // 현재 질문 추적
         int orderNum = 1;
+        
         for (Map.Entry<QuestionForm, String> entry : questionAnswers.entrySet()) {
             QuestionForm questionForm = entry.getKey();
             String answerText = entry.getValue();
             // 1. 질문 타입별로 Question 엔티티 저장
-            Question question = saveQuestionByType(questionForm);
+            Question question = saveQuestionByType(questionForm, currentQuestion);
             // 2. Answer 엔티티 저장
             Answer answer = saveAnswer(question, interview.getInterviewee(), answerText);
             // 3. InterviewRecord 저장 (면접-질문-답변 연결)
             saveInterviewRecord(interview, question, answer, orderNum++);
+            
+            // 4. TAIL이 아닌 경우 현재 질문 갱신 (부모 질문이 될 수 있는 질문들)
+            if (questionForm.getQuestionType() != QuestionType.TAIL) {
+                currentQuestion = question;
+            }
         }
     }
 
     /**
      * 질문 타입별 Question 엔티티 저장
      */
-    private Question saveQuestionByType(QuestionForm questionForm) {
+    private Question saveQuestionByType(QuestionForm questionForm, Question currentQuestion) {
         return switch (questionForm.getQuestionType()) {
             case DEFAULT -> findOrCreateDefaultQuestion(questionForm);
             case CUSTOM -> saveCustomQuestion(questionForm);
-            case TAIL -> saveTailQuestion(questionForm);
+            case TAIL -> saveTailQuestion(questionForm, currentQuestion);
         };
     }
 
@@ -264,31 +271,20 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 커스텀 질문 저장
      */
     private Question saveCustomQuestion(QuestionForm questionForm) {
-        Question question = Question.customBuilder()
-                .content(questionForm.getQuestionText())
-                .build();
+        Question question = Question.createCustom(questionForm.getQuestionText());
         return questionRepository.save(question);
     }
 
     /**
      * 꼬리 질문 저장
      */
-    private Question saveTailQuestion(QuestionForm questionForm) {
-        Question parentQuestion = findParentQuestion(questionForm);
-        Question question = Question.tailBuilder()
-                .content(questionForm.getQuestionText())
-                .parent(parentQuestion)
-                .build();
+    private Question saveTailQuestion(QuestionForm questionForm, Question currentQuestion) {
+        if (currentQuestion == null) {
+            throw InterviewSessionException.parentQuestionNotFound();
+        }
+        
+        Question question = Question.createTail(questionForm.getQuestionText(), currentQuestion);
         return questionRepository.save(question);
-    }
-
-    /**
-     * 꼬리질문의 부모 질문 찾기
-     */
-    private Question findParentQuestion(QuestionForm questionForm) {
-        int parentId = questionForm.getParentQuestionId();
-        return questionRepository.findById((long) parentId)
-                .orElseThrow(InterviewSessionException::parentQuestionNotFound);
     }
 
     /**
