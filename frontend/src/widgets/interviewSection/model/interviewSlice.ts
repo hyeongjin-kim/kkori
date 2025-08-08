@@ -126,22 +126,17 @@ const customQuestionCreatedHandler = (
 };
 
 const chatHandler = (client: Client, get: any, response: any) => {
+  const message = {
+    type: 'chat',
+    content: response.data.message,
+    sender: response.data.sender,
+    timestamp: response.data.timestamp,
+  };
   if (response.data.sender === 'user') {
-    get().confirmMessage({
-      type: 'chat',
-      content: response.data.message,
-      sender: response.data.sender,
-      timestamp: response.data.timestamp,
-    });
-  } else {
-    get().addMessage({
-      type: 'chat',
-      content: response.data.message,
-      sender: response.data.sender,
-      timestamp: response.data.timestamp,
-      confirmed: false,
-    });
+    get().confirmMessage(message);
+    return;
   }
+  get().addMessage({ message });
 };
 
 const errorHandler = (client: Client, response: any) => {
