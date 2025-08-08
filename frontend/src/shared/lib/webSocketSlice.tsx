@@ -63,7 +63,7 @@ export const createWebSocketSlice: StateCreator<
   ) => {
     if (get().client || get().isConnected) return;
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(process.env.WEBSOCKET_URL || ''),
       debug: str => {
         console.log(str);
       },
@@ -197,7 +197,6 @@ const personalMessageHandler = (
       offerHandler(client, set, response.data);
       break;
     case 'answer':
-      //RTC 응답
       answerHandler(client, set, response.data);
       break;
     default:
@@ -223,11 +222,13 @@ const existingUserHandler = async (client: Client, set: any, response: any) => {
   set({ opponentNickname: response.nickname });
   const peerConnection = new RTCPeerConnection();
   const myStream = useMediaStreamStore.getState().myStream;
-  if (myStream) {
-    myStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, myStream);
-    });
-  }
+
+  if (!myStream) return;
+
+  myStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, myStream);
+  });
+
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
   client.publish({
@@ -251,9 +252,9 @@ const offerHandler = async (client: Client, set: any, response: any) => {
   const peerConnection = new RTCPeerConnection({
     iceServers: [
       {
-        urls: '',
-        credential: '',
-        username: '',
+        urls: process.env.TURN_URL || '',
+        credential: process.env.TURN_CREDENTIAL || '',
+        username: process.env.TURN_USERNAME || '',
       },
     ],
   });
@@ -263,6 +264,7 @@ const offerHandler = async (client: Client, set: any, response: any) => {
     peerConnection.addTrack(track, myStream);
   });
   peerConnection.setRemoteDescription(response.offer);
+  useMediaStreamStore.getState().setPeerStream(response.offer.stream);
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
   client.publish({
