@@ -1,3 +1,6 @@
+import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
+
 export function switchScreen() {
   console.log('switchScreen');
 }
@@ -15,5 +18,5 @@ export function endInterview() {
 }
 
 export function startInterview() {
-  console.log('startInterview');
+  usePracticeSessionStore.getState().interviewStart();
 }

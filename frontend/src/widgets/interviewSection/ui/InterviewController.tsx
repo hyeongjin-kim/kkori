@@ -6,13 +6,14 @@ import {
 } from '@/widgets/interviewSection/model/constants';
 import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 
-const switchStatus = (status: keyof typeof interviewStatus) => {
-  switch (status) {
-    case interviewStatus.BEFORE_INTERVIEW:
-      return preInterviewControlButtonProps;
-    case interviewStatus.QUESTION_PRESENTED:
-      return interviewControlButtonProps;
+const switchStatus = (
+  status: (typeof interviewStatus)[keyof typeof interviewStatus],
+) => {
+  console.log(status);
+  if (status === interviewStatus.BEFORE_INTERVIEW) {
+    return preInterviewControlButtonProps;
   }
+  return interviewControlButtonProps;
 };
 
 function InterviewController() {
