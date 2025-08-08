@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'openjdk:17-jdk'
+            args '--network=host -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     
     environment {
         // Docker 이미지 정보
@@ -106,6 +111,8 @@ pipeline {
                         export DB_PLATFORM="org.hibernate.dialect.MySQL8Dialect"
                         export HIBERNATE_SHOW_SQL="false"
                         export HIBERNATE_FORMAT_SQL="false"
+                        # Docker 컨테이너에서 테스트 실행시 네트워킹 옵션 설정
+                        export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true"
                         ./gradlew clean test --no-daemon --stacktrace
                     '''
                 }

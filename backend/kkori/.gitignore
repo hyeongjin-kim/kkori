@@ -39,4 +39,3 @@ out/
 ### sercret key
 application-secret.yml
 application.yml
-application-test.yml
