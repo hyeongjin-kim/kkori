@@ -33,10 +33,10 @@ interface WebSocketAction {
   sendMessage: (sender: string, content: string, timestamp: number) => void;
   roomExit: () => void;
   answerStart: () => void;
-  answerSubmit: () => void;
+  answerSubmit: (blob: Blob) => void;
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
-  customQuestionCreate: () => void;
+  customQuestionCreate: (blob: Blob) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -136,12 +136,12 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  answerSubmit: () => {
+  answerSubmit: (blob: Blob) => {
     get().client?.publish({
       destination: `/app/answer-submit`,
       body: JSON.stringify({
         roomId: get().roomID,
-        //TODO: 오디오 파일 같이 전달해야함
+        audioBase64: blob,
       }),
     });
   },
@@ -162,12 +162,12 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  customQuestionCreate: () => {
+  customQuestionCreate: (blob: Blob) => {
     get().client?.publish({
       destination: `/app/custom-question-create`,
       body: JSON.stringify({
         roomId: get().roomID,
-        //TODO: 커스텀 질문 오디오 파일 전달해야 함
+        audioBase64: blob,
       }),
     });
   },
