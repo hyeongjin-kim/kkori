@@ -17,7 +17,10 @@ function ChattingWindowContainer() {
       <ScrollableList>
         {messages.map(message =>
           message.type === CHAT_TYPES.chat ? (
-            <NameTaggedMessage key={message.id} message={message} />
+            <NameTaggedMessage
+              key={message.timestamp + message.sender}
+              message={message}
+            />
           ) : (
             <QuestionAnswerMessage
               key={message.timestamp + message.sender}

@@ -13,15 +13,17 @@ export const interviewStatus = {
 };
 
 interface InterviewRoomState {
-  status: keyof typeof interviewStatus;
+  status: (typeof interviewStatus)[keyof typeof interviewStatus];
 }
 
 interface InterviewRoomActions {
-  setStatus: (status: keyof typeof interviewStatus) => void;
+  setStatus: (
+    status: (typeof interviewStatus)[keyof typeof interviewStatus],
+  ) => void;
 }
 
 const initialState: InterviewRoomState = {
-  status: 'BEFORE_INTERVIEW',
+  status: interviewStatus.BEFORE_INTERVIEW,
 };
 
 const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(

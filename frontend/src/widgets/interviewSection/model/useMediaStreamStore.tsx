@@ -9,10 +9,12 @@ interface MediaStreamState {
   isPeerAudioOn: boolean;
   mainStreamType: MediaStreamType;
   subStreamType: MediaStreamType;
+  myRecorder: MediaRecorder | null;
 }
 
 interface MediaStreamActions {
   setMyStream: (myStream: MediaStream) => void;
+  setMyRecorder: (myRecorder: MediaRecorder) => void;
   setPeerStream: (peerStream: MediaStream) => void;
   setIsMyVideoOn: (isMyVideoOn: boolean) => void;
   setIsMyAudioOn: (isMyAudioOn: boolean) => void;
@@ -32,12 +34,14 @@ const initialState: MediaStreamState = {
   isPeerAudioOn: false,
   mainStreamType: 'my',
   subStreamType: 'peer',
+  myRecorder: null,
 };
 
 const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
   set => ({
     ...initialState,
     setMyStream: myStream => set({ myStream }),
+    setMyRecorder: myRecorder => set({ myRecorder }),
     setPeerStream: peerStream => set({ peerStream }),
     setIsMyVideoOn: isMyVideoOn => set({ isMyVideoOn }),
     setIsMyAudioOn: isMyAudioOn => set({ isMyAudioOn }),

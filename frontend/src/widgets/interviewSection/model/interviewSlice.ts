@@ -54,7 +54,7 @@ export const createInterviewSlice: StateCreator<
         customQuestionCreatedHandler(client, set, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.CHAT:
-        chatHandler(client, set, response.data);
+        chatHandler(client, get, response.data);
         break;
       default:
         errorHandler(client, response.data);
@@ -70,15 +70,11 @@ const userExitedHandler = (client: Client, response: any) => {
 const interviewStartedHandler = (client: Client, set: any, response: any) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(
-      interviewStatus.QUESTION_PRESENTED as keyof typeof interviewStatus,
-    );
+    .setStatus(interviewStatus.QUESTION_PRESENTED);
 };
 
 const interviewEndedHandler = (client: Client, set: any, response: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.END_INTERVIEW as keyof typeof interviewStatus);
+  useInterviewRoomStore.getState().setStatus(interviewStatus.END_INTERVIEW);
 };
 
 const answerRecordingStartHandler = (
@@ -86,23 +82,17 @@ const answerRecordingStartHandler = (
   set: any,
   response: any,
 ) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.ANSWER_START as keyof typeof interviewStatus);
+  useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_START);
 };
 
 const sttResultHandler = (client: Client, set: any, response: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.ANSWER_END as keyof typeof interviewStatus);
+  useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_END);
 };
 
 const nextQuestionChoiceHandler = (client: Client, set: any, response: any) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(
-      interviewStatus.NEXT_QUESTIONS_PRESENTED as keyof typeof interviewStatus,
-    );
+    .setStatus(interviewStatus.NEXT_QUESTIONS_PRESENTED);
 };
 
 const nextQuestionSelectedHandler = (
@@ -112,9 +102,7 @@ const nextQuestionSelectedHandler = (
 ) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(
-      interviewStatus.NEXT_QUESTION_SELECTED as keyof typeof interviewStatus,
-    );
+    .setStatus(interviewStatus.NEXT_QUESTION_SELECTED);
 };
 
 const customQuestionStartHandler = (
@@ -124,9 +112,7 @@ const customQuestionStartHandler = (
 ) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(
-      interviewStatus.CUSTOM_QUESTION_START as keyof typeof interviewStatus,
-    );
+    .setStatus(interviewStatus.CUSTOM_QUESTION_START);
 };
 
 const customQuestionCreatedHandler = (
@@ -136,12 +122,22 @@ const customQuestionCreatedHandler = (
 ) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(
-      interviewStatus.CUSTOM_QUESTION_CREATED as keyof typeof interviewStatus,
-    );
+    .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
 };
 
-const chatHandler = (client: Client, set: any, response: any) => {};
+const chatHandler = (client: Client, get: any, response: any) => {
+  const message = {
+    type: 'chat',
+    content: response.data.message,
+    sender: response.data.sender,
+    timestamp: response.data.timestamp,
+  };
+  if (response.data.sender === 'user') {
+    get().confirmMessage(message);
+    return;
+  }
+  get().addMessage({ message });
+};
 
 const errorHandler = (client: Client, response: any) => {
   console.log(response);
