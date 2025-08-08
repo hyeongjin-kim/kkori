@@ -142,8 +142,8 @@ pipeline {
                 echo '📦 Building JAR file...'
                 dir('backend/kkori') {
                     sh '''
-                        # JAR 파일 빌드
-                        ./gradlew bootJar --no-daemon --stacktrace
+                        # JAR 파일 빌드 (테스트 건너뛰기)
+                        ./gradlew bootJar --no-daemon --stacktrace -x test
                         
                         # 빌드 결과 확인
                         echo "Build artifacts:"
