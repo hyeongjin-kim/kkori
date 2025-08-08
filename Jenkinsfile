@@ -111,10 +111,8 @@ pipeline {
                         # 네트워크 인터페이스 정보 확인
                         echo "Network interfaces:"
                         ip addr show || ifconfig || echo "Network info not available"
-                        # 테스트 실행 (TranscriberTest 제외 - demo.m4a 파일 필요)
-                        ./gradlew clean test --no-daemon --stacktrace --tests "*" --exclude-test "**/TranscriberTest*" || \\
-                        ./gradlew clean test --no-daemon --stacktrace --continue || \\
-                        echo "Some tests may have failed, continuing build..."
+                        # 테스트 실행 (integration 태그 제외 - 실제 파일이 필요한 테스트)
+                        ./gradlew clean test --no-daemon --stacktrace -DexcludeTags=integration
                     '''
                 }
             }

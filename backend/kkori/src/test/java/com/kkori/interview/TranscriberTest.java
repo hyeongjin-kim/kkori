@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.kkori.component.Transcriber;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @DisplayName("Transcriber 로직 테스트")
+@Tag("integration") // Jenkins에서 제외할 태그
 public class TranscriberTest {
 
     @Autowired
