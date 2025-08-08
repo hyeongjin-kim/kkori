@@ -24,6 +24,8 @@ import com.kkori.repository.InterviewRepository;
 import com.kkori.repository.QuestionRepository;
 import com.kkori.repository.QuestionSetRepository;
 import com.kkori.repository.UserRepository;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +49,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     private final InterviewRoomManager roomManager;
     private final Transcriber transcriber;
     private final TailQuestionGenerator tailQuestionGenerator;
+
     // ==================== 방 생성 및 참여 ====================
     @Override
     public String createSoloRoom(Long questionSetId, Long creatorId) {
@@ -54,16 +57,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         InterviewSession session = new InterviewSession(defaultQuestions);
         return roomManager.createSoloRoom(questionSetId, creatorId, session);
     }
+
     @Override
     public String createPairRoom(Long questionSetId, Long creatorId) {
         List<QuestionForm> defaultQuestions = loadQuestionSet(questionSetId);
         InterviewSession session = new InterviewSession(defaultQuestions);
         return roomManager.createPairRoom(questionSetId, creatorId, session);
     }
+
     @Override
     public void joinRoom(String roomId, Long userId) {
         roomManager.joinRoom(roomId, userId);
     }
+
     // ==================== 면접 라이프사이클 ====================
     @Override
     @Transactional
@@ -87,6 +93,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         roomManager.startInterview(roomId, savedInterview.getInterviewId());
         return savedInterview.getInterviewId();
     }
+
     @Override
     @Transactional
     public void completeInterview(String roomId) {
@@ -103,6 +110,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         // 4. 메모리에서 방 정리
         roomManager.completeInterview(roomId);
     }
+
     @Override
     @Transactional
     public void exitRoom(String roomId, Long userId) {
@@ -117,6 +125,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         // 메모리에서 사용자 제거 및 방 정리
         roomManager.exitRoom(roomId, userId);
     }
+
     // ==================== 답변 처리 ====================
     @Override
     public String processAudioAnswer(String roomId, Long userId, String audioBase64) {
@@ -140,16 +149,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
     }
+
     // ==================== 질문 관리 ====================
     @Override
     public QuestionForm getCurrentQuestion(String roomId) {
         InterviewSession session = getSession(roomId);
         return session.getCurrentQuestion();
     }
+
     @Override
     public List<QuestionForm> getNextQuestions(String roomId) {
         return generateTailQuestions(roomId);
     }
+
     @Override
     public List<QuestionForm> generateTailQuestions(String roomId) {
         try {
@@ -162,11 +174,13 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw TailQuestionException.tailQuestionGenerationFailed();
         }
     }
+
     @Override
     public QuestionForm selectQuestion(String roomId, QuestionType type, int questionId, String questionText) {
         InterviewSession session = getSession(roomId);
         return session.selectQuestion(type, questionId, questionText);
     }
+
     @Override
     public QuestionForm createCustomQuestion(String roomId, String audioBase64) {
         try {
@@ -192,20 +206,23 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
     }
+
     // ==================== 역할 및 상태 관리 ====================
     @Override
     public void swapRoles(String roomId) {
         roomManager.swapRoles(roomId);
     }
+
     @Override
     public boolean canJoinRoom(String roomId) {
         return roomManager.canJoinRoom(roomId);
     }
+
     @Override
     public boolean canStartInterview(String roomId) {
         return roomManager.canStartInterview(roomId);
     }
-    
+
     @Override
     public InterviewRoom getRoom(String roomId) {
         return roomManager.getRoom(roomId);
@@ -221,6 +238,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     // ==================== Private 헬퍼 메서드들 ====================
+
     /**
      * 답변 처리 공통 로직
      */
@@ -228,6 +246,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         InterviewSession session = getSession(roomId);
         session.saveAnswer(answerText);
     }
+
     /**
      * 질문-답변 데이터를 DB에 저장
      */
@@ -245,6 +264,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             saveInterviewRecord(interview, question, answer, orderNum++);
         }
     }
+
     /**
      * 질문 타입별 Question 엔티티 저장
      */
@@ -255,6 +275,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             case TAIL -> saveTailQuestion(questionForm);
         };
     }
+
     /**
      * 기본 질문 조회 또는 생성
      */
@@ -262,6 +283,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionRepository.findById((long) questionForm.getQuestionId())
                 .orElseThrow(InterviewSessionException::defaultQuestionNotFound);
     }
+
     /**
      * 커스텀 질문 저장
      */
@@ -272,6 +294,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 .build();
         return questionRepository.save(question);
     }
+
     /**
      * 꼬리 질문 저장
      */
@@ -283,6 +306,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 .build();
         return questionRepository.save(question);
     }
+
     /**
      * 꼬리질문의 부모 질문 찾기
      */
@@ -291,6 +315,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionRepository.findById((long) parentId)
                 .orElseThrow(InterviewSessionException::parentQuestionNotFound);
     }
+
     /**
      * 답변 저장
      */
@@ -299,6 +324,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         Answer answer = new Answer(question, user, answerText);
         return answerRepository.save(answer);
     }
+
     /**
      * 면접 기록 저장
      */
@@ -311,6 +337,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 .build();
         interviewRecordRepository.save(record);
     }
+
     /**
      * 질문셋 로딩
      */
@@ -325,6 +352,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
                 ))
                 .collect(Collectors.toList());
     }
+
     /**
      * 세션 조회
      */
@@ -332,6 +360,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return roomManager.getSession(roomId);
     }
     // ==================== 검증 메서드들 ====================
+
     /**
      * 면접 시작 권한 검증
      */
@@ -340,6 +369,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw InterviewSessionException.permissionDenied();
         }
     }
+
     /**
      * 답변 제출 권한 검증
      */
@@ -352,6 +382,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         }
     }
     // ==================== 엔티티 조회 메서드들 ====================
+
     /**
      * 사용자 조회
      */
@@ -359,6 +390,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return userRepository.findById(userId)
                 .orElseThrow(UserException::userNotFound);
     }
+
     /**
      * 질문셋 조회
      */
@@ -366,6 +398,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return questionSetRepository.findById(questionSetId)
                 .orElseThrow(InterviewSessionException::questionSetNotFound);
     }
+
     /**
      * 면접 조회
      */
@@ -380,16 +413,21 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * Base64 디코딩된 오디오 데이터로 임시 WebM 파일 생성
      */
     private String createTempAudioFile(byte[] audioData) {
-        String tempFilePath = System.getProperty("java.io.tmpdir") +
-                "audio_" + System.currentTimeMillis() + ".webm";
+        // Jenkins 환경 호환을 위해 Files.createTempFile 사용
+        // String tempFilePath = System.getProperty("java.io.tmpdir") +
+        //         "audio_" + System.currentTimeMillis() + ".webm";
 
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath)) {
-            fos.write(audioData);
+        try {
+            Path tempFilePath = Files.createTempFile("audio_" + System.currentTimeMillis(), ".webm");
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath.toFile())) {
+                fos.write(audioData);
+            }
+
+            return tempFilePath.toString();
         } catch (java.io.IOException e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
-
-        return tempFilePath;
     }
 
     /**
