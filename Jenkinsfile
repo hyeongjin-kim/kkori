@@ -88,14 +88,19 @@ pipeline {
                 echo '🧪 Running tests...'
                 dir('backend/kkori') {
                     sh '''
-                        # 테스트 실행 (prod 프로파일 사용, H2 테스트 DB 사용)
-                        export SPRING_PROFILES_ACTIVE=prod
-                        export DB_URL="jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+                        # 테스트 실행 (test 프로파일 사용, H2 테스트 DB 사용)
+                        export SPRING_PROFILES_ACTIVE=test
+                        # H2 테스트 DB 설정
+                        export DB_URL="jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE"
                         export DB_DRIVER_CLASS_NAME="org.h2.Driver"
                         export DB_USERNAME=sa
                         export DB_PASSWORD=""
                         export DDL_AUTO=create-drop
-                        # 실제 API 키들 사용 (Jenkins Credentials에서 가져옴)
+                        export DB_DIALECT="org.hibernate.dialect.H2Dialect"
+                        export DB_PLATFORM="org.hibernate.dialect.H2Dialect"
+                        export HIBERNATE_SHOW_SQL="false"
+                        export HIBERNATE_FORMAT_SQL="false"
+                        # API 키들 사용 (Jenkins Credentials에서 가져옴)
                         export GMS_API_KEY=${GMS_API_KEY}
                         export GMS_WHISPER_URL=${GMS_WHISPER_URL}
                         export GMS_GPT_URL=${GMS_GPT_URL}
@@ -106,11 +111,6 @@ pipeline {
                         export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
                         export KAKAO_REDIRECT_URL=${KAKAO_REDIRECT_URL}
                         export KAKAO_TOKEN_URL=${KAKAO_TOKEN_URL}
-                        # Jenkins 배포 시에는 MySQL 설정으로 오버라이드
-                        export DB_DIALECT="org.hibernate.dialect.MySQL8Dialect"
-                        export DB_PLATFORM="org.hibernate.dialect.MySQL8Dialect"
-                        export HIBERNATE_SHOW_SQL="false"
-                        export HIBERNATE_FORMAT_SQL="false"
                         # Docker 컨테이너에서 테스트 실행시 네트워킹 옵션 설정
                         export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true"
                         ./gradlew clean test --no-daemon --stacktrace
