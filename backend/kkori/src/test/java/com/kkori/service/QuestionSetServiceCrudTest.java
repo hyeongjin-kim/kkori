@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 /**
  * QuestionSetService의 CRUD 기능에 대한 종합 테스트
@@ -49,6 +50,8 @@ class QuestionSetServiceCrudTest {
     @Mock private QuestionRepository questionRepository;
     @Mock private AnswerRepository answerRepository;
     @Mock private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
+    @Mock private TagRepository tagRepository;
+    @Mock private QuestionSetTagRepository questionSetTagRepository;
 
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
@@ -90,7 +93,7 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getTitle()).isEqualTo("Spring Boot 질문세트");
             assertThat(response.getVersionNumber()).isEqualTo(1);
             assertThat(response.getParentVersionId()).isNull();
-            assertThat(response.getIsShared()).isFalse();
+            assertThat(response.getIsPublic()).isFalse();
             assertThat(response.getQuestionMaps()).hasSize(1);
 
             verify(questionSetRepository).save(any(QuestionSet.class));
@@ -126,7 +129,7 @@ class QuestionSetServiceCrudTest {
                     .build();
 
             QuestionSet originalQuestionSet = createQuestionSet(1L, testUser, "원본 질문세트", "원본 설명");
-            originalQuestionSet.updateSharedStatus(true); // 공개 설정
+            originalQuestionSet.updatePublicStatus(true); // 공개 설정
             QuestionSet copiedQuestionSet = createQuestionSet(2L, testUser, "복사된 질문세트", "원본에서 복사함");
             
             Question question = createQuestion(1L, "Spring Boot란?");
@@ -166,7 +169,7 @@ class QuestionSetServiceCrudTest {
                     .build();
 
             QuestionSet privateQuestionSet = createQuestionSet(1L, otherUser, "비공개 질문세트", "설명");
-            privateQuestionSet.updateSharedStatus(false); // 비공개 설정
+            privateQuestionSet.updatePublicStatus(false); // 비공개 설정
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
             given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(privateQuestionSet));
@@ -191,22 +194,21 @@ class QuestionSetServiceCrudTest {
             UpdateQuestionSetMetadataRequest request = UpdateQuestionSetMetadataRequest.builder()
                     .title("수정된 제목")
                     .description("수정된 설명")
-                    .isShared(true)
+                    .isPublic(true)
                     .build();
 
             QuestionSet questionSet = createQuestionSet(1L, testUser, "원본 제목", "원본 설명");
             QuestionSet updatedQuestionSet = createQuestionSet(1L, testUser, "수정된 제목", "수정된 설명");
-            updatedQuestionSet.updateSharedStatus(true);
+            updatedQuestionSet.updatePublicStatus(true);
 
-            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(questionSet));
-            // 첫 번째 save는 메타데이터 업데이트용
-            // save() 메서드 stub
+            // Mock 호출 순서를 명확히 설정
+            given(questionSetRepository.findByIdAndNotDeleted(1L))
+                    .willReturn(Optional.of(questionSet), Optional.of(updatedQuestionSet));
+            
             given(questionSetRepository.save(any(QuestionSet.class))).willReturn(updatedQuestionSet);
-            // 두 번째 findByIdAndNotDeleted는 getQuestionSetDetailNew에서 호출
-            // getQuestionSetDetailNew에서 호출되는 두 번째 조회
-            given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(updatedQuestionSet));
             given(questionSetQuestionMapRepository.findByQuestionSetIdWithDetails(1L)).willReturn(new ArrayList<>());
-            // tailQuestionRepository는 필요시에만 stub (메서드명 확인 필요)
+            // getQuestionSetDetailNew에서 태그 조회도 필요
+            given(questionSetTagRepository.findByQuestionSetIdWithTag(1L)).willReturn(new ArrayList<>());
 
             // When
             QuestionSetDetailResponse response = questionSetService.updateQuestionSetMetadata(1L, 1L, request);
@@ -215,9 +217,17 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getQuestionSetId()).isEqualTo(1L);
             assertThat(response.getTitle()).isEqualTo("수정된 제목");
             assertThat(response.getDescription()).isEqualTo("수정된 설명");
-            assertThat(response.getIsShared()).isTrue();
+            assertThat(response.getIsPublic()).isTrue();
 
-            verify(questionSetRepository).findByIdAndNotDeleted(1L);
+            /**
+             * 1. 첫 번째 호출: updateQuestionSetMetadata 메서드 시작
+             *   부분에서 질문 세트를 조회하여 권한 검사 및 업데이트
+             *   수행
+             *   2. 두 번째 호출: 메서드 마지막에
+             *   getQuestionSetDetailNew(questionSetId) 호출하여
+             *   업데이트된 결과를 반환하기 위해 다시 조회
+             */
+            verify(questionSetRepository, times(2)).findByIdAndNotDeleted(1L);
             verify(questionSetRepository, atLeastOnce()).save(any(QuestionSet.class));
         }
 
@@ -377,14 +387,14 @@ class QuestionSetServiceCrudTest {
 
         @Test
         @DisplayName("해피케이스: 공유된 질문 세트 목록 조회")
-        void getQuestionSetList_SharedQuestionSets_Success() {
+        void getQuestionSetList_PublicQuestionSets_Success() {
             // Given
-            QuestionSet sharedQuestionSet = createQuestionSet(1L, otherUser, "공유 질문세트", "설명");
-            sharedQuestionSet.updateSharedStatus(true);
+            QuestionSet sharedQuestionSet = createQuestionSet(1L, otherUser, "공개 질문세트", "설명");
+            sharedQuestionSet.updatePublicStatus(true);
             Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList(sharedQuestionSet));
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findSharedQuestionSetsWithPaging(eq(1L), any(Pageable.class)))
+            given(questionSetRepository.findPublicQuestionSetsWithPaging(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
             given(questionSetQuestionMapRepository.countByQuestionSetId(anyLong())).willReturn(3L);
 
@@ -394,10 +404,10 @@ class QuestionSetServiceCrudTest {
 
             // Then
             assertThat(response.getContent()).hasSize(1);
-            assertThat(response.getContent().get(0).getIsShared()).isTrue();
+            assertThat(response.getContent().get(0).getIsPublic()).isTrue();
             assertThat(response.getContent().get(0).getOwnerNickname()).isEqualTo("다른사용자");
 
-            verify(questionSetRepository).findSharedQuestionSetsWithPaging(eq(1L), any(Pageable.class));
+            verify(questionSetRepository).findPublicQuestionSetsWithPaging(eq(1L), any(Pageable.class));
         }
 
         @Test
@@ -412,7 +422,7 @@ class QuestionSetServiceCrudTest {
                     .description("설명")
                     .versionNumber(2)
                     .parentVersionId(baseVersion)
-                    .isShared(false)
+                    .isPublic(false)
                     .build();
 
             given(questionSetRepository.findByIdAndNotDeleted(1L)).willReturn(Optional.of(baseVersion));
@@ -451,16 +461,15 @@ class QuestionSetServiceCrudTest {
                 .description(description)
                 .versionNumber(1)
                 .parentVersionId(null)
-                .isShared(false)
+                .isPublic(false)
                 .build();
         setFieldValue(questionSet, "id", id);
         return questionSet;
     }
 
     private Question createQuestion(Long id, String content) {
-        Question question = Question.builder()
+        Question question = Question.defaultBuilder()
                 .content(content)
-                .questionType(QuestionType.DEFAULT)
                 .build();
         setFieldValue(question, "id", id);
         return question;
@@ -489,7 +498,6 @@ class QuestionSetServiceCrudTest {
     private CreateQuestionSetWithQuestionsRequest createQuestionSetRequest() {
         CreateQuestionWithAnswerRequest questionRequest = CreateQuestionWithAnswerRequest.builder()
                 .content("Spring Boot의 자동 설정 원리는?")
-                .questionType(1)
                 .expectedAnswer("@EnableAutoConfiguration을 통해...")
                 .build();
 
@@ -497,7 +505,7 @@ class QuestionSetServiceCrudTest {
                 .title("Spring Boot 질문세트")
                 .description("백엔드 면접 질문")
                 .questions(Arrays.asList(questionRequest))
-                .tagIds(Arrays.asList(1L, 2L))
+                .tags(Arrays.asList("",""))
                 .build();
     }
 

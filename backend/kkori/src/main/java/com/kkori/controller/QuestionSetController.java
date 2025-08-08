@@ -53,7 +53,7 @@ public class QuestionSetController {
         CreateVersionWithNewQARequest updatedRequest = CreateVersionWithNewQARequest.builder()
                 .parentQuestionSetId(questionSetId)
                 .questions(request.getQuestions())
-                .tagIds(request.getTagIds())
+                .tags(request.getTags())
                 .build();
         
         CreateQuestionSetResponse response = questionSetService.createVersionWithNewQA(userId, updatedRequest);
@@ -71,7 +71,7 @@ public class QuestionSetController {
         CreateVersionWithAnswerModificationsRequest updatedRequest = CreateVersionWithAnswerModificationsRequest.builder()
                 .parentQuestionSetId(questionSetId)
                 .questions(request.getQuestions())
-                .tagIds(request.getTagIds())
+                .tags(request.getTags())
                 .build();
         
         CreateQuestionSetResponse response = questionSetService.createVersionWithAnswerModifications(userId, updatedRequest);
@@ -88,11 +88,11 @@ public class QuestionSetController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             @RequestParam(required = false) String createdBy,
-            @RequestParam(required = false) Boolean isShared,
+            @RequestParam(required = false) Boolean isPublic,
             @RequestParam(required = false) List<String> tags
     ) {
         Page<QuestionSetListResponse> responses = questionSetService.getQuestionSetList(
-                userId, page, size, sort, createdBy, isShared, tags);
+                userId, page, size, sort, createdBy, isPublic, tags);
         return ResponseEntity.ok(CommonApiResponse.ok(responses, "질문세트 목록 조회가 완료되었습니다."));
     }
 
@@ -115,16 +115,6 @@ public class QuestionSetController {
         return ResponseEntity.ok(CommonApiResponse.ok(responses, "내 질문세트 목록 조회가 완료되었습니다."));
     }
 
-    @GetMapping("/shared")
-    public ResponseEntity<CommonApiResponse<Page<QuestionSetListResponse>>> getSharedQuestionSets(
-            @LoginUser Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Page<QuestionSetListResponse> responses = questionSetService.getSharedQuestionSetsNew(userId, page, size);
-        return ResponseEntity.ok(CommonApiResponse.ok(responses, "공유 질문세트 목록 조회가 완료되었습니다."));
-    }
-
     // ===== UPDATE OPERATIONS =====
 
     @PutMapping("/{questionSetId}/metadata")
@@ -135,16 +125,6 @@ public class QuestionSetController {
     ) {
         QuestionSetDetailResponse response = questionSetService.updateQuestionSetMetadata(userId, questionSetId, request);
         return ResponseEntity.ok(CommonApiResponse.ok(response, "질문세트 메타데이터가 업데이트되었습니다."));
-    }
-
-    @PutMapping("/{questionSetId}/answers")
-    public ResponseEntity<CommonApiResponse<QuestionMapResponse>> modifyAnswer(
-            @LoginUser Long userId,
-            @PathVariable Long questionSetId,
-            @RequestBody @Valid ModifyAnswerRequest request
-    ) {
-        QuestionMapResponse response = questionSetService.modifyAnswer(userId, questionSetId, request);
-        return ResponseEntity.ok(CommonApiResponse.ok(response, "답변이 수정되었습니다."));
     }
 
     // ===== DELETE OPERATIONS =====

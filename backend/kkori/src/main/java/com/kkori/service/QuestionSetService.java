@@ -48,7 +48,7 @@ public interface QuestionSetService {
      * 필터링을 지원하는 질문 세트 목록 조회
      */
     Page<QuestionSetListResponse> getQuestionSetList(Long userId, int page, int size, String sort,
-                                                   String createdBy, Boolean isShared, List<String> tags);
+                                                   String createdBy, Boolean isPublic, List<String> tags);
 
     /**
      * 질문 세트 상세 조회 (새로운 구조)
@@ -61,9 +61,9 @@ public interface QuestionSetService {
     Page<QuestionSetListResponse> getMyQuestionSets(Long userId, int page, int size);
 
     /**
-     * 공유 질문 세트 목록 조회
+     * 공개 질문 세트 목록 조회
      */
-    Page<QuestionSetListResponse> getSharedQuestionSetsNew(Long userId, int page, int size);
+    Page<QuestionSetListResponse> getPublicQuestionSetsNew(Long userId, int page, int size);
 
     /**
      * 질문 세트 버전 히스토리 조회
@@ -133,7 +133,7 @@ public interface QuestionSetService {
     List<QuestionSetResponse> getQuestionSetVersions(Long userId, Long questionSetId);
 
     /**
-     * 공유된 질문 세트 목록 조회 (기존 메서드)
+     * 공개된 질문 세트 목록 조회 (기존 메서드)
      */
-    List<QuestionSetResponse> getSharedQuestionSets(Long userId, int page, int size);
+    List<QuestionSetResponse> getPublicQuestionSets(Long userId, int page, int size);
 }

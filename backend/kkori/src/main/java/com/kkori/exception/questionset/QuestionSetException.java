@@ -48,4 +48,7 @@ public class QuestionSetException extends CustomRuntimeException {
         return new QuestionSetException(NO_PERMISSION);
     }
 
+    public static QuestionSetException accessDenied() {
+        return new QuestionSetException(ACCESS_DENIED);
+    }
 }

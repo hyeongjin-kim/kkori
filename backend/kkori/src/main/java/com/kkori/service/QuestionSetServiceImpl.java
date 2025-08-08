@@ -1,6 +1,6 @@
 package com.kkori.service;
 
-import static com.kkori.constant.QuestionSetConstants.DefaultValue.DEFAULT_SHARED_STATUS;
+import static com.kkori.constant.QuestionSetConstants.DefaultValue.DEFAULT_PUBLIC_STATUS;
 import static com.kkori.constant.QuestionSetConstants.DefaultValue.INITIAL_VERSION_NUMBER;
 import static com.kkori.constant.QuestionSetConstants.DefaultValue.NEXT_VERSION_NUMBER;
 import static com.kkori.entity.QuestionType.fromCode;
@@ -37,6 +37,8 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
+    private final TagRepository tagRepository;
+    private final QuestionSetTagRepository questionSetTagRepository;
 
     @Override
     public Long createQuestionSetWithInitialQuestions(Long userId, CreateNewQuestionSetRequest request, String title) {
@@ -79,7 +81,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(description)
                 .versionNumber(versionNumber)
                 .parentVersionId(parentVersion)
-                .isShared(DEFAULT_SHARED_STATUS)
+                .isPublic(DEFAULT_PUBLIC_STATUS)
                 .build();
     }
 
@@ -120,9 +122,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     private Question createAndSaveQuestion(CreateQuestionRequest request) {
-        Question question = Question.builder()
+        Question question = Question.defaultBuilder()
                 .content(request.getContent())
-                .questionType(fromCode(request.getQuestionType()))
+                .expectedAnswer(request.getExpectedAnswer())
                 .build();
 
         return questionRepository.save(question);
@@ -249,14 +251,14 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<QuestionSetResponse> getSharedQuestionSets(Long userId, int page, int size) {
+    public List<QuestionSetResponse> getPublicQuestionSets(Long userId, int page, int size) {
         findUserById(userId); // 사용자 존재 검증
         
         Pageable pageable = PageRequest.of(page, size);
-        List<QuestionSet> sharedQuestionSets = questionSetRepository
-                .findSharedQuestionSets(userId, pageable);
+        List<QuestionSet> publicQuestionSets = questionSetRepository
+                .findPublicQuestionSets(userId, pageable);
 
-        return sharedQuestionSets.stream()
+        return publicQuestionSets.stream()
                 .map(this::convertToQuestionSetResponseWithoutDetails)
                 .collect(Collectors.toList());
     }
@@ -267,9 +269,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
      */
     private void validateQuestionSetAccessPermission(QuestionSet questionSet, Long userId) {
         boolean isOwner = questionSet.getOwnerUserId().getUserId().equals(userId);
-        boolean isShared = questionSet.getIsShared();
+        boolean isPublic = questionSet.getIsPublic();
         
-        if (!isOwner && !isShared) {
+        if (!isOwner && !isPublic) {
             throw QuestionSetException.noPermission();
         }
     }
@@ -299,7 +301,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsShared())
+                .isPublic(questionSet.getIsPublic())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questions(questions)
                 .tags(tags)
@@ -320,7 +322,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsShared())
+                .isPublic(questionSet.getIsPublic())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .createdAt(questionSet.getCreatedAt())
                 .build();
@@ -367,9 +369,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
             // 질문 생성
-            Question question = Question.builder()
+            Question question = Question.defaultBuilder()
                     .content(questionRequest.getContent())
-                    .questionType(fromCode(questionRequest.getQuestionType()))
+                    .expectedAnswer(questionRequest.getExpectedAnswer())
                     .build();
             Question savedQuestion = questionRepository.save(question);
             
@@ -395,10 +397,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(savedQuestionSet.getVersionNumber())
                 .parentVersionId(null)
-                .isShared(savedQuestionSet.getIsShared())
+                .isPublic(savedQuestionSet.getIsPublic())
                 .ownerNickname(user.getNickname())
                 .questionMaps(questionMaps)
-                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .tags(processTags(savedQuestionSet, request.getTags()))
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
                 .build();
@@ -433,10 +435,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsShared())
+                .isPublic(questionSet.getIsPublic())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionMaps(questionMapResponses)
-                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .tags(convertQuestionSetTagsToResponse(questionSet))
                 .createdAt(questionSet.getCreatedAt())
                 .updatedAt(questionSet.getUpdatedAt())
                 .build();
@@ -454,11 +456,11 @@ public class QuestionSetServiceImpl implements QuestionSetService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<QuestionSetListResponse> getSharedQuestionSetsNew(Long userId, int page, int size) {
+    public Page<QuestionSetListResponse> getPublicQuestionSetsNew(Long userId, int page, int size) {
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
         
-        Page<QuestionSet> questionSets = questionSetRepository.findSharedQuestionSetsWithPaging(userId, pageable);
+        Page<QuestionSet> questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);
         return questionSets.map(this::convertToQuestionSetListResponse);
     }
 
@@ -518,10 +520,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(savedQuestionSet.getVersionNumber())
                 .parentVersionId(originalQuestionSet.getId())  // 복사본의 부모는 원본
-                .isShared(savedQuestionSet.getIsShared())
+                .isPublic(savedQuestionSet.getIsPublic())
                 .ownerNickname(newOwner.getNickname())
                 .questionMaps(questionMaps)
-                .tags(new ArrayList<>()) // TODO: 태그 복사 처리
+                .tags(copyTags(originalQuestionSet, savedQuestionSet, request))
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
                 .build();
@@ -561,9 +563,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
             // 새 질문 생성
-            Question newQuestion = Question.builder()
+            Question newQuestion = Question.defaultBuilder()
                     .content(questionRequest.getContent())
-                    .questionType(fromCode(questionRequest.getQuestionType()))
+                    .expectedAnswer(questionRequest.getExpectedAnswer())
                     .build();
             Question savedQuestion = questionRepository.save(newQuestion);
             
@@ -590,10 +592,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(nextVersionNumber)
                 .parentVersionId(parentQuestionSet.getId())
-                .isShared(savedQuestionSet.getIsShared())
+                .isPublic(savedQuestionSet.getIsPublic())
                 .ownerNickname(user.getNickname())
                 .questionMaps(questionMaps)
-                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .tags(processTags(savedQuestionSet, request.getTags()))
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
                 .build();
@@ -656,10 +658,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .description(savedQuestionSet.getDescription())
                 .versionNumber(nextVersionNumber)
                 .parentVersionId(parentQuestionSet.getId())
-                .isShared(savedQuestionSet.getIsShared())
+                .isPublic(savedQuestionSet.getIsPublic())
                 .ownerNickname(user.getNickname())
                 .questionMaps(questionMaps)
-                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .tags(processTags(savedQuestionSet, request.getTags()))
                 .createdAt(savedQuestionSet.getCreatedAt())
                 .updatedAt(savedQuestionSet.getUpdatedAt())
                 .build();
@@ -667,9 +669,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<QuestionSetListResponse> getQuestionSetList(Long userId, int page, int size, String sort, String createdBy, Boolean isShared, List<String> tags) {
-        log.info("질문 세트 목록 조회 - userId: {}, page: {}, size: {}, createdBy: {}, isShared: {}, tags: {}", 
-                userId, page, size, createdBy, isShared, tags);
+    public Page<QuestionSetListResponse> getQuestionSetList(Long userId, int page, int size, String sort, String createdBy, Boolean isPublic, List<String> tags) {
+        log.info("질문 세트 목록 조회 - userId: {}, page: {}, size: {}, createdBy: {}, isPublic: {}, tags: {}", 
+                userId, page, size, createdBy, isPublic, tags);
         
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
@@ -679,9 +681,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         if ("me".equals(createdBy)) {
             // 내가 생성한 질문 세트만 조회
             questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
-        } else if (isShared != null && isShared) {
-            // 공유된 질문 세트 조회 (본인 제외)
-            questionSets = questionSetRepository.findSharedQuestionSetsWithPaging(userId, pageable);
+        } else if (isPublic != null && isPublic) {
+            // 공개된 질문 세트 조회 (본인 제외)
+            questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);
         } else if (tags != null && !tags.isEmpty()) {
             // 태그로 필터링된 질문 세트 조회
             questionSets = questionSetRepository.findByTagsWithPaging(userId, tags, pageable);
@@ -740,11 +742,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                     .description(request.getDescription() != null ? request.getDescription() : questionSet.getDescription())
                     .versionNumber(questionSet.getVersionNumber())
                     .parentVersionId(questionSet.getParentVersionId())
-                    .isShared(request.getIsShared() != null ? request.getIsShared() : questionSet.getIsShared())
+                    .isPublic(request.getIsPublic() != null ? request.getIsPublic() : questionSet.getIsPublic())
                     .build();
             
-            questionSetRepository.save(updatedQuestionSet);
-            questionSet = updatedQuestionSet;
+            questionSet = questionSetRepository.save(updatedQuestionSet);
         } else {
             // 기존 객체 필드만 업데이트
             if (request.getDescription() != null) {
@@ -754,14 +755,14 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                         .description(request.getDescription())
                         .versionNumber(questionSet.getVersionNumber())
                         .parentVersionId(questionSet.getParentVersionId())
-                        .isShared(questionSet.getIsShared())
+                        .isPublic(questionSet.getIsPublic())
                         .build();
-                questionSetRepository.save(questionSet);
+                questionSet = questionSetRepository.save(questionSet);
             }
             
-            if (request.getIsShared() != null) {
-                questionSet.updateSharedStatus(request.getIsShared());
-                questionSetRepository.save(questionSet);
+            if (request.getIsPublic() != null) {
+                questionSet.updatePublicStatus(request.getIsPublic());
+                questionSet = questionSetRepository.save(questionSet);
             }
         }
         
@@ -856,7 +857,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsShared())
+                .isPublic(questionSet.getIsPublic())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionMaps(new ArrayList<>()) // 삭제된 상태이므로 빈 목록
                 .tags(new ArrayList<>())
@@ -926,7 +927,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                         .id(question.getId())
                         .content(question.getContent())
                         .questionType(question.getQuestionType().getCode())
-                        .createdBy("김개발") // TODO: 실제 사용자 이름
                         .createdAt(question.getCreatedAt())
                         .build())
                 .answer(AnswerDetailResponse.builder()
@@ -949,13 +949,105 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .versionNumber(questionSet.getVersionNumber())
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
-                .isShared(questionSet.getIsShared())
+                .isPublic(questionSet.getIsPublic())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionCount((int) questionCount)
-                .tags(new ArrayList<>()) // TODO: 태그 처리
+                .tags(convertQuestionSetTagsToResponse(questionSet))
                 .createdAt(questionSet.getCreatedAt())
                 .lastModifiedAt(questionSet.getUpdatedAt())
                 .build();
+    }
+
+    // ===============================================
+    // 태그 처리 헬퍼 메서드들
+    // ===============================================
+
+    /**
+     * 태그 이름 리스트로부터 태그 엔티티들을 조회하거나 생성
+     */
+    private List<Tag> findOrCreateTags(List<String> tagNames) {
+        if (tagNames == null || tagNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Tag> tags = new ArrayList<>();
+        for (String tagName : tagNames) {
+            String trimmedTagName = tagName.trim();
+            if (!trimmedTagName.isEmpty()) {
+                Tag tag = tagRepository.findByTag(trimmedTagName)
+                        .orElseGet(() -> {
+                            Tag newTag = Tag.builder().name(trimmedTagName).build();
+                            return tagRepository.save(newTag);
+                        });
+                tags.add(tag);
+            }
+        }
+        return tags;
+    }
+
+    /**
+     * 질문 세트에 태그들을 연결
+     */
+    private void linkTagsToQuestionSet(QuestionSet questionSet, List<Tag> tags) {
+        for (Tag tag : tags) {
+            QuestionSetTag questionSetTag = QuestionSetTag.builder()
+                    .questionSet(questionSet)
+                    .tag(tag)
+                    .build();
+            questionSetTagRepository.save(questionSetTag);
+        }
+    }
+
+    /**
+     * 질문 세트의 태그들을 응답 객체로 변환
+     */
+    private List<TagResponse> convertQuestionSetTagsToResponse(QuestionSet questionSet) {
+        List<QuestionSetTag> questionSetTags = questionSetTagRepository.findByQuestionSetIdWithTag(questionSet.getId());
+        return questionSetTags.stream()
+                .map(qst -> TagResponse.builder()
+                        .id(qst.getTag().getId())
+                        .tag(qst.getTag().getTag())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 태그 이름들을 처리하고 질문세트에 연결한 후 응답 객체 반환
+     */
+    private List<TagResponse> processTags(QuestionSet questionSet, List<String> tagNames) {
+        List<Tag> tags = findOrCreateTags(tagNames);
+        linkTagsToQuestionSet(questionSet, tags);
+        return tags.stream()
+                .map(tag -> TagResponse.builder()
+                        .id(tag.getId())
+                        .tag(tag.getTag())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 질문 세트 복사시 태그 처리 (copyTags 옵션에 따라)
+     */
+    private List<TagResponse> copyTags(QuestionSet originalQuestionSet, QuestionSet copiedQuestionSet, CopyQuestionSetRequest request) {
+        // request에 copyTags 옵션이 있다면 그에 따라 처리, 없다면 기본적으로 복사하지 않음
+        if (request.getCopyTags() != null && request.getCopyTags()) {
+            // 원본의 태그들을 복사
+            List<QuestionSetTag> originalTags = questionSetTagRepository.findByQuestionSetIdWithTag(originalQuestionSet.getId());
+            List<Tag> tagsToLink = originalTags.stream()
+                    .map(QuestionSetTag::getTag)
+                    .collect(Collectors.toList());
+            
+            linkTagsToQuestionSet(copiedQuestionSet, tagsToLink);
+            
+            return tagsToLink.stream()
+                    .map(tag -> TagResponse.builder()
+                            .id(tag.getId())
+                            .tag(tag.getTag())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+        
+        return new ArrayList<>();
     }
 
 }

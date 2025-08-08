@@ -13,6 +13,8 @@ import com.kkori.repository.AnswerRepository;
 import com.kkori.repository.QuestionRepository;
 import com.kkori.repository.QuestionSetQuestionMapRepository;
 import com.kkori.repository.QuestionSetRepository;
+import com.kkori.repository.QuestionSetTagRepository;
+import com.kkori.repository.TagRepository;
 import com.kkori.repository.UserRepository;
 import java.lang.reflect.Field;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +52,12 @@ class QuestionSetServiceTest {
 
     @Mock
     private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
+
+    @Mock
+    private TagRepository tagRepository;
+
+    @Mock
+    private QuestionSetTagRepository questionSetTagRepository;
 
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
@@ -152,7 +160,7 @@ class QuestionSetServiceTest {
         
         User owner = createUser(1L, "owner@test.com");
         QuestionSet questionSet = createQuestionSet(questionSetId, owner, "공개 질문세트", "공개된 질문세트입니다");
-        questionSet.updateSharedStatus(true); // 공개 설정
+        questionSet.updatePublicStatus(true); // 공개 설정
         
         given(questionSetRepository.findByIdWithQuestionsAndTags(questionSetId))
                 .willReturn(Optional.of(questionSet));
@@ -162,7 +170,7 @@ class QuestionSetServiceTest {
 
         // Then
         assertThat(response.getId()).isEqualTo(questionSetId);
-        assertThat(response.getIsShared()).isTrue();
+        assertThat(response.getIsPublic()).isTrue();
         
         verify(questionSetRepository).findByIdWithQuestionsAndTags(questionSetId);
     }
@@ -194,7 +202,7 @@ class QuestionSetServiceTest {
         
         User owner = createUser(1L, "owner@test.com");
         QuestionSet privateQuestionSet = createQuestionSet(questionSetId, owner, "비공개 질문세트", "설명");
-        privateQuestionSet.updateSharedStatus(false); // 비공개 설정
+        privateQuestionSet.updatePublicStatus(false); // 비공개 설정
         
         given(questionSetRepository.findByIdWithQuestionsAndTags(questionSetId))
                 .willReturn(Optional.of(privateQuestionSet));
@@ -238,8 +246,8 @@ class QuestionSetServiceTest {
     }
 
     @Test
-    @DisplayName("해피케이스: 공유 질문세트 목록 조회 성공")
-    void getSharedQuestionSets_Success() {
+    @DisplayName("해피케이스: 공개 질문세트 목록 조회 성공")
+    void getPublicQuestionSets_Success() {
         // Given
         Long userId = 1L;
         int page = 0;
@@ -247,25 +255,25 @@ class QuestionSetServiceTest {
         
         User currentUser = createUser(userId, "user@test.com");
         User otherUser = createUser(2L, "other@test.com");
-        QuestionSet sharedQuestionSet = createQuestionSet(1L, otherUser, "공유 질문세트", "공유된 질문세트입니다");
-        sharedQuestionSet.updateSharedStatus(true);
+        QuestionSet sharedQuestionSet = createQuestionSet(1L, otherUser, "공개 질문세트", "공개된 질문세트입니다");
+        sharedQuestionSet.updatePublicStatus(true);
         
         Pageable pageable = PageRequest.of(page, size);
         
         given(userRepository.findById(userId)).willReturn(Optional.of(currentUser));
-        given(questionSetRepository.findSharedQuestionSets(userId, pageable))
+        given(questionSetRepository.findPublicQuestionSets(userId, pageable))
                 .willReturn(Arrays.asList(sharedQuestionSet));
 
         // When
-        List<QuestionSetResponse> responses = questionSetService.getSharedQuestionSets(userId, page, size);
+        List<QuestionSetResponse> responses = questionSetService.getPublicQuestionSets(userId, page, size);
 
         // Then
         assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).getTitle()).isEqualTo("공유 질문세트");
-        assertThat(responses.get(0).getIsShared()).isTrue();
+        assertThat(responses.get(0).getTitle()).isEqualTo("공개 질문세트");
+        assertThat(responses.get(0).getIsPublic()).isTrue();
         
         verify(userRepository).findById(userId);
-        verify(questionSetRepository).findSharedQuestionSets(userId, pageable);
+        verify(questionSetRepository).findPublicQuestionSets(userId, pageable);
     }
 
     // 테스트 헬퍼 메서드들
@@ -283,7 +291,7 @@ class QuestionSetServiceTest {
                 .title(title)
                 .description(description)
                 .versionNumber(1)
-                .isShared(false)
+                .isPublic(false)
                 .build();
         try {
             Field idField = QuestionSet.class.getDeclaredField("id");
@@ -296,9 +304,8 @@ class QuestionSetServiceTest {
     }
 
     private Question createQuestion(Long id, String content) {
-        return Question.builder()
+        return Question.defaultBuilder()
                 .content(content)
-                .questionType(QuestionType.DEFAULT)
                 .expectedAnswer("예상 답변")
                 .build();
     }
@@ -306,7 +313,6 @@ class QuestionSetServiceTest {
     private CreateNewQuestionSetRequest createQuestionSetRequest(String title, String description) {
         CreateQuestionRequest questionRequest = CreateQuestionRequest.builder()
                 .content("자바의 특징을 설명해주세요.")
-                .questionType(QuestionType.DEFAULT.getCode())
                 .expectedAnswer("플랫폼 독립적, 객체지향적")
                 .build();
         

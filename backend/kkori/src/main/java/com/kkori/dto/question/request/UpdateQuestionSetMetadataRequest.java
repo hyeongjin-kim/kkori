@@ -11,12 +11,12 @@ public class UpdateQuestionSetMetadataRequest {
 
     private String title;
     private String description;
-    private Boolean isShared;
+    private Boolean isPublic;
 
     @Builder
-    public UpdateQuestionSetMetadataRequest(String title, String description, Boolean isShared) {
+    public UpdateQuestionSetMetadataRequest(String title, String description, Boolean isPublic) {
         this.title = title;
         this.description = description;
-        this.isShared = isShared;
+        this.isPublic = isPublic;
     }
 }

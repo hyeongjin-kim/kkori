@@ -38,6 +38,8 @@ class QuestionSetServiceSimpleTest {
     @Mock private QuestionRepository questionRepository;
     @Mock private AnswerRepository answerRepository;
     @Mock private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
+    @Mock private TagRepository tagRepository;
+    @Mock private QuestionSetTagRepository questionSetTagRepository;
 
     @InjectMocks
     private QuestionSetServiceImpl questionSetService;
@@ -59,7 +61,6 @@ class QuestionSetServiceSimpleTest {
         // Given
         CreateQuestionWithAnswerRequest questionRequest = CreateQuestionWithAnswerRequest.builder()
                 .content("Spring Boot란?")
-                .questionType(1)
                 .expectedAnswer("Spring Boot는...")
                 .build();
 
@@ -67,7 +68,7 @@ class QuestionSetServiceSimpleTest {
                 .title("테스트 질문세트")
                 .description("설명")
                 .questions(Arrays.asList(questionRequest))
-                .tagIds(new ArrayList<>())
+                .tags(new ArrayList<>())
                 .build();
 
         QuestionSet savedQuestionSet = QuestionSet.builder()
@@ -76,12 +77,11 @@ class QuestionSetServiceSimpleTest {
                 .description("설명")
                 .versionNumber(1)
                 .parentVersionId(null)
-                .isShared(false)
+                .isPublic(false)
                 .build();
 
-        Question savedQuestion = Question.builder()
+        Question savedQuestion = Question.defaultBuilder()
                 .content("Spring Boot란?")
-                .questionType(QuestionType.DEFAULT)
                 .build();
 
         Answer savedAnswer = Answer.builder()
@@ -108,7 +108,7 @@ class QuestionSetServiceSimpleTest {
         // Then
         assertThat(response.getTitle()).isEqualTo("테스트 질문세트");
         assertThat(response.getVersionNumber()).isEqualTo(1);
-        assertThat(response.getIsShared()).isFalse();
+        assertThat(response.getIsPublic()).isFalse();
         assertThat(response.getQuestionMaps()).hasSize(1);
 
         verify(questionSetRepository).save(any(QuestionSet.class));
@@ -133,7 +133,7 @@ class QuestionSetServiceSimpleTest {
                 .title("원본 질문세트")
                 .description("원본")
                 .versionNumber(1)
-                .isShared(true)
+                .isPublic(true)
                 .build();
 
         QuestionSet copiedQuestionSet = QuestionSet.builder()
@@ -142,12 +142,11 @@ class QuestionSetServiceSimpleTest {
                 .description("복사본")
                 .versionNumber(1)
                 .parentVersionId(originalQuestionSet)
-                .isShared(false)
+                .isPublic(false)
                 .build();
 
-        Question question = Question.builder()
+        Question question = Question.defaultBuilder()
                 .content("테스트 질문")
-                .questionType(QuestionType.DEFAULT)
                 .build();
 
         Answer answer = Answer.builder()
@@ -197,7 +196,7 @@ class QuestionSetServiceSimpleTest {
                 .title("테스트 질문세트")
                 .description("설명")
                 .versionNumber(1)
-                .isShared(false)
+                .isPublic(false)
                 .build();
 
         Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList(questionSet));

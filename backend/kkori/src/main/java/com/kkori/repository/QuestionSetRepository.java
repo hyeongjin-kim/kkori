@@ -34,7 +34,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
 
     @Query("""
         SELECT qs FROM QuestionSet qs
-        LEFT JOIN FETCH qs.tags qst
+        LEFT JOIN FETCH qs.questionSetTags qst
         LEFT JOIN FETCH qst.tag t
         WHERE qs.id = :questionSetId
         """)
@@ -80,15 +80,15 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
     List<QuestionSet> findAllVersionsByQuestionSetId(@Param("questionSetId") Long questionSetId, @Param("userId") Long userId);
 
     /**
-     * 공유된 질문 세트 조회 (자신 제외)
+     * 공개된 질문 세트 조회 (자신 제외)
      */
     @Query("""
         SELECT qs FROM QuestionSet qs
-        WHERE qs.isShared = true 
+        WHERE qs.isPublic = true 
         AND qs.ownerUserId.userId != :userId
         ORDER BY qs.createdAt DESC
         """)
-    List<QuestionSet> findSharedQuestionSets(@Param("userId") Long userId, Pageable pageable);
+    List<QuestionSet> findPublicQuestionSets(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 버전 관리를 위한 최대 버전 번호 조회
@@ -112,7 +112,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
      */
     @Query("""
         SELECT DISTINCT qs FROM QuestionSet qs
-        JOIN qs.tags qst
+        JOIN qs.questionSetTags qst
         WHERE qs.ownerUserId.userId = :userId
         AND qst.tag.tag IN :tagNames
         ORDER BY qs.versionNumber DESC, qs.createdAt DESC
@@ -124,7 +124,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
      */
     @Query("""
         SELECT qs.ownerUserId.userId, COUNT(qs.id) as questionSetCount, 
-               COUNT(CASE WHEN qs.isShared = true THEN 1 END) as sharedCount,
+               COUNT(CASE WHEN qs.isPublic = true THEN 1 END) as publicCount,
                MAX(qs.versionNumber) as maxVersion
         FROM QuestionSet qs
         WHERE qs.ownerUserId.userId = :userId
@@ -149,12 +149,12 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
     @Query("SELECT qs FROM QuestionSet qs " +
            "JOIN FETCH qs.ownerUserId " +
            "WHERE (:userId IS NULL OR qs.ownerUserId.userId = :userId) " +
-           "AND (:isShared IS NULL OR qs.isShared = :isShared) " +
+           "AND (:isPublic IS NULL OR qs.isPublic = :isPublic) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findQuestionSetsWithFilters(
             @Param("userId") Long userId, 
-            @Param("isShared") Boolean isShared, 
+            @Param("isPublic") Boolean isPublic, 
             Pageable pageable);
 
     /**
@@ -168,15 +168,15 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
     org.springframework.data.domain.Page<QuestionSet> findMyQuestionSets(@Param("userId") Long userId, Pageable pageable);
 
     /**
-     * 공유된 질문 세트 페이징 조회 (본인 제외)
+     * 공개된 질문 세트 페이징 조회 (본인 제외)
      */
     @Query("SELECT qs FROM QuestionSet qs " +
            "JOIN FETCH qs.ownerUserId " +
-           "WHERE qs.isShared = true " +
+           "WHERE qs.isPublic = true " +
            "AND qs.ownerUserId.userId != :userId " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findSharedQuestionSetsWithPaging(@Param("userId") Long userId, Pageable pageable);
+    org.springframework.data.domain.Page<QuestionSet> findPublicQuestionSetsWithPaging(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 태그 기반 질문 세트 검색
@@ -186,7 +186,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "JOIN qs.questionSetTags qst " +
            "JOIN qst.tag t " +
            "WHERE t.tag IN :tagNames " +
-           "AND (:userId IS NULL OR qs.ownerUserId.userId = :userId OR qs.isShared = true) " +
+           "AND (:userId IS NULL OR qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findByTagNames(@Param("tagNames") List<String> tagNames, 
@@ -218,7 +218,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "JOIN qs.questionSetTags qst " +
            "JOIN qst.tag t " +
            "WHERE t.tag IN :tagNames " +
-           "AND (qs.ownerUserId.userId = :userId OR qs.isShared = true) " +
+           "AND (qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findByTagsWithPaging(@Param("userId") Long userId, 
@@ -230,7 +230,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
      */
     @Query("SELECT qs FROM QuestionSet qs " +
            "JOIN FETCH qs.ownerUserId " +
-           "WHERE (qs.ownerUserId.userId = :userId OR qs.isShared = true) " +
+           "WHERE (qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findAccessibleQuestionSets(@Param("userId") Long userId, Pageable pageable);

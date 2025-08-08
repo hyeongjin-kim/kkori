@@ -18,7 +18,7 @@ public class CreateQuestionSetResponse {
     private String description;
     private Integer versionNumber;
     private Long parentVersionId;
-    private Boolean isShared;
+    private Boolean isPublic;
     private String ownerNickname;
     private List<QuestionMapResponse> questionMaps;
     private List<TagResponse> tags;
@@ -31,7 +31,7 @@ public class CreateQuestionSetResponse {
 
     @Builder
     public CreateQuestionSetResponse(Long questionSetId, String title, String description,
-                                   Integer versionNumber, Long parentVersionId, Boolean isShared,
+                                   Integer versionNumber, Long parentVersionId, Boolean isPublic,
                                    String ownerNickname, List<QuestionMapResponse> questionMaps, List<TagResponse> tags,
                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.questionSetId = questionSetId;
@@ -39,7 +39,7 @@ public class CreateQuestionSetResponse {
         this.description = description;
         this.versionNumber = versionNumber;
         this.parentVersionId = parentVersionId;
-        this.isShared = isShared;
+        this.isPublic = isPublic;
         this.ownerNickname = ownerNickname;
         this.questionMaps = questionMaps;
         this.tags = tags;

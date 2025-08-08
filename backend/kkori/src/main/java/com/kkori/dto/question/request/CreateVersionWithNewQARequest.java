@@ -21,12 +21,12 @@ public class CreateVersionWithNewQARequest {
     @NotEmpty(message = "질문 리스트는 필수입니다.")
     private List<CreateQuestionWithAnswerRequest> questions;
 
-    private List<Long> tagIds;
+    private List<String> tags;
 
     @Builder
-    public CreateVersionWithNewQARequest(Long parentQuestionSetId, List<CreateQuestionWithAnswerRequest> questions, List<Long> tagIds) {
+    public CreateVersionWithNewQARequest(Long parentQuestionSetId, List<CreateQuestionWithAnswerRequest> questions, List<String> tags) {
         this.parentQuestionSetId = parentQuestionSetId;
         this.questions = questions;
-        this.tagIds = tagIds;
+        this.tags = tags;
     }
 }
