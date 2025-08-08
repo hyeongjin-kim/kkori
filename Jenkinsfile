@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'openjdk:17-jdk'
-            args '--network=host -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
     
     environment {
         // Docker 이미지 정보
@@ -112,7 +107,11 @@ pipeline {
                         export KAKAO_REDIRECT_URL=${KAKAO_REDIRECT_URL}
                         export KAKAO_TOKEN_URL=${KAKAO_TOKEN_URL}
                         # Docker 컨테이너에서 테스트 실행시 네트워킹 옵션 설정
-                        export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true"
+                        export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Djava.net.useSystemProxies=false"
+                        # 네트워크 인터페이스 정보 확인
+                        echo "Network interfaces:"
+                        ip addr show || ifconfig || echo "Network info not available"
+                        # 테스트 실행
                         ./gradlew clean test --no-daemon --stacktrace
                     '''
                 }
