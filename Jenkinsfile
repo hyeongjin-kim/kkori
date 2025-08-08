@@ -111,8 +111,8 @@ pipeline {
                         # 네트워크 인터페이스 정보 확인
                         echo "Network interfaces:"
                         ip addr show || ifconfig || echo "Network info not available"
-                        # 테스트 실행 (실제 오디오 파일이 필요한 테스트 제외)
-                        ./gradlew clean test --no-daemon --stacktrace -Dtest.exclude="**/TranscriberTest*"
+                        # 테스트 실행 (TranscriberTest 제외 - demo.m4a 파일 필요)
+                        ./gradlew clean test --no-daemon --stacktrace --tests "!*TranscriberTest*"
                     '''
                 }
             }
