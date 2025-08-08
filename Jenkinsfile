@@ -112,7 +112,7 @@ pipeline {
                         echo "Network interfaces:"
                         ip addr show || ifconfig || echo "Network info not available"
                         # 테스트 실행 (integration 태그 제외 - 실제 파일이 필요한 테스트)
-                        ./gradlew clean test --no-daemon --stacktrace -DexcludeTags=integration
+                        ./gradlew clean test --no-daemon --stacktrace -PexcludeTags=integration
                     '''
                 }
             }
