@@ -244,6 +244,10 @@ pipeline {
                             docker stop kkori-backend || echo "No container to stop"
                             docker rm kkori-backend || echo "No container to remove"
                             
+                            # 8080 포트를 사용 중인 다른 컨테이너도 확인
+                            echo "Checking containers using port 8080..."
+                            docker ps --filter "publish=8080" || true
+                            
                             echo "Cleaning up unused images..."
                             docker image prune -f
                         '''
@@ -254,7 +258,7 @@ pipeline {
                             docker run -d \\
                                 --name kkori-backend \\
                                 --restart unless-stopped \\
-                                -p 8080:8080 \\
+                                -p 80:8080 \\
                                 -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} \\
                                 -e DB_HOST=${DB_HOST} \\
                                 -e DB_PORT=${DB_PORT} \\
@@ -371,7 +375,7 @@ pipeline {
                             
                             // HTTP 헬스체크
                             def healthResponse = sh(
-                                script: 'curl -f -s http://localhost:8080/actuator/health',
+                                script: 'curl -f -s http://localhost/actuator/health',
                                 returnStatus: true
                             )
                             
@@ -382,10 +386,10 @@ pipeline {
                                 // 헬스체크 상세 정보 출력
                                 sh '''
                                     echo "Application health status:"
-                                    curl -s http://localhost:8080/actuator/health | python3 -m json.tool || curl -s http://localhost:8080/actuator/health
+                                    curl -s http://localhost/actuator/health | python3 -m json.tool || curl -s http://localhost/actuator/health
                                     
                                     echo "Application info:"
-                                    curl -s http://localhost:8080/actuator/info | python3 -m json.tool || curl -s http://localhost:8080/actuator/info
+                                    curl -s http://localhost/actuator/info | python3 -m json.tool || curl -s http://localhost/actuator/info
                                 '''
                             } else {
                                 echo "⚠️ Health check failed, retrying in 10 seconds..."
@@ -446,8 +450,8 @@ pipeline {
             
             ✅ Application deployed successfully!
             🌐 Access URL: https://kkori.site
-            🏥 Health Check: https://kkori.site/api/actuator/health
-            📊 Application Info: https://kkori.site/api/actuator/info
+            🏥 Health Check: https://kkori.site/actuator/health
+            📊 Application Info: https://kkori.site/actuator/info
             
             📈 Build Number: ''' + env.BUILD_NUMBER + '''
             🏷️  Docker Image: ''' + env.DOCKER_IMAGE + ''':''' + env.DOCKER_TAG + '''
