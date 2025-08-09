@@ -1,6 +1,8 @@
 package com.kkori.test.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kkori.dto.interview.request.RoomCreateRequest;
+import com.kkori.dto.interview.response.RoomCreateResponse;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -62,7 +64,8 @@ public class WebSocketTestHelper {
         StompHeaders stompHeaders = new StompHeaders();
 
         System.out.println("📤 연결 헤더 설정 완료");
-        System.out.println("📤 Cookie 헤더: accessToken=" + jwtToken.substring(0, Math.min(20, jwtToken.length())) + "...");
+        System.out.println(
+                "📤 Cookie 헤더: accessToken=" + jwtToken.substring(0, Math.min(20, jwtToken.length())) + "...");
 
         StompSessionHandler sessionHandler = new RealTestStompSessionHandler();
 
@@ -249,7 +252,8 @@ public class WebSocketTestHelper {
                 }
             }
 
-            throw new AssertionError("Expected message type '" + expectedType + "' not received within " + timeoutSeconds + " seconds");
+            throw new AssertionError(
+                    "Expected message type '" + expectedType + "' not received within " + timeoutSeconds + " seconds");
         }
 
         public BlockingQueue<Map<String, Object>> getMessages() {
@@ -296,5 +300,22 @@ public class WebSocketTestHelper {
             System.err.println("❌🎯 REAL STOMP transport error: " + exception.getMessage());
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * 실제 방 생성 후 roomId 반환
+     */
+    public String createRoomAndGetId(StompSession creatorSession,
+                                     WebSocketTestHelper.MessageSubscriber creatorSubscriber, String mode,
+                                     Long questionSetId) throws Exception {
+
+        RoomCreateRequest roomCreateRequest = new RoomCreateRequest(mode, questionSetId);
+        creatorSession.send("/app/room-create", roomCreateRequest);
+
+        Map<String, Object> response = creatorSubscriber.waitForMessage("room-created", 3);
+        Map<String, Object> responsePayload = (Map<String, Object>) response.get("data");
+        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(responsePayload, RoomCreateResponse.class);
+
+        return roomCreateResponse.getRoomId();
     }
 }
