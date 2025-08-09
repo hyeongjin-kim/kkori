@@ -237,6 +237,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         throw InterviewRoomException.userNotFoundInRoom();
     }
 
+    @Override
+    public Long getOpponentId(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        Long opponentId = room.getUserIds().stream()
+                .filter(id -> !id.equals(userId))
+                .findFirst()
+                .orElse(null);
+        if (opponentId != null) {
+            return opponentId;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
+    }
+
     // ==================== Private 헬퍼 메서드들 ====================
 
     /**
