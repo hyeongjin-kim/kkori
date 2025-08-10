@@ -231,15 +231,13 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     @Override
     public void canSendChatMessage(String roomId, Long userId) {
         InterviewRoom room = roomManager.getRoom(roomId);
-        if (room.getUserIds().contains(userId)) {
-            return;
-        }
-        throw InterviewRoomException.userNotFoundInRoom();
+        validateUserInRoom(room, userId);
     }
 
     @Override
     public Long getOpponentId(String roomId, Long userId) {
         InterviewRoom room = roomManager.getRoom(roomId);
+        validateUserInRoom(room, userId);
         Long opponentId = room.getUserIds().stream()
                 .filter(id -> !id.equals(userId))
                 .findFirst()
@@ -394,6 +392,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw InterviewRoomException.interviewNotStarted();
         }
     }
+
+    /**
+     * 방 소속 여부 검증
+     */
+    private void validateUserInRoom(InterviewRoom room, Long userId) {
+        if (room.getUserIds().contains(userId)) {
+            return;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
+    }
+
     // ==================== 엔티티 조회 메서드들 ====================
 
     /**
