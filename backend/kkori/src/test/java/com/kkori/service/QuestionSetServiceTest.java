@@ -23,6 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -230,8 +232,9 @@ class QuestionSetServiceTest {
         Pageable pageable = PageRequest.of(page, size);
         
         given(userRepository.findById(userId)).willReturn(Optional.of(owner));
-        given(questionSetRepository.findByOwnerUserIdOrderByVersionDesc(userId, pageable))
-                .willReturn(Arrays.asList(questionSet1, questionSet2));
+        Page<QuestionSet> questionSetPage = new PageImpl<>(Arrays.asList(questionSet1, questionSet2), pageable, 2);
+        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+                .willReturn(questionSetPage);
 
         // When
         List<QuestionSetResponse> responses = questionSetService.getUserQuestionSets(userId, page, size);
@@ -242,7 +245,7 @@ class QuestionSetServiceTest {
         assertThat(responses.get(1).getTitle()).isEqualTo("질문세트 2");
         
         verify(userRepository).findById(userId);
-        verify(questionSetRepository).findByOwnerUserIdOrderByVersionDesc(userId, pageable);
+        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
     }
 
     @Test

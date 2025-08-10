@@ -82,6 +82,7 @@ class QuestionSetServiceSimpleTest {
 
         Question savedQuestion = Question.defaultBuilder()
                 .content("Spring Boot란?")
+                .expectedAnswer("Spring Boot는...")
                 .build();
 
         Answer savedAnswer = Answer.builder()
@@ -92,14 +93,12 @@ class QuestionSetServiceSimpleTest {
         QuestionSetQuestionMap savedMap = QuestionSetQuestionMap.builder()
                 .questionSet(savedQuestionSet)
                 .question(savedQuestion)
-                .answer(savedAnswer)
                 .displayOrder(1)
                 .build();
 
         given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
         given(questionSetRepository.save(any(QuestionSet.class))).willReturn(savedQuestionSet);
         given(questionRepository.save(any(Question.class))).willReturn(savedQuestion);
-        given(answerRepository.save(any(Answer.class))).willReturn(savedAnswer);
         given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class))).willReturn(savedMap);
 
         // When
@@ -113,7 +112,6 @@ class QuestionSetServiceSimpleTest {
 
         verify(questionSetRepository).save(any(QuestionSet.class));
         verify(questionRepository).save(any(Question.class));
-        verify(answerRepository).save(any(Answer.class));
         verify(questionSetQuestionMapRepository).save(any(QuestionSetQuestionMap.class));
     }
 
@@ -147,6 +145,7 @@ class QuestionSetServiceSimpleTest {
 
         Question question = Question.defaultBuilder()
                 .content("테스트 질문")
+                .expectedAnswer("테스트 답변")
                 .build();
 
         Answer answer = Answer.builder()
@@ -157,14 +156,12 @@ class QuestionSetServiceSimpleTest {
         QuestionSetQuestionMap originalMap = QuestionSetQuestionMap.builder()
                 .questionSet(originalQuestionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(1)
                 .build();
 
         QuestionSetQuestionMap newMap = QuestionSetQuestionMap.builder()
                 .questionSet(copiedQuestionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(1)
                 .build();
 

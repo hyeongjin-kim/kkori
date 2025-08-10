@@ -26,9 +26,6 @@ public class QuestionSetQuestionMap extends BaseEntity {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "answer_id", nullable = false)
-    private Answer answer;
 
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
@@ -38,32 +35,21 @@ public class QuestionSetQuestionMap extends BaseEntity {
     private Long version;
 
     @Builder
-    public QuestionSetQuestionMap(QuestionSet questionSet, Question question, Answer answer, Integer displayOrder) {
+    public QuestionSetQuestionMap(QuestionSet questionSet, Question question, Integer displayOrder) {
         this.questionSet = questionSet;
         this.question = question;
-        this.answer = answer;
         this.displayOrder = displayOrder;
     }
 
-    public static QuestionSetQuestionMap create(QuestionSet questionSet, Question question, Answer answer, Integer displayOrder) {
+    public static QuestionSetQuestionMap create(QuestionSet questionSet, Question question, Integer displayOrder) {
         return QuestionSetQuestionMap.builder()
                 .questionSet(questionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(displayOrder)
                 .build();
     }
 
     public void updateDisplayOrder(Integer newOrder) {
         this.displayOrder = newOrder;
-    }
-
-    public QuestionSetQuestionMap updateAnswer(Answer newAnswer) {
-        return QuestionSetQuestionMap.builder()
-                .questionSet(this.questionSet)
-                .question(this.question)
-                .answer(newAnswer)
-                .displayOrder(this.displayOrder)
-                .build();
     }
 }

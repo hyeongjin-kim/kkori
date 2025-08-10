@@ -81,7 +81,6 @@ class QuestionSetServiceCrudTest {
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
             given(questionSetRepository.save(any(QuestionSet.class))).willReturn(savedQuestionSet);
             given(questionRepository.save(any(Question.class))).willReturn(savedQuestion);
-            given(answerRepository.save(any(Answer.class))).willReturn(savedAnswer);
             given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class)))
                     .willReturn(createQuestionMap(1L, savedQuestionSet, savedQuestion, savedAnswer, 1));
 
@@ -98,7 +97,6 @@ class QuestionSetServiceCrudTest {
 
             verify(questionSetRepository).save(any(QuestionSet.class));
             verify(questionRepository).save(any(Question.class));
-            verify(answerRepository).save(any(Answer.class));
             verify(questionSetQuestionMapRepository).save(any(QuestionSetQuestionMap.class));
         }
 
@@ -434,6 +432,7 @@ class QuestionSetServiceCrudTest {
     private Question createQuestion(Long id, String content) {
         Question question = Question.defaultBuilder()
                 .content(content)
+                .expectedAnswer("기본 답변")
                 .build();
         setFieldValue(question, "id", id);
         return question;
@@ -452,7 +451,6 @@ class QuestionSetServiceCrudTest {
         QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.builder()
                 .questionSet(questionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(displayOrder)
                 .build();
         setFieldValue(questionMap, "id", id);

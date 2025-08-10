@@ -20,6 +20,8 @@ public class CreateQuestionSetWithQuestionsRequest {
     private String description;
 
     private List<String> tags;
+    
+    private Boolean isPublic = true;  // 기본값: 공개
 
     @Valid
     @NotEmpty(message = "질문 리스트는 필수입니다.")
@@ -27,10 +29,11 @@ public class CreateQuestionSetWithQuestionsRequest {
 
     @Builder
     public CreateQuestionSetWithQuestionsRequest(String title, String description, 
-                                               List<String> tags, List<CreateQuestionWithAnswerRequest> questions) {
+                                               List<String> tags, Boolean isPublic, List<CreateQuestionWithAnswerRequest> questions) {
         this.title = title;
         this.description = description;
         this.tags = tags;
+        this.isPublic = isPublic != null ? isPublic : true;
         this.questions = questions;
     }
 }

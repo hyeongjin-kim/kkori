@@ -49,15 +49,6 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
         return Optional.empty();
     }
 
-    /**
-     * 사용자별 질문 세트 목록 조회 (최신 버전 우선)
-     */
-    @Query("""
-        SELECT qs FROM QuestionSet qs
-        WHERE qs.ownerUserId.userId = :userId
-        ORDER BY qs.versionNumber DESC, qs.createdAt DESC
-        """)
-    List<QuestionSet> findByOwnerUserIdOrderByVersionDesc(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 특정 질문 세트의 모든 버전 조회 (버전 관리 시스템)
@@ -107,17 +98,6 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
         """)
     List<QuestionSet> findQuestionSetsByQuestionId(@Param("questionId") Long questionId);
 
-    /**
-     * 사용자의 질문 세트 중 특정 태그를 포함한 세트들 조회
-     */
-    @Query("""
-        SELECT DISTINCT qs FROM QuestionSet qs
-        JOIN qs.questionSetTags qst
-        WHERE qs.ownerUserId.userId = :userId
-        AND qst.tag.tag IN :tagNames
-        ORDER BY qs.versionNumber DESC, qs.createdAt DESC
-        """)
-    List<QuestionSet> findByOwnerUserIdAndTagNames(@Param("userId") Long userId, @Param("tagNames") List<String> tagNames, Pageable pageable);
 
     /**
      * 질문 세트 통계 조회 (대시보드용)
@@ -210,20 +190,6 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
     @Query("SELECT qs FROM QuestionSet qs WHERE qs.id = :questionSetId AND qs.isDeleted = false")
     Optional<QuestionSet> findByIdAndNotDeleted(@Param("questionSetId") Long questionSetId);
 
-    /**
-     * 태그로 필터링된 질문 세트 조회
-     */
-    @Query("SELECT DISTINCT qs FROM QuestionSet qs " +
-           "JOIN FETCH qs.ownerUserId " +
-           "JOIN qs.questionSetTags qst " +
-           "JOIN qst.tag t " +
-           "WHERE t.tag IN :tagNames " +
-           "AND (qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
-           "AND qs.isDeleted = false " +
-           "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findByTagsWithPaging(@Param("userId") Long userId, 
-                                                                          @Param("tagNames") List<String> tagNames, 
-                                                                          Pageable pageable);
 
     /**
      * 접근 가능한 모든 질문 세트 조회 (본인 + 공유된 것)

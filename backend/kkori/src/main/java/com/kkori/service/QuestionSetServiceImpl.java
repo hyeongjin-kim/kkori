@@ -35,7 +35,6 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     private final QuestionSetRepository questionSetRepository;
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
     private final QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
     private final TagRepository tagRepository;
     private final QuestionSetTagRepository questionSetTagRepository;
@@ -94,12 +93,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         validateQuestionSetOwnership(questionSet, userId);
 
         Question savedQuestion = createAndSaveQuestion(request);
-        Answer savedAnswer = Answer.create(request.getExpectedAnswer(), user);
-        answerRepository.save(savedAnswer);
         
         int displayOrder = (int) (questionSetQuestionMapRepository.countByQuestionSetId(questionSetId) + 1);
         QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                questionSet, savedQuestion, savedAnswer, displayOrder);
+                questionSet, savedQuestion, displayOrder);
         questionSetQuestionMapRepository.save(questionMap);
 
         return savedQuestion.getId();
@@ -163,12 +160,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .sorted(comparingInt(QuestionSetQuestionMap::getDisplayOrder))
                 .forEach(parentQuestionMap -> {
                     Question existingQuestion = parentQuestionMap.getQuestion();
-                    Answer existingAnswer = parentQuestionMap.getAnswer();
                     
                     QuestionSetQuestionMap newMapping = QuestionSetQuestionMap.create(
                             childQuestionSet, 
                             existingQuestion, 
-                            existingAnswer, 
                             parentQuestionMap.getDisplayOrder()
                     );
                     questionSetQuestionMapRepository.save(newMapping);
@@ -180,7 +175,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         questions.forEach(singleQuestionRequest -> addQuestionToQuestionSet(userId, questionSetId, singleQuestionRequest));
     }
 
-    // 이전 메서드들은 더이상 사용하지 않음 - 새 구조에서는 Answer가 필요
+    // 이전 메서드들은 더이상 사용하지 않음 - 새 구조에서는 Question의 expectedAnswer 사용
 
     // ===============================================
     // 읽기 전용 메소드들 (조회 성능 최적화)
@@ -213,8 +208,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         findUserById(userId); // 사용자 존재 검증
         
         Pageable pageable = PageRequest.of(page, size);
-        List<QuestionSet> questionSets = questionSetRepository
-                .findByOwnerUserIdOrderByVersionDesc(userId, pageable);
+        Page<QuestionSet> questionSetsPage = questionSetRepository
+                .findMyQuestionSets(userId, pageable);
+        List<QuestionSet> questionSets = questionSetsPage.getContent();
 
         return questionSets.stream()
                 .map(this::convertToQuestionSetResponseWithoutDetails)
@@ -360,7 +356,14 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         User user = findUserById(userId);
         
         // 1. 질문 세트 생성
-        QuestionSet questionSet = QuestionSet.createNew(user, request.getTitle(), request.getDescription());
+        QuestionSet questionSet = QuestionSet.builder()
+                .ownerUserId(user)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .versionNumber(1)
+                .parentVersionId(null)
+                .isPublic(request.getIsPublic())
+                .build();
         QuestionSet savedQuestionSet = questionSetRepository.save(questionSet);
         
         // 2. 질문과 답변들 생성 및 매핑
@@ -368,23 +371,19 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
-            // 질문 생성
+            // 질문 생성 (expectedAnswer 포함)
             Question question = Question.defaultBuilder()
                     .content(questionRequest.getContent())
                     .expectedAnswer(questionRequest.getExpectedAnswer())
                     .build();
             Question savedQuestion = questionRepository.save(question);
             
-            // 답변 생성
-            Answer answer = Answer.create(questionRequest.getExpectedAnswer(), user);
-            Answer savedAnswer = answerRepository.save(answer);
-            
-            // 질문-답변 매핑 생성
+            // 질문 매핑 생성 (Answer 없이)
             QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                    savedQuestionSet, savedQuestion, savedAnswer, displayOrder);
+                    savedQuestionSet, savedQuestion, displayOrder);
             questionSetQuestionMapRepository.save(questionMap);
             
-            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
+            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion));
             
             displayOrder++;
         }
@@ -425,7 +424,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         List<QuestionMapResponse> questionMapResponses = new ArrayList<>();
         
         for (QuestionSetQuestionMap map : questionMaps) {
-            questionMapResponses.add(convertToQuestionMapResponse(map, map.getQuestion(), map.getAnswer()));
+            questionMapResponses.add(convertToQuestionMapResponse(map, map.getQuestion()));
         }
         
         return QuestionSetDetailResponse.builder()
@@ -499,16 +498,15 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         List<QuestionMapResponse> questionMaps = new ArrayList<>();
         
         for (QuestionSetQuestionMap originalMap : originalMaps) {
-            // 새로운 매핑 생성 (기존 질문과 답변 재사용)
+            // 새로운 매핑 생성 (기존 질문 재사용)
             QuestionSetQuestionMap newMapping = QuestionSetQuestionMap.create(
                     savedQuestionSet, 
                     originalMap.getQuestion(),  // 기존 질문 재사용
-                    originalMap.getAnswer(),    // 기존 답변 재사용
                     originalMap.getDisplayOrder()
             );
             questionSetQuestionMapRepository.save(newMapping);
             
-            questionMaps.add(convertToQuestionMapResponse(newMapping, originalMap.getQuestion(), originalMap.getAnswer()));
+            questionMaps.add(convertToQuestionMapResponse(newMapping, originalMap.getQuestion()));
         }
         
         log.info("질문 세트 복사 완료 - newQuestionSetId: {}, 복사된 질문 수: {}", 
@@ -569,16 +567,12 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                     .build();
             Question savedQuestion = questionRepository.save(newQuestion);
             
-            // 새 답변 생성
-            Answer newAnswer = Answer.create(questionRequest.getExpectedAnswer(), user);
-            Answer savedAnswer = answerRepository.save(newAnswer);
-            
-            // 질문-답변 매핑 생성
+            // 질문 매핑 생성
             QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                    savedQuestionSet, savedQuestion, savedAnswer, displayOrder);
+                    savedQuestionSet, savedQuestion, displayOrder);
             questionSetQuestionMapRepository.save(questionMap);
             
-            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion, savedAnswer));
+            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion));
             
             displayOrder++;
         }
@@ -637,16 +631,19 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             Question existingQuestion = questionRepository.findById(questionRequest.getQuestionId())
                     .orElseThrow(QuestionSetException::questionSetNotFound);
             
-            // 새 답변 생성
-            Answer newAnswer = Answer.create(questionRequest.getNewExpectedAnswer(), user);
-            Answer savedAnswer = answerRepository.save(newAnswer);
+            // 새로운 expectedAnswer로 새 질문 생성 (불변성 보장)
+            Question newQuestion = Question.defaultBuilder()
+                    .content(existingQuestion.getContent())
+                    .expectedAnswer(questionRequest.getNewExpectedAnswer())
+                    .build();
+            Question savedQuestion = questionRepository.save(newQuestion);
             
-            // 질문-답변 매핑 생성
+            // 질문 매핑 생성
             QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
-                    savedQuestionSet, existingQuestion, savedAnswer, questionRequest.getDisplayOrder());
+                    savedQuestionSet, savedQuestion, questionRequest.getDisplayOrder());
             questionSetQuestionMapRepository.save(questionMap);
             
-            questionMaps.add(convertToQuestionMapResponse(questionMap, existingQuestion, savedAnswer));
+            questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion));
         }
         
         log.info("기존 질문+새 답변으로 새 버전 생성 완료 - newQuestionSetId: {}, version: {}, 질문 수: {}", 
@@ -686,7 +683,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);
         } else if (tags != null && !tags.isEmpty()) {
             // 태그로 필터링된 질문 세트 조회
-            questionSets = questionSetRepository.findByTagsWithPaging(userId, tags, pageable);
+            questionSets = questionSetRepository.findByTagNames(tags, userId, pageable);
         } else {
             // 전체 질문 세트 조회 (접근 가능한 것만)
             questionSets = questionSetRepository.findAccessibleQuestionSets(userId, pageable);
@@ -845,7 +842,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         
         // 3. 제거하기 전 정보 저장 (응답용)
         QuestionMapResponse removedQuestionInfo = convertToQuestionMapResponse(
-                questionMap, questionMap.getQuestion(), questionMap.getAnswer());
+                questionMap, questionMap.getQuestion());
         
         // 4. 매핑 제거
         questionSetQuestionMapRepository.delete(questionMap);
@@ -869,11 +866,11 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     // 헬퍼 메서드들
     // ===============================================
 
-    private QuestionMapResponse convertToQuestionMapResponse(QuestionSetQuestionMap map, Question question, Answer answer) {
+    private QuestionMapResponse convertToQuestionMapResponse(QuestionSetQuestionMap map, Question question) {
         return QuestionMapResponse.builder()
                 .mapId(map.getId())
                 .questionId(question.getId())
-                .answerId(answer.getId())
+                .answerId(null)
                 .displayOrder(map.getDisplayOrder())
                 .question(QuestionDetailResponse.builder()
                         .id(question.getId())
@@ -882,10 +879,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                         .createdAt(question.getCreatedAt())
                         .build())
                 .answer(AnswerDetailResponse.builder()
-                        .id(answer.getId())
-                        .content(answer.getContent())
-                        .createdByNickname(answer.getCreatedBy().getNickname())
-                        .createdAt(answer.getCreatedAt())
+                        .id(null)
+                        .content(question.getExpectedAnswer())
+                        .createdByNickname("시스템")
+                        .createdAt(question.getCreatedAt())
                         .build())
                 .build();
     }
