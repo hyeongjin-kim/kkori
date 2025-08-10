@@ -67,3 +67,15 @@ export function endInterview() {
 export function startInterview() {
   usePracticeSessionStore.getState().interviewStart();
 }
+
+export function chooseTailQuestion() {
+  console.log('tail-question');
+}
+
+export function chooseDefaultQuestion() {
+  console.log('default-question');
+}
+
+export function chooseCustomQuestion() {
+  console.log('custom-question');
+}
