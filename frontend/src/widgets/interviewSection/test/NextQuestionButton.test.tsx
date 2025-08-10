@@ -4,11 +4,15 @@ import NextQuestionButton from '@/widgets/interviewSection/ui/NextQuestionButton
 describe('NextQuestionButton', () => {
   beforeEach(() => {
     render(
-      <NextQuestionButton nextQuestion="tail-question" onClick={() => {}} />,
+      <NextQuestionButton
+        nextQuestion="tail-question"
+        label="tail-question"
+        onClick={() => {}}
+      />,
     );
   });
 
   test('NextQuestionButton이 랜더링된다.', () => {
-    expect(screen.getByLabelText('next-question-button')).toBeInTheDocument();
+    expect(screen.getByLabelText('tail-question')).toBeInTheDocument();
   });
 });
