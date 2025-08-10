@@ -4,43 +4,114 @@ import {
   endAnswer,
   startInterview,
   endInterview,
+  chooseNextQuestion,
 } from '@/widgets/interviewSection/model';
 
-export const interviewControlButtonProps = [
-  {
-    onClick: switchScreen,
-    label: 'screen-change',
-    text: '화면 전환',
-  },
-  {
-    onClick: startAnswer,
-    label: 'answer-start',
-    text: '답변 시작',
-  },
-  {
-    onClick: endAnswer,
-    label: 'answer-end',
-    text: '답변 종료',
-  },
-  {
-    onClick: endInterview,
-    label: 'interview-end',
-    text: '나가기',
-  },
-];
+export const soloInterviewControlButtonProps = {
+  preInterview: [
+    {
+      onClick: startInterview,
+      label: 'interview-start',
+      text: '면접 시작',
+    },
+  ],
+  interview: [
+    {
+      onClick: chooseNextQuestion,
+      label: 'next-question-select',
+      text: '다음 질문 선택',
+    },
+    {
+      onClick: startAnswer,
+      label: 'answer-start',
+      text: '답변 시작',
+    },
+    {
+      onClick: endAnswer,
+      label: 'answer-end',
+      text: '답변 종료',
+    },
+    {
+      onClick: endInterview,
+      label: 'interview-end',
+      text: '면접 종료',
+    },
+  ],
+};
 
-export const preInterviewControlButtonProps = [
-  {
-    onClick: startInterview,
-    label: 'interview-start',
-    text: '면접 시작',
-  },
-  {
-    onClick: endInterview,
-    label: 'interview-end',
-    text: '나가기',
-  },
-];
+export const peerIntervieweeControlButtonProps = {
+  preInterview: [
+    {
+      onClick: switchScreen,
+      label: 'screen-change',
+      text: '화면 전환',
+    },
+    {
+      onClick: endInterview,
+      label: 'interview-end',
+      text: '면접 종료',
+    },
+  ],
+  interview: [
+    {
+      onClick: switchScreen,
+      label: 'screen-change',
+      text: '화면 전환',
+    },
+    {
+      onClick: startAnswer,
+      label: 'answer-start',
+      text: '답변 시작',
+    },
+    {
+      onClick: endAnswer,
+      label: 'answer-end',
+      text: '답변 종료',
+    },
+    {
+      onClick: endInterview,
+      label: 'interview-end',
+      text: '면접 종료',
+    },
+  ],
+};
+
+export const peerInterviewerControlButtonProps = {
+  preInterview: [
+    {
+      onClick: switchScreen,
+      label: 'screen-change',
+      text: '화면 전환',
+    },
+    {
+      onClick: startInterview,
+      label: 'interview-start',
+      text: '면접 시작',
+    },
+    {
+      onClick: endInterview,
+      label: 'interview-end',
+      text: '면접 종료',
+    },
+  ],
+  interview: [
+    {
+      onClick: switchScreen,
+      label: 'screen-change',
+      text: '화면 전환',
+    },
+    {
+      onClick: startInterview,
+      label: 'next-question-select',
+      text: '다음 질문 선택',
+    },
+    {
+      onClick: endInterview,
+      label: 'interview-end',
+      text: '면접 종료',
+    },
+  ],
+};
 
 export const INTERVIEW_MESSAGE_TYPE = {
   USER_EXITED: 'user-exited',
