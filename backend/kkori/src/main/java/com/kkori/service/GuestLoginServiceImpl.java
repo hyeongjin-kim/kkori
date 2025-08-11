@@ -7,6 +7,7 @@ import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
+import com.kkori.util.NicknameGenerator;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -75,24 +76,13 @@ public class GuestLoginServiceImpl implements GuestLoginService {
 
     private User createGuestUser() {
         String guestSub = GUEST_PREFIX + UUID.randomUUID().toString();
-        String randomNickname = generateRandomNickname();
+        String randomNickname = NicknameGenerator.generate();
 
         return User.builder()
                 .sub(guestSub)
                 .nickname(randomNickname)
                 .deleted(false)
                 .build();
-    }
-
-    private String generateRandomNickname() {
-        // 임시로 간단한 랜덤 닉네임 생성
-        String[] adjectives = {"신비한", "활기찬", "즐거운", "멋진", "귀여운"};
-        String[] animals = {"코알라", "펭귄", "호랑이", "판다", "고양이"};
-        
-        int adjIndex = (int) (Math.random() * adjectives.length);
-        int animalIndex = (int) (Math.random() * animals.length);
-        
-        return adjectives[adjIndex] + animals[animalIndex];
     }
 
     private void saveRefreshTokenForUser(User user, Token refreshToken) {
@@ -111,4 +101,5 @@ public class GuestLoginServiceImpl implements GuestLoginService {
         return refreshTokenValue != null && !refreshTokenValue.isBlank() 
                && tokenProvider.validateToken(refreshTokenValue);
     }
+
 }
