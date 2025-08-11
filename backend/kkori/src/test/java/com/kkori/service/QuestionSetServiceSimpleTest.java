@@ -80,10 +80,7 @@ class QuestionSetServiceSimpleTest {
                 .isPublic(false)
                 .build();
 
-        Question savedQuestion = Question.defaultBuilder()
-                .content("Spring Boot란?")
-                .expectedAnswer("Spring Boot는...")
-                .build();
+        Question savedQuestion = Question.createDefault("Spring Boot란?", "Spring Boot는...");
 
         Answer savedAnswer = Answer.builder()
                 .content("Spring Boot는...")
@@ -143,10 +140,7 @@ class QuestionSetServiceSimpleTest {
                 .isPublic(false)
                 .build();
 
-        Question question = Question.defaultBuilder()
-                .content("테스트 질문")
-                .expectedAnswer("테스트 답변")
-                .build();
+        Question question = Question.createDefault("테스트 질문", "테스트 답변");
 
         Answer answer = Answer.builder()
                 .content("테스트 답변")
