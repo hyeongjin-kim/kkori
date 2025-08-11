@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
@@ -20,6 +21,7 @@ import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,81 +45,82 @@ class GuestLoginServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private TokenProvider tokenProvider;
-
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
-    private final Token accessToken = new Token(ACCESS_TOKEN_VALUE);
-    private final Token refreshToken = new Token(REFRESH_TOKEN_VALUE);
+    private Token accessToken;
+    private Token refreshToken;
 
-    private User createGuestUser(String sub, String nickname) {
+    @BeforeEach
+    void setUp() {
+        accessToken = new Token(ACCESS_TOKEN_VALUE);
+        refreshToken = new Token(REFRESH_TOKEN_VALUE);
+    }
+
+    private User createGuestUser(String uuidSuffix, String nickname) {
         return User.builder()
-                .userId(GuestLoginServiceTest.GUEST_USER_ID)
-                .sub(sub)
+                .userId(GUEST_USER_ID)
+                .sub(GUEST_PREFIX + uuidSuffix)
                 .nickname(nickname)
                 .deleted(false)
                 .build();
     }
 
-    private RefreshToken createRefreshToken(User user, Token token) {
+    private RefreshToken createRefreshToken(User user) {
         return RefreshToken.builder()
                 .user(user)
-                .refreshToken(token.getToken())
+                .refreshToken(refreshToken.getToken())
                 .expirationDate(LocalDateTime.now().plusDays(7))
                 .build();
+    }
+
+    private void mockGuestUserSave(User savedUser) {
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+    }
+
+    private void mockTokenGeneration(User user) {
+        given(tokenProvider.generateRefreshToken(any(User.class))).willReturn(refreshToken);
+        given(refreshTokenRepository.save(any(RefreshToken.class))).willReturn(createRefreshToken(user));
     }
 
     @Test
     @DisplayName("게스트 사용자 생성 및 로그인 성공")
     void createGuestUserAndLogin_Success() {
-        // Given
-        User savedGuestUser = createGuestUser(GUEST_PREFIX + "uuid-123", GUEST_NICKNAME);
-        given(userRepository.save(any(User.class))).willReturn(savedGuestUser);
-        given(tokenProvider.generateRefreshToken(any(User.class))).willReturn(refreshToken);
-        given(refreshTokenRepository.save(any(RefreshToken.class)))
-                .willReturn(createRefreshToken(savedGuestUser, refreshToken));
+        User savedGuestUser = createGuestUser("uuid-123", GUEST_NICKNAME);
+        mockGuestUserSave(savedGuestUser);
+        mockTokenGeneration(savedGuestUser);
 
-        // When
         LoginResponse result = guestLoginService.createGuestUserAndLogin();
 
-        // Then
         assertNotNull(result);
         assertEquals(REFRESH_TOKEN_VALUE, result.getRefreshToken().getToken());
         assertEquals(GUEST_NICKNAME, result.getNickname());
 
-        // 사용자 저장 검증
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository, times(1)).save(userCaptor.capture());
+
         User capturedUser = userCaptor.getValue();
         assertThat(capturedUser.getSub()).startsWith(GUEST_PREFIX);
         assertThat(capturedUser.getNickname()).isNotEmpty();
         assertThat(capturedUser.isDeleted()).isFalse();
 
-        // 토큰 생성 및 저장 검증
-        verify(tokenProvider, times(1)).generateRefreshToken(any(User.class));
-        verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
+        verify(tokenProvider).generateRefreshToken(any(User.class));
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
     }
 
     @Test
     @DisplayName("게스트 닉네임이 랜덤으로 생성되는지 검증")
     void createGuestUserAndLogin_GeneratesRandomNickname() {
-        // Given
         String randomNickname = "활기찬펭귄";
-        User savedGuestUser = createGuestUser(GUEST_PREFIX + "uuid-456", randomNickname);
-        given(userRepository.save(any(User.class))).willReturn(savedGuestUser);
-        given(tokenProvider.generateRefreshToken(any(User.class))).willReturn(refreshToken);
-        given(refreshTokenRepository.save(any(RefreshToken.class)))
-                .willReturn(createRefreshToken(savedGuestUser, refreshToken));
+        User savedGuestUser = createGuestUser("uuid-456", randomNickname);
+        mockGuestUserSave(savedGuestUser);
+        mockTokenGeneration(savedGuestUser);
 
-        // When
         LoginResponse result = guestLoginService.createGuestUserAndLogin();
 
-        // Then
-        assertThat(result.getNickname()).isEqualTo(randomNickname);
-        assertThat(result.getNickname()).isNotEmpty();
+        assertThat(result.getNickname()).isEqualTo(randomNickname).isNotEmpty();
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
@@ -127,68 +130,56 @@ class GuestLoginServiceTest {
     @Test
     @DisplayName("게스트 사용자 sub 필드가 guest_ prefix로 시작하는지 검증")
     void createGuestUserAndLogin_SubStartsWithGuestPrefix() {
-        // Given
-        User savedGuestUser = createGuestUser(GUEST_PREFIX + "uuid-789", GUEST_NICKNAME);
-        given(userRepository.save(any(User.class))).willReturn(savedGuestUser);
-        given(tokenProvider.generateRefreshToken(any(User.class))).willReturn(refreshToken);
-        given(refreshTokenRepository.save(any(RefreshToken.class)))
-                .willReturn(createRefreshToken(savedGuestUser, refreshToken));
+        User savedGuestUser = createGuestUser("uuid-789", GUEST_NICKNAME);
+        mockGuestUserSave(savedGuestUser);
+        mockTokenGeneration(savedGuestUser);
 
-        // When
         guestLoginService.createGuestUserAndLogin();
 
-        // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
-        User capturedUser = userCaptor.getValue();
-        assertThat(capturedUser.getSub()).startsWith(GUEST_PREFIX);
-        assertThat(capturedUser.getSub()).hasSize(42); // "guest_" + UUID(36자) = 42자
+
+        assertThat(userCaptor.getValue().getSub()).startsWith(GUEST_PREFIX).hasSize(42);
     }
 
     @Test
     @DisplayName("사용자 저장 실패 시 예외 발생")
     void createGuestUserAndLogin_WhenUserSaveFails_ThrowsException() {
-        // Given
         given(userRepository.save(any(User.class)))
                 .willThrow(new RuntimeException("데이터베이스 연결 실패"));
 
-        // When & Then
         assertThatThrownBy(() -> guestLoginService.createGuestUserAndLogin())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("데이터베이스 연결 실패");
 
-        verify(tokenProvider, times(0)).generateRefreshToken(any(User.class));
-        verify(refreshTokenRepository, times(0)).save(any(RefreshToken.class));
+        verify(tokenProvider, never()).generateRefreshToken(any(User.class));
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
     }
 
     @Test
     @DisplayName("JWT 토큰 생성 실패 시 예외 발생")
     void createGuestUserAndLogin_WhenTokenGenerationFails_ThrowsException() {
-        // Given
-        User savedGuestUser = createGuestUser(GUEST_PREFIX + "uuid-error", GUEST_NICKNAME);
-        given(userRepository.save(any(User.class))).willReturn(savedGuestUser);
+        User savedGuestUser = createGuestUser("uuid-error", GUEST_NICKNAME);
+        mockGuestUserSave(savedGuestUser);
         given(tokenProvider.generateRefreshToken(any(User.class)))
                 .willThrow(new IllegalStateException("JWT 토큰 생성 실패"));
 
-        // When & Then
         assertThatThrownBy(() -> guestLoginService.createGuestUserAndLogin())
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("JWT 토큰 생성 실패");
 
-        verify(refreshTokenRepository, times(0)).save(any(RefreshToken.class));
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
     }
 
     @Test
     @DisplayName("RefreshToken 저장 실패 시 예외 발생")
     void createGuestUserAndLogin_WhenRefreshTokenSaveFails_ThrowsException() {
-        // Given
-        User savedGuestUser = createGuestUser(GUEST_PREFIX + "uuid-token-error", GUEST_NICKNAME);
-        given(userRepository.save(any(User.class))).willReturn(savedGuestUser);
+        User savedGuestUser = createGuestUser("uuid-token-error", GUEST_NICKNAME);
+        mockGuestUserSave(savedGuestUser);
         given(tokenProvider.generateRefreshToken(any(User.class))).willReturn(refreshToken);
         given(refreshTokenRepository.save(any(RefreshToken.class)))
                 .willThrow(new RuntimeException("RefreshToken 저장 실패"));
 
-        // When & Then
         assertThatThrownBy(() -> guestLoginService.createGuestUserAndLogin())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("RefreshToken 저장 실패");
@@ -197,87 +188,52 @@ class GuestLoginServiceTest {
     @Test
     @DisplayName("유효한 Refresh Token으로 Access Token 발급 성공")
     void issueAccessToken_WithValidRefreshToken_Success() {
-        // Given
         given(tokenProvider.validateToken(REFRESH_TOKEN_VALUE)).willReturn(true);
-        
-        User guestUser = createGuestUser(GUEST_PREFIX + "uuid-access", GUEST_NICKNAME);
-        RefreshToken refreshTokenEntity = createRefreshToken(guestUser, refreshToken);
-        
+        User guestUser = createGuestUser("uuid-access", GUEST_NICKNAME);
         given(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_VALUE))
-                .willReturn(Optional.of(refreshTokenEntity));
+                .willReturn(Optional.of(createRefreshToken(guestUser)));
         given(tokenProvider.generateAccessToken(guestUser)).willReturn(accessToken);
 
-        // When
         Token result = guestLoginService.issueAccessToken(REFRESH_TOKEN_VALUE);
 
-        // Then
         assertNotNull(result);
         assertEquals(ACCESS_TOKEN_VALUE, result.getToken());
-        
-        verify(tokenProvider, times(1)).validateToken(REFRESH_TOKEN_VALUE);
-        verify(refreshTokenRepository, times(1)).findByRefreshToken(REFRESH_TOKEN_VALUE);
-        verify(tokenProvider, times(1)).generateAccessToken(guestUser);
     }
 
     @Test
     @DisplayName("유효하지 않은 Refresh Token으로 Access Token 발급 실패")
     void issueAccessToken_WithInvalidRefreshToken_ReturnsNull() {
-        // Given
         given(tokenProvider.validateToken(INVALID_TOKEN_VALUE)).willReturn(false);
 
-        // When
         Token result = guestLoginService.issueAccessToken(INVALID_TOKEN_VALUE);
 
-        // Then
         assertNull(result);
-        
-        verify(tokenProvider, times(1)).validateToken(INVALID_TOKEN_VALUE);
-        verify(tokenProvider, times(0)).getUserIdFromToken(anyString());
-        verify(userRepository, times(0)).findById(any());
-        verify(tokenProvider, times(0)).generateAccessToken(any(User.class));
+        verify(tokenProvider, never()).getUserIdFromToken(anyString());
+        verify(userRepository, never()).findById(any());
+        verify(tokenProvider, never()).generateAccessToken(any(User.class));
     }
 
     @Test
     @DisplayName("null Refresh Token으로 Access Token 발급 실패")
     void issueAccessToken_WithNullRefreshToken_ReturnsNull() {
-        // When
-        Token result = guestLoginService.issueAccessToken(null);
-
-        // Then
-        assertNull(result);
-        
-        verify(tokenProvider, times(0)).validateToken(anyString());
+        assertNull(guestLoginService.issueAccessToken(null));
+        verify(tokenProvider, never()).validateToken(anyString());
     }
 
     @Test
     @DisplayName("빈 Refresh Token으로 Access Token 발급 실패")
     void issueAccessToken_WithEmptyRefreshToken_ReturnsNull() {
-        // When
-        Token result = guestLoginService.issueAccessToken("");
-
-        // Then
-        assertNull(result);
-        
-        verify(tokenProvider, times(0)).validateToken(anyString());
+        assertNull(guestLoginService.issueAccessToken(""));
+        verify(tokenProvider, never()).validateToken(anyString());
     }
 
     @Test
     @DisplayName("RefreshToken이 DB에 존재하지 않을 때 Access Token 발급 실패")
     void issueAccessToken_WhenRefreshTokenNotExists_ReturnsNull() {
-        // Given
         given(tokenProvider.validateToken(REFRESH_TOKEN_VALUE)).willReturn(true);
-        given(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_VALUE))
-                .willReturn(Optional.empty());
+        given(refreshTokenRepository.findByRefreshToken(REFRESH_TOKEN_VALUE)).willReturn(Optional.empty());
 
-        // When
-        Token result = guestLoginService.issueAccessToken(REFRESH_TOKEN_VALUE);
-
-        // Then
-        assertNull(result);
-        
-        verify(tokenProvider, times(1)).validateToken(REFRESH_TOKEN_VALUE);
-        verify(refreshTokenRepository, times(1)).findByRefreshToken(REFRESH_TOKEN_VALUE);
-        verify(tokenProvider, times(0)).generateAccessToken(any(User.class));
+        assertNull(guestLoginService.issueAccessToken(REFRESH_TOKEN_VALUE));
     }
 
 }
