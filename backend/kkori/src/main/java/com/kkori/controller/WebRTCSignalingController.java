@@ -1,56 +1,56 @@
 package com.kkori.controller;
 
-import com.kkori.dto.SignalingMessage;
+import com.kkori.dto.websocket.SignalingMessage;
+import com.kkori.exception.interview.InterviewRoomException;
+import com.kkori.service.InterviewSessionService;
+import com.kkori.util.WebSocketHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
 public class WebRTCSignalingController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final InterviewSessionService interviewSessionService;
+    private final WebSocketHelper webSocketHelper;
 
-    @MessageMapping("/offer")
+    @MessageMapping("/create-offer")
     public void handleOffer(@Payload SignalingMessage message, SimpMessageHeaderAccessor headerAccessor) {
-        // 송신자 ID를 인증된 사용자 ID로 설정
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) {
-            return;
-        }
-
-        message.setSenderId(authenticatedUserId);
-
-        // 수신자에게 offer 전송
-        messagingTemplate.convertAndSendToUser(
-                message.getReceiverId().toString(),
-                "/queue/interview",
-                message
-        );
+        handleSignaling(message, headerAccessor, "received-offer");
     }
 
-    @MessageMapping("/answer")
+    @MessageMapping("/create-answer")
     public void handleAnswer(@Payload SignalingMessage message, SimpMessageHeaderAccessor headerAccessor) {
-        // 송신자 ID를 인증된 사용자 ID로 설정
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) {
+        handleSignaling(message, headerAccessor, "received-answer");
+    }
+
+    // ==================== 헬퍼 메서드 ====================
+
+    private void handleSignaling(SignalingMessage message, SimpMessageHeaderAccessor headerAccessor,
+                                 String messageType) {
+        Long receiverId = getReceiverId(message, headerAccessor);
+
+        if (receiverId == null) {
             return;
         }
 
-        message.setSenderId(authenticatedUserId);
-
-        // 수신자에게 answer 전송
-        messagingTemplate.convertAndSendToUser(
-                message.getReceiverId().toString(),
-                "/queue/interview",
-                message
-        );
+        webSocketHelper.sendPersonalMessage(receiverId, messageType, message.getSdp());
     }
 
-    private Long getAuthenticatedUserId(SimpMessageHeaderAccessor headerAccessor) {
-        return (Long) headerAccessor.getSessionAttributes().get("userId");
+    private Long getReceiverId(SignalingMessage message, SimpMessageHeaderAccessor headerAccessor) {
+
+        Long authenticatedUserId = webSocketHelper.requireAuthenticatedUserId(headerAccessor);
+
+        String roomId = message.getRoomId();
+
+        try {
+            return interviewSessionService.getOpponentId(roomId, authenticatedUserId);
+        } catch (InterviewRoomException e) {
+            webSocketHelper.sendErrorToUser(authenticatedUserId, e.getExceptionCode());
+            return null;
+        }
     }
 }

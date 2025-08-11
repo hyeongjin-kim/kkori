@@ -3,7 +3,6 @@ package com.kkori.entity;
 import com.kkori.common.BaseEntity;
 import com.kkori.component.interview.RoomStatus;
 import jakarta.persistence.*;
-import java.util.Comparator;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +41,9 @@ public class Interview extends BaseEntity {
     private RoomStatus status;
 
     private LocalDateTime completedAt;
+
+    @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<InterviewRecord> interviewRecords = new ArrayList<>();
 
     @Builder
     public Interview(User interviewer, User interviewee, QuestionSet usedQuestionSet, String roomId) {

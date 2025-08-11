@@ -49,17 +49,14 @@ public class QuestionSet extends BaseEntity {
     @JoinColumn(name = "parent_version_id")
     private QuestionSet parentVersionId;
 
-    @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false;
-
-    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuestionSetTag> questionSetTags = new ArrayList<>();
+    private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
 
     @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
+    private List<QuestionSetTag> questionSetTags = new ArrayList<>();
 
     @Version
     @Column(name = "version")

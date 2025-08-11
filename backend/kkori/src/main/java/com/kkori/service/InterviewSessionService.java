@@ -1,12 +1,12 @@
 package com.kkori.service;
 
+import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.dto.interview.response.InterviewCompletionResponse;
 
 import java.util.List;
-import java.util.Map;
 
 public interface InterviewSessionService {
 
@@ -100,4 +100,14 @@ public interface InterviewSessionService {
      * 방 정보 조회
      */
     InterviewRoom getRoom(String roomId);
+
+    /**
+     * 채팅 전송 가능 여부 확인
+     */
+    void canSendChatMessage(String roomId, Long userId);
+
+    /**
+     * 상대방 id 조회(시그널링용)
+     */
+    Long getOpponentId(String roomId, Long userId);
 }

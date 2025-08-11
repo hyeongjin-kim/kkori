@@ -559,10 +559,7 @@ class QuestionSetServiceTest {
     }
 
     private Question createQuestion(Long id, String content) {
-        return Question.defaultBuilder()
-                .content(content)
-                .expectedAnswer("예상 답변")
-                .build();
+        return Question.createDefault(content, "예상 답변");
     }
 
     private CreateNewQuestionSetRequest createQuestionSetRequest(String title, String description) {

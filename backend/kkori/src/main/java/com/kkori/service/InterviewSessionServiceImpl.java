@@ -1,8 +1,8 @@
 package com.kkori.service;
 
 import com.kkori.component.InterviewRoomManager;
-import com.kkori.component.Transcriber;
 import com.kkori.component.TailQuestionGenerator;
+import com.kkori.component.Transcriber;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
@@ -14,16 +14,23 @@ import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
 import com.kkori.exception.user.UserException;
-import com.kkori.repository.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.kkori.repository.AnswerRepository;
+import com.kkori.repository.InterviewRecordRepository;
+import com.kkori.repository.InterviewRepository;
+import com.kkori.repository.QuestionRepository;
+import com.kkori.repository.QuestionSetRepository;
+import com.kkori.repository.UserRepository;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
- * 면접 세션 관리 서비스 구현체
- * 면접 방 생성부터 완료까지의 전체 라이프사이클을 관리
+ * 면접 세션 관리 서비스 구현체 면접 방 생성부터 완료까지의 전체 라이프사이클을 관리
  */
 @Service
 @RequiredArgsConstructor
@@ -47,12 +54,14 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         InterviewSession session = new InterviewSession(defaultQuestions);
         return roomManager.createSoloRoom(questionSetId, creatorId, session);
     }
+
     @Override
     public String createPairRoom(Long questionSetId, Long creatorId) {
         List<QuestionForm> defaultQuestions = loadQuestionSet(questionSetId);
         InterviewSession session = new InterviewSession(defaultQuestions);
         return roomManager.createPairRoom(questionSetId, creatorId, session);
     }
+
     @Override
     public void joinRoom(String roomId, Long userId) {
         roomManager.joinRoom(roomId, userId);
@@ -125,14 +134,15 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         try {
             // Base64 디코딩
             byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-            
+
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
-            
+
             // STT 처리 (Transcriber 컴포넌트 사용)
             String answerText = transcriber.transcribe(tempFilePath);
             // 답변 처리
             processAnswer(roomId, answerText);
+
             return answerText;
         } catch (Exception e) {
             throw AudioProcessingException.audioTranscriptionFailed();
@@ -146,10 +156,12 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         InterviewSession session = getSession(roomId);
         return session.getCurrentQuestion();
     }
+
     @Override
     public List<QuestionForm> getNextQuestions(String roomId) {
         return generateTailQuestions(roomId);
     }
+
     @Override
     public List<QuestionForm> generateTailQuestions(String roomId) {
         try {
@@ -162,32 +174,34 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw TailQuestionException.tailQuestionGenerationFailed();
         }
     }
+
     @Override
     public QuestionForm selectQuestion(String roomId, QuestionType type, int questionId, String questionText) {
         InterviewSession session = getSession(roomId);
         return session.selectQuestion(type, questionId, questionText);
     }
+
     @Override
     public QuestionForm createCustomQuestion(String roomId, String audioBase64) {
         try {
             // Base64 디코딩
             byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-            
+
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
-            
+
             // STT 처리하여 질문 텍스트 추출
             String questionText = transcriber.transcribe(tempFilePath);
-            
+
             // 세션에 커스텀 질문 생성
             InterviewSession session = getSession(roomId);
             QuestionForm customQuestion = session.createCustomQuestion(questionText);
-            
+
             // 임시 파일 삭제
             deleteTempFile(tempFilePath);
-            
+
             return customQuestion;
-            
+
         } catch (Exception e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
@@ -199,18 +213,40 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     public void swapRoles(String roomId) {
         roomManager.swapRoles(roomId);
     }
+
     @Override
     public boolean canJoinRoom(String roomId) {
         return roomManager.canJoinRoom(roomId);
     }
+
     @Override
     public boolean canStartInterview(String roomId) {
         return roomManager.canStartInterview(roomId);
     }
-    
+
     @Override
     public InterviewRoom getRoom(String roomId) {
         return roomManager.getRoom(roomId);
+    }
+
+    @Override
+    public void canSendChatMessage(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        validateUserInRoom(room, userId);
+    }
+
+    @Override
+    public Long getOpponentId(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        validateUserInRoom(room, userId);
+        Long opponentId = room.getUserIds().stream()
+                .filter(id -> !id.equals(userId))
+                .findFirst()
+                .orElse(null);
+        if (opponentId != null) {
+            return opponentId;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
     }
 
     // ==================== Private 헬퍼 메서드들 ====================
@@ -228,27 +264,34 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private void saveInterviewData(Interview interview, InterviewSession session) {
         Map<QuestionForm, String> questionAnswers = session.getQuestionAnswer();
+        Question currentQuestion = null;  // 현재 질문 추적
         int orderNum = 1;
+        
         for (Map.Entry<QuestionForm, String> entry : questionAnswers.entrySet()) {
             QuestionForm questionForm = entry.getKey();
             String answerText = entry.getValue();
             // 1. 질문 타입별로 Question 엔티티 저장
-            Question question = saveQuestionByType(questionForm);
+            Question question = saveQuestionByType(questionForm, currentQuestion);
             // 2. Answer 엔티티 저장
             Answer answer = saveAnswer(question, interview.getInterviewee(), answerText);
             // 3. InterviewRecord 저장 (면접-질문-답변 연결)
             saveInterviewRecord(interview, question, answer, orderNum++);
+            
+            // 4. TAIL이 아닌 경우 현재 질문 갱신 (부모 질문이 될 수 있는 질문들)
+            if (questionForm.getQuestionType() != QuestionType.TAIL) {
+                currentQuestion = question;
+            }
         }
     }
 
     /**
      * 질문 타입별 Question 엔티티 저장
      */
-    private Question saveQuestionByType(QuestionForm questionForm) {
+    private Question saveQuestionByType(QuestionForm questionForm, Question currentQuestion) {
         return switch (questionForm.getQuestionType()) {
             case DEFAULT -> findOrCreateDefaultQuestion(questionForm);
             case CUSTOM -> saveCustomQuestion(questionForm);
-            case TAIL -> saveTailQuestion(questionForm);
+            case TAIL -> saveTailQuestion(questionForm, currentQuestion);
         };
     }
 
@@ -264,21 +307,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 커스텀 질문 저장
      */
     private Question saveCustomQuestion(QuestionForm questionForm) {
-        Question question = Question.customBuilder()
-                .content(questionForm.getQuestionText())
-                .build();
+        Question question = Question.createCustom(questionForm.getQuestionText());
         return questionRepository.save(question);
     }
 
     /**
      * 꼬리 질문 저장
      */
-    private Question saveTailQuestion(QuestionForm questionForm) {
-        Question parentQuestion = findParentQuestion(questionForm);
-        Question question = Question.tailBuilder()
-                .content(questionForm.getQuestionText())
-                .parent(parentQuestion)
-                .build();
+    private Question saveTailQuestion(QuestionForm questionForm, Question currentQuestion) {
+        if (currentQuestion == null) {
+            throw InterviewSessionException.parentQuestionNotFound();
+        }
+        
+        Question question = Question.createTail(questionForm.getQuestionText(), currentQuestion);
         return questionRepository.save(question);
     }
 
@@ -359,6 +400,16 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         }
     }
 
+    /**
+     * 방 소속 여부 검증
+     */
+    private void validateUserInRoom(InterviewRoom room, Long userId) {
+        if (room.getUserIds().contains(userId)) {
+            return;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
+    }
+
     // ==================== 엔티티 조회 메서드들 ====================
 
     /**
@@ -384,25 +435,30 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return interviewRepository.findById(interviewId)
                 .orElseThrow(InterviewSessionException::interviewNotFound);
     }
-    
+
     // ==================== 오디오 파일 처리 헬퍼 메서드들 ====================
-    
+
     /**
      * Base64 디코딩된 오디오 데이터로 임시 WebM 파일 생성
      */
     private String createTempAudioFile(byte[] audioData) {
-        String tempFilePath = System.getProperty("java.io.tmpdir") + 
-                             "audio_" + System.currentTimeMillis() + ".webm";
-        
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath)) {
-            fos.write(audioData);
+        // Jenkins 환경 호환을 위해 Files.createTempFile 사용
+        // String tempFilePath = System.getProperty("java.io.tmpdir") +
+        //         "audio_" + System.currentTimeMillis() + ".webm";
+
+        try {
+            Path tempFilePath = Files.createTempFile("audio_" + System.currentTimeMillis(), ".webm");
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFilePath.toFile())) {
+                fos.write(audioData);
+            }
+
+            return tempFilePath.toString();
         } catch (java.io.IOException e) {
             throw AudioProcessingException.audioTranscriptionFailed();
         }
-        
-        return tempFilePath;
     }
-    
+
     /**
      * 임시 파일 삭제
      */

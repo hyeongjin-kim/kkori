@@ -119,10 +119,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
     }
 
     private Question createAndSaveQuestion(CreateQuestionRequest request) {
-        Question question = Question.defaultBuilder()
-                .content(request.getContent())
-                .expectedAnswer(request.getExpectedAnswer())
-                .build();
+        Question question = Question.createDefault(request.getContent(), request.getExpectedAnswer());
 
         return questionRepository.save(question);
     }
@@ -561,10 +558,10 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
             // 새 질문 생성
-            Question newQuestion = Question.defaultBuilder()
-                    .content(questionRequest.getContent())
-                    .expectedAnswer(questionRequest.getExpectedAnswer())
-                    .build();
+            Question newQuestion = Question.createDefault(
+                    questionRequest.getContent(),
+                    questionRequest.getExpectedAnswer()
+            );
             Question savedQuestion = questionRepository.save(newQuestion);
             
             // 질문 매핑 생성

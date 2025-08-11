@@ -56,6 +56,7 @@ public enum ExceptionCode {
     INTERVIEW_END_FAILED(7005, "면접 종료에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     ANSWER_PROCESSING_FAILED(7006, "답변 처리에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ROLE_SWAP_FAILED(7008, "역할 변경에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ==== QuestionSet 생성 관련 ====
     EMPTY_QUESTIONS(8001, "질문이 비어있습니다.", HttpStatus.BAD_REQUEST),
@@ -77,7 +78,13 @@ public enum ExceptionCode {
 
     // ==== 동시성 제어 관련 ====
     RESOURCE_LOCK_TIMEOUT(9010, "리소스 락 획득 시간이 초과되었습니다.", HttpStatus.REQUEST_TIMEOUT),
-    CONCURRENT_MODIFICATION_ERROR(9011, "동시 수정이 감지되었습니다.", HttpStatus.CONFLICT);
+    CONCURRENT_MODIFICATION_ERROR(9011, "동시 수정이 감지되었습니다.", HttpStatus.CONFLICT),
+
+    // ==== InterviewRecord 관련 ====
+    INTERVIEW_RECORD_NOT_FOUND(10001, "면접 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INTERVIEW_RECORD_ACCESS_DENIED(10002, "면접 기록에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    INTERVIEW_RECORD_LIST_FETCH_FAILED(10003, "면접 기록 목록 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INTERVIEW_RECORD_DETAIL_FETCH_FAILED(10004, "면접 기록 상세 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String message;

@@ -1,0 +1,10 @@
+services:
+  backend:
+    image: yooyoonji/kkori-backend:latest
+    container_name: kkori-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:tcp://host.docker.internal/~/kkori
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD:

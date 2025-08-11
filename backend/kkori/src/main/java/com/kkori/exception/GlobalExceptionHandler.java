@@ -4,6 +4,7 @@ import com.kkori.common.CommonApiResponse;
 import com.kkori.dto.common.ValidationErrorDetail;
 import com.kkori.dto.common.ValidationErrorResponse;
 import com.kkori.exception.audio.AudioProcessingException;
+import com.kkori.exception.interview.InterviewRecordException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
 import com.kkori.exception.interview.TailQuestionException;
@@ -79,6 +80,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TailQuestionException.class)
     public ResponseEntity<CommonApiResponse<Void>> handleTailQuestionException(TailQuestionException e) {
         log.warn("Tail question exception: {}", e.getMessage());
+        return buildCommonResponse(e.getExceptionCode());
+    }
+
+    @ExceptionHandler(InterviewRecordException.class)
+    public ResponseEntity<CommonApiResponse<Void>> handleInterviewRecordException(InterviewRecordException e) {
+        log.warn("Interview record exception: {}", e.getMessage());
         return buildCommonResponse(e.getExceptionCode());
     }
 
