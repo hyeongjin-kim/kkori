@@ -45,14 +45,6 @@ public class WebSocketHelper {
         }
     }
 
-    public void sendSDP(String receiverId, SignalingMessage message) {
-        messagingTemplate.convertAndSendToUser(
-                receiverId,
-                USER_QUEUE,
-                message
-        );
-    }
-
     /**
      * WebSocket 에러 메시지 전송
      */
