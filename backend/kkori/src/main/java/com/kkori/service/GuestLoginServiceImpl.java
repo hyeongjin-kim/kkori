@@ -9,6 +9,7 @@ import com.kkori.repository.RefreshTokenRepository;
 import com.kkori.repository.UserRepository;
 import com.kkori.util.NicknameGenerator;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,21 +39,11 @@ public class GuestLoginServiceImpl implements GuestLoginService {
     public LoginResponse createGuestUserAndLogin() {
         log.info("게스트 사용자 로그인 시작");
 
-        // 게스트 사용자 생성
-        User guestUser = createGuestUser();
-        log.info("게스트 사용자 생성됨: sub={}, nickname={}", guestUser.getSub(), guestUser.getNickname());
+        User guestUser = createAndSaveGuestUser();
+        Token refreshToken = generateAndStoreRefreshToken(guestUser);
 
-        // 사용자 저장
-        User savedUser = userRepository.save(guestUser);
-
-        // JWT Refresh Token 생성
-        Token refreshToken = tokenProvider.generateRefreshToken(savedUser);
-
-        // RefreshToken 엔티티 저장
-        saveRefreshTokenForUser(savedUser, refreshToken);
-
-        log.info("게스트 로그인 완료: userId={}, nickname={}", savedUser.getUserId(), savedUser.getNickname());
-        return new LoginResponse(refreshToken, savedUser.getNickname());
+        log.info("게스트 로그인 완료: userId={}, nickname={}", guestUser.getUserId(), guestUser.getNickname());
+        return new LoginResponse(refreshToken, guestUser.getNickname());
     }
 
     @Override
@@ -62,30 +53,34 @@ public class GuestLoginServiceImpl implements GuestLoginService {
 
     @Override
     public Token issueAccessTokenByValidRefreshToken(String refreshTokenValue) {
-        if (!isValidRefreshTokenInput(refreshTokenValue)) {
+        if (!isValidRefreshToken(refreshTokenValue)) {
             return null;
         }
 
-        return refreshTokenRepository.findByRefreshToken(refreshTokenValue)
-                .filter(rt -> rt.getExpirationDate().isAfter(LocalDateTime.now()))
-                .filter(rt -> rt.getUser() != null)
-                .map(RefreshToken::getUser)
+        return findUserByRefreshToken(refreshTokenValue)
                 .map(tokenProvider::generateAccessToken)
                 .orElse(null);
     }
 
-    private User createGuestUser() {
-        String guestSub = GUEST_PREFIX + UUID.randomUUID().toString();
-        String randomNickname = NicknameGenerator.generate();
-
-        return User.builder()
-                .sub(guestSub)
-                .nickname(randomNickname)
+    private User createAndSaveGuestUser() {
+        User guestUser = User.builder()
+                .sub(generateGuestSub())
+                .nickname(NicknameGenerator.generate())
                 .deleted(false)
                 .build();
+
+        User savedUser = userRepository.save(guestUser);
+        log.info("게스트 사용자 생성됨: sub={}, nickname={}", savedUser.getSub(), savedUser.getNickname());
+        return savedUser;
     }
 
-    private void saveRefreshTokenForUser(User user, Token refreshToken) {
+    private String generateGuestSub() {
+        return GUEST_PREFIX + UUID.randomUUID();
+    }
+
+    private Token generateAndStoreRefreshToken(User user) {
+        Token refreshToken = tokenProvider.generateRefreshToken(user);
+
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .user(user)
                 .refreshToken(refreshToken.getToken())
@@ -94,12 +89,17 @@ public class GuestLoginServiceImpl implements GuestLoginService {
 
         refreshTokenRepository.save(refreshTokenEntity);
         log.debug("RefreshToken 저장 완료: userId={}", user.getUserId());
+        return refreshToken;
     }
 
+    private boolean isValidRefreshToken(String tokenValue) {
+        return tokenValue != null && !tokenValue.isBlank() && tokenProvider.validateToken(tokenValue);
+    }
 
-    private boolean isValidRefreshTokenInput(String refreshTokenValue) {
-        return refreshTokenValue != null && !refreshTokenValue.isBlank() 
-               && tokenProvider.validateToken(refreshTokenValue);
+    private Optional<User> findUserByRefreshToken(String tokenValue) {
+        return refreshTokenRepository.findByRefreshToken(tokenValue)
+                .filter(rt -> rt.getExpirationDate().isAfter(LocalDateTime.now()))
+                .map(RefreshToken::getUser);
     }
 
 }
