@@ -40,3 +40,4 @@ out/
 application-secret.yml
 application.yml
 application-test.yml
+/src/test/java/com/kkori/performance/
