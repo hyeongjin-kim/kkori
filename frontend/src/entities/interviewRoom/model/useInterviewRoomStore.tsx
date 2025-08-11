@@ -15,6 +15,7 @@ interface InterviewRoomState {
   status: (typeof interviewStatus)[keyof typeof interviewStatus];
   role: 'interviewee' | 'interviewer';
   interviewType: 'solo' | 'pair';
+  modalOpen: boolean;
 }
 
 interface InterviewRoomActions {
@@ -23,12 +24,14 @@ interface InterviewRoomActions {
   ) => void;
   setRole: (role: 'interviewee' | 'interviewer') => void;
   setInterviewType: (interviewType: 'solo' | 'pair') => void;
+  setModalOpen: (modalOpen: boolean) => void;
 }
 
 const initialState: InterviewRoomState = {
   status: interviewStatus.BEFORE_INTERVIEW,
   role: 'interviewee',
   interviewType: 'solo',
+  modalOpen: false,
 };
 
 const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(
@@ -37,6 +40,7 @@ const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(
     setStatus: status => set({ status }),
     setRole: role => set({ role }),
     setInterviewType: interviewType => set({ interviewType }),
+    setModalOpen: modalOpen => set({ modalOpen }),
   }),
 );
 
