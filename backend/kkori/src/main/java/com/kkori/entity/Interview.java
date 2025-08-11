@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -39,6 +41,9 @@ public class Interview extends BaseEntity {
     private RoomStatus status;
 
     private LocalDateTime completedAt;
+
+    @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<InterviewRecord> interviewRecords = new ArrayList<>();
 
     @Builder
     public Interview(User interviewer, User interviewee, QuestionSet usedQuestionSet, String roomId) {

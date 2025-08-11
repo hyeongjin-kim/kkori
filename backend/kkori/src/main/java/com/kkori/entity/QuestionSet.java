@@ -1,16 +1,7 @@
 package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -20,25 +11,27 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "question_set")
+@Table(name = "question_sets")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSet extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "question_set_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_user_id", nullable = false)
     private User ownerUserId;
 
+    @Column(name = "title", nullable = false, length = 255)
     private String title;
 
-    @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuestionSetTag> tags = new ArrayList<>();
-
+    @Lob
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "version_number", nullable = false)
     private Integer versionNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,15 +44,67 @@ public class QuestionSet extends BaseEntity {
     @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @Builder
     public QuestionSet(User ownerUserId, String title, String description,
-                       Integer versionNumber, QuestionSet parentVersionId, Boolean isShared) {
+                       Integer versionNumber, QuestionSet parentVersionId, Boolean isPublic) {
         this.ownerUserId = ownerUserId;
         this.title = title;
         this.description = description;
         this.versionNumber = versionNumber;
         this.parentVersionId = parentVersionId;
-        this.isShared = isShared != null ? isShared : false;
+        this.isPublic = isPublic != null ? isPublic : false;
     }
 
+    public static QuestionSet createNew(User owner, String title, String description) {
+        return QuestionSet.builder()
+                .ownerUserId(owner)
+                .title(title)
+                .description(description)
+                .versionNumber(1)
+                .parentVersionId(null)
+                .isPublic(false)
+                .build();
+    }
+
+    public static QuestionSet createVersion(QuestionSet parent, User owner, String title, String description) {
+        return QuestionSet.builder()
+                .ownerUserId(owner)
+                .title(title != null ? title : parent.getTitle())
+                .description(description != null ? description : parent.getDescription())
+                .versionNumber(parent.getVersionNumber() + 1)
+                .parentVersionId(parent)
+                .isPublic(false)
+                .build();
+    }
+
+    public static QuestionSet copy(QuestionSet original, User newOwner, String newTitle, String newDescription) {
+        return QuestionSet.builder()
+                .ownerUserId(newOwner)
+                .title(newTitle != null ? newTitle : original.getTitle())
+                .description(newDescription != null ? newDescription : original.getDescription())
+                .versionNumber(1)
+                .parentVersionId(original)
+                .isPublic(false)
+                .build();
+    }
+
+    public void updatePublicStatus(Boolean isPublic) {
+        this.isPublic = isPublic != null ? isPublic : false;
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+    }
+
+    public boolean canBeAccessedBy(Long userId) {
+        return this.ownerUserId.getUserId().equals(userId) || this.isPublic;
+    }
+
+    public boolean isOwner(Long userId) {
+        return this.ownerUserId.getUserId().equals(userId);
+    }
 }

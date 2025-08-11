@@ -3,6 +3,9 @@ package com.kkori.service;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.component.interview.InterviewRoom;
+import com.kkori.dto.interview.response.InterviewCompletionResponse;
+
 import java.util.List;
 
 public interface InterviewSessionService {
