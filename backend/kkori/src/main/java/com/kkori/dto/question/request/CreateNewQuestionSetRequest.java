@@ -16,7 +16,7 @@ public class CreateNewQuestionSetRequest {
 
     private final String description;
 
-    private final List<Long> tagIds;
+    private final List<String> tags;
 
     @Valid
     @NotEmpty(message = "질문 리스트는 필수입니다.")
@@ -26,11 +26,11 @@ public class CreateNewQuestionSetRequest {
 
     @Builder
     public CreateNewQuestionSetRequest(String title, String description,
-                             List<Long> tagIds, List<CreateQuestionRequest> questions,
+                             List<String> tags, List<CreateQuestionRequest> questions,
                              Long parentVersionId) {
         this.title = title;
         this.description = description;
-        this.tagIds = tagIds;
+        this.tags = tags;
         this.questions = questions;
         this.parentVersionId = parentVersionId;
     }
