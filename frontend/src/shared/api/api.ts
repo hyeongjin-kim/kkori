@@ -55,18 +55,28 @@ export const audioApi = axios.create({
   baseURL: process.env.BASE_URL || '',
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
+    'Content-Type': 'multipart/form-data',
+    Accept: 'multipart/form-data',
   },
 });
 
-export const audioPost = async (url: string, blob: Blob) => {
+interface AudioPostRequest {
+  url: string;
+  roomId: string;
+  audioFile: Blob;
+}
+
+export const audioPost = async ({
+  url,
+  roomId,
+  audioFile,
+}: AudioPostRequest) => {
   const formData = new FormData();
-  formData.append('audioFile', blob, 'answer.webm');
+  formData.append('roomId', roomId);
+  formData.append('audioFile', audioFile, 'answer.webm');
   console.log(formData);
-  const res = await audioApi.post(url, formData, {
-    onUploadProgress: e =>
-      console.log('progress', Math.round((e.loaded / e.total!) * 100)),
-  });
+  console.log(url);
+  const res = await audioApi.post(url, formData);
+  console.log(res);
   return res.data;
 };
