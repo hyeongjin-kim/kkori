@@ -143,7 +143,10 @@ export const createWebSocketSlice: StateCreator<
   },
   answerSubmit: async (blob: Blob) => {
     useInterviewRoomStore.getState().setStatus('answerEnd');
-    const response = await audioPost('/api/answer-submit', blob);
+    const response = await audioPost(
+      '/api/interview/answer-submit?roomId=' + get().roomID,
+      blob,
+    );
     console.log(response);
     get().client?.publish({
       destination: `/app/answer-submit`,
