@@ -92,7 +92,7 @@ const sttResultHandler = (client: Client, set: any, response: any) => {
 const nextQuestionChoiceHandler = (client: Client, set: any, response: any) => {
   useInterviewRoomStore
     .getState()
-    .setStatus(interviewStatus.NEXT_QUESTIONS_PRESENTED);
+    .setStatus(interviewStatus.QUESTION_PRESENTED);
 };
 
 const nextQuestionSelectedHandler = (
