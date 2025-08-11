@@ -1,17 +1,25 @@
 import { useParams } from 'react-router-dom';
 import { useQuestionSet } from '@/entities/questionSet/model/useQuestionSetList';
+import QuestionSetQASection from '@/entities/questionSet/ui/QuestionSetQASection';
+import QuestionSetOverviewSection from '@/entities/questionSet/ui/QuestionSetOverviewSection';
 
-function QuestionSetDetailPage() {
+export default function QuestionSetDetailPage() {
   const { id } = useParams();
-  const { data: questionSet } = useQuestionSet(Number(id));
+  const questionSetId = Number(id);
+  const { data, isLoading, isError } = useQuestionSet(questionSetId);
+
+  const qs = data?.data;
+  console.log(qs);
+
   return (
     <main
       aria-label="question-set-detail-page"
-      className="bg-background relative flex h-full w-full flex-col items-center justify-around gap-8 px-30 py-8"
+      className="relative mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 bg-gray-50 px-6 py-8"
     >
-      <div>QuestionSetDetailPage</div>
+      <header className="flex flex-col gap-3">
+        <QuestionSetOverviewSection />
+      </header>
+      <QuestionSetQASection qs={qs} isLoading={isLoading} />
     </main>
   );
 }
-
-export default QuestionSetDetailPage;
