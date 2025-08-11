@@ -38,11 +38,14 @@ public class QuestionSet extends BaseEntity {
     @JoinColumn(name = "parent_version_id")
     private QuestionSet parentVersionId;
 
-    private Boolean isShared = false;
-    private Boolean isDelete = false;
+    private Boolean isPublic = false;
+    private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "questionSet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuestionSetTag> questionSetTags = new ArrayList<>();
 
     @Version
     @Column(name = "version")
