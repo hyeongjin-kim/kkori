@@ -50,9 +50,6 @@ class QuestionSetServiceTest {
     private QuestionRepository questionRepository;
 
     @Mock
-    private AnswerRepository answerRepository;
-
-    @Mock
     private QuestionSetQuestionMapRepository questionSetQuestionMapRepository;
 
     @Mock
@@ -277,6 +274,261 @@ class QuestionSetServiceTest {
         
         verify(userRepository).findById(userId);
         verify(questionSetRepository).findPublicQuestionSets(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("경계케이스: 빈 페이지 조회 (공개 질문세트 없음)")
+    void getPublicQuestionSets_EmptyResult() {
+        // Given
+        Long userId = 1L;
+        int page = 0;
+        int size = 10;
+        
+        User currentUser = createUser(userId, "user@test.com");
+        Pageable pageable = PageRequest.of(page, size);
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(currentUser));
+        given(questionSetRepository.findPublicQuestionSets(userId, pageable))
+                .willReturn(Arrays.asList()); // 빈 리스트
+
+        // When
+        List<QuestionSetResponse> responses = questionSetService.getPublicQuestionSets(userId, page, size);
+
+        // Then
+        assertThat(responses).isEmpty();
+        
+        verify(userRepository).findById(userId);
+        verify(questionSetRepository).findPublicQuestionSets(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("경계케이스: 사용자 질문세트 목록이 비어있는 경우")
+    void getUserQuestionSets_EmptyResult() {
+        // Given
+        Long userId = 1L;
+        int page = 0;
+        int size = 10;
+        
+        User owner = createUser(userId, "owner@test.com");
+        Pageable pageable = PageRequest.of(page, size);
+        Page<QuestionSet> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(owner));
+        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+                .willReturn(emptyPage);
+
+        // When
+        List<QuestionSetResponse> responses = questionSetService.getUserQuestionSets(userId, page, size);
+
+        // Then
+        assertThat(responses).isEmpty();
+        
+        verify(userRepository).findById(userId);
+        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("예외케이스: 사용자 목록 조회 시 존재하지 않는 사용자")
+    void getUserQuestionSets_UserNotFound() {
+        // Given
+        Long nonExistentUserId = 999L;
+        int page = 0;
+        int size = 10;
+        
+        given(userRepository.findById(nonExistentUserId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.getUserQuestionSets(nonExistentUserId, page, size))
+                .isInstanceOf(UserException.class);
+        
+        verify(userRepository).findById(nonExistentUserId);
+        verifyNoInteractions(questionSetRepository);
+    }
+
+    @Test
+    @DisplayName("예외케이스: 공개 질문세트 조회 시 존재하지 않는 사용자")
+    void getPublicQuestionSets_UserNotFound() {
+        // Given
+        Long nonExistentUserId = 999L;
+        int page = 0;
+        int size = 10;
+        
+        given(userRepository.findById(nonExistentUserId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.getPublicQuestionSets(nonExistentUserId, page, size))
+                .isInstanceOf(UserException.class);
+        
+        verify(userRepository).findById(nonExistentUserId);
+        verifyNoInteractions(questionSetRepository);
+    }
+
+    @Test
+    @DisplayName("경계케이스: 페이지 경계값 테스트 (음수 페이지) - Spring 자체 검증")
+    void getUserQuestionSets_NegativePage() {
+        // Given
+        Long userId = 1L;
+        int negativePage = -1;
+        int size = 10;
+        
+        User owner = createUser(userId, "owner@test.com");
+        given(userRepository.findById(userId)).willReturn(Optional.of(owner));
+        
+        // When & Then - Spring PageRequest가 음수를 허용하지 않음
+        assertThatThrownBy(() -> 
+                questionSetService.getUserQuestionSets(userId, negativePage, size))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("경계케이스: 페이지 크기 경계값 테스트 (0 크기) - Spring 자체 검증")
+    void getUserQuestionSets_ZeroSize() {
+        // Given
+        Long userId = 1L;
+        int page = 0;
+        int zeroSize = 0;
+        
+        User owner = createUser(userId, "owner@test.com");
+        given(userRepository.findById(userId)).willReturn(Optional.of(owner));
+        
+        // When & Then - Spring PageRequest가 0 크기를 허용하지 않음
+        assertThatThrownBy(() -> 
+                questionSetService.getUserQuestionSets(userId, page, zeroSize))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("해피케이스: 큰 페이지 크기도 정상 처리")
+    void getUserQuestionSets_LargePageSize() {
+        // Given
+        Long userId = 1L;
+        int page = 0;
+        int largeSize = 1000; // 큰 크기도 정상 처리됨
+        
+        User owner = createUser(userId, "owner@test.com");
+        Pageable pageable = PageRequest.of(page, largeSize);
+        Page<QuestionSet> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(owner));
+        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+                .willReturn(emptyPage);
+
+        // When
+        List<QuestionSetResponse> responses = questionSetService.getUserQuestionSets(userId, page, largeSize);
+
+        // Then
+        assertThat(responses).isEmpty();
+        
+        verify(userRepository).findById(userId);
+        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
+    }
+
+    @Test
+    @DisplayName("예외케이스: null 사용자 ID로 질문세트 생성 - userRepository에서 에러")
+    void createQuestionSetWithInitialQuestions_NullUserId() {
+        // Given
+        Long nullUserId = null;
+        String title = "테스트 제목";
+        CreateNewQuestionSetRequest request = createQuestionSetRequest(title, "설명");
+        
+        given(userRepository.findById(nullUserId)).willReturn(Optional.empty());
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(nullUserId, request, title))
+                .isInstanceOf(UserException.class); // findUserById에서 UserException 발생
+    }
+
+    @Test
+    @DisplayName("예외케이스: null 요청 객체로 질문세트 생성 - NullPointerException")
+    void createQuestionSetWithInitialQuestions_NullRequest() {
+        // Given
+        Long userId = 1L;
+        String title = "테스트 제목";
+        CreateNewQuestionSetRequest nullRequest = null;
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(userId, nullRequest, title))
+                .isInstanceOf(NullPointerException.class); // null.getQuestions() 호출 시 NPE
+                
+        verifyNoInteractions(userRepository, questionSetRepository, questionRepository);
+    }
+
+    @Test
+    @DisplayName("예외케이스: 빈 제목으로 질문세트 생성")
+    void createQuestionSetWithInitialQuestions_EmptyTitle() {
+        // Given
+        Long userId = 1L;
+        String emptyTitle = ""; // 빈 제목
+        CreateNewQuestionSetRequest request = createQuestionSetRequest("정상 제목", "설명");
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(userId, request, emptyTitle))
+                .isInstanceOf(QuestionSetException.class); // validateCreateQuestionSetRequest에서 검증
+                
+        verifyNoInteractions(userRepository, questionSetRepository, questionRepository);
+    }
+
+    @Test
+    @DisplayName("예외케이스: null 제목으로 질문세트 생성")
+    void createQuestionSetWithInitialQuestions_NullTitle() {
+        // Given
+        Long userId = 1L;
+        String nullTitle = null; // null 제목
+        CreateNewQuestionSetRequest request = createQuestionSetRequest("정상 제목", "설명");
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(userId, request, nullTitle))
+                .isInstanceOf(QuestionSetException.class); // validateCreateQuestionSetRequest에서 검증
+                
+        verifyNoInteractions(userRepository, questionSetRepository, questionRepository);
+    }
+
+    @Test
+    @DisplayName("예외케이스: 빈 질문 리스트로 질문세트 생성")
+    void createQuestionSetWithInitialQuestions_EmptyQuestions() {
+        // Given
+        Long userId = 1L;
+        String title = "테스트 질문세트";
+        
+        CreateNewQuestionSetRequest requestWithEmptyQuestions = CreateNewQuestionSetRequest.builder()
+                .title(title)
+                .description("설명")
+                .questions(Arrays.asList()) // 빈 질문 리스트
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(userId, requestWithEmptyQuestions, title))
+                .isInstanceOf(QuestionSetException.class); // validateQuestionsNotEmpty에서 검증
+                
+        verifyNoInteractions(userRepository, questionSetRepository, questionRepository);
+    }
+
+    @Test
+    @DisplayName("예외케이스: null 질문 리스트로 질문세트 생성")
+    void createQuestionSetWithInitialQuestions_NullQuestions() {
+        // Given
+        Long userId = 1L;
+        String title = "테스트 질문세트";
+        
+        CreateNewQuestionSetRequest requestWithNullQuestions = CreateNewQuestionSetRequest.builder()
+                .title(title)
+                .description("설명")
+                .questions(null) // null 질문 리스트
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> 
+                questionSetService.createQuestionSetWithInitialQuestions(userId, requestWithNullQuestions, title))
+                .isInstanceOf(QuestionSetException.class); // validateQuestionsNotEmpty에서 검증
+                
+        verifyNoInteractions(userRepository, questionSetRepository, questionRepository);
     }
 
     // 테스트 헬퍼 메서드들

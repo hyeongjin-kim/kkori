@@ -2,13 +2,20 @@ package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.Index;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "question_set_question_maps")
+@Table(name = "question_set_question_maps",
+    indexes = {
+        @Index(name = "idx_questionset_question_map_set", columnList = "question_set_id"),
+        @Index(name = "idx_questionset_question_map_question", columnList = "question_id"),
+        @Index(name = "idx_questionset_question_map_display_order", columnList = "display_order"),
+        @Index(name = "idx_questionset_question_map_set_order", columnList = "question_set_id, display_order")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSetQuestionMap extends BaseEntity {

@@ -200,4 +200,29 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findAccessibleQuestionSets(@Param("userId") Long userId, Pageable pageable);
+    
+    /**
+     * 최근 생성된 공개 질문 세트 Top N 조회 (캐싱용)
+     */
+    @Query(value = "SELECT qs FROM QuestionSet qs " +
+           "JOIN FETCH qs.ownerUserId " +
+           "WHERE qs.isPublic = true AND qs.isDeleted = false " +
+           "ORDER BY qs.createdAt DESC")
+    List<QuestionSet> findTopRecentPublicQuestionSets(Pageable pageable);
+    
+    /**
+     * 사용자별 질문 세트 개수 조회 (통계용)
+     */
+    @Query("SELECT COUNT(qs) FROM QuestionSet qs " +
+           "WHERE qs.ownerUserId.userId = :userId AND qs.isDeleted = false")
+    Long countByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 배치 삭제 최적화 - 여러 질문 세트 한 번에 soft delete
+     */
+    @Query("UPDATE QuestionSet qs SET qs.isDeleted = true " +
+           "WHERE qs.id IN :questionSetIds AND qs.ownerUserId.userId = :userId")
+    @org.springframework.data.jpa.repository.Modifying
+    void softDeleteByIds(@Param("questionSetIds") List<Long> questionSetIds, 
+                         @Param("userId") Long userId);
 }
