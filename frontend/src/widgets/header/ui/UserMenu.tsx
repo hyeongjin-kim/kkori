@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { post } from '@/shared/api/api';
 
 interface UserMenuProps {
   user: {
@@ -12,6 +13,7 @@ function UserMenu({ user }: UserMenuProps) {
   const qc = useQueryClient();
 
   const handleLogout = async () => {
+    await post('/api/users/logout');
     qc.setQueryData(['me'], null);
   };
 
