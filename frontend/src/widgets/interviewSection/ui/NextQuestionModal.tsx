@@ -5,21 +5,28 @@ import {
   chooseDefaultQuestion,
   chooseTailQuestion,
 } from '../model';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 function NextQuestionModal() {
   const { tailQuestion, defaultQuestion, customQuestion } =
     useInterviewQuestionStore();
-
+  const { modalOpen } = useInterviewRoomStore();
+  if (!modalOpen) return null;
   return (
     <div
       aria-label="next-question-modal"
-      className="flex w-1/2 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+      className="absolute top-1/2 left-1/2 flex h-1/2 w-1/2 -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
     >
       <span className="text-2xl font-bold">다음 질문을 선택하세요</span>
       <NextQuestionButton
         nextQuestion={tailQuestion.question}
         label="tail-question"
-        onClick={chooseTailQuestion}
+        onClick={() => chooseTailQuestion(1)}
+      />
+      <NextQuestionButton
+        nextQuestion={tailQuestion.question}
+        label="tail-question"
+        onClick={() => chooseTailQuestion(2)}
       />
       <NextQuestionButton
         nextQuestion={defaultQuestion.question}
