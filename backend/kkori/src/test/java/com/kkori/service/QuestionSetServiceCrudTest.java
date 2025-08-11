@@ -822,10 +822,8 @@ class QuestionSetServiceCrudTest {
     }
 
     private Question createQuestion(Long id, String content) {
-        Question question = Question.defaultBuilder()
-                .content(content)
-                .expectedAnswer("기본 답변")
-                .build();
+        Question question = Question.createDefault(content, "기본 답변");
+
         setFieldValue(question, "id", id);
         return question;
     }

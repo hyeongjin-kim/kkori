@@ -369,10 +369,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         int displayOrder = 1;
         for (CreateQuestionWithAnswerRequest questionRequest : request.getQuestions()) {
             // 질문 생성 (expectedAnswer 포함)
-            Question question = Question.defaultBuilder()
-                    .content(questionRequest.getContent())
-                    .expectedAnswer(questionRequest.getExpectedAnswer())
-                    .build();
+            Question question = Question.createDefault(questionRequest.getContent(),questionRequest.getExpectedAnswer());
             Question savedQuestion = questionRepository.save(question);
             
             // 질문 매핑 생성 (Answer 없이)
@@ -629,10 +626,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                     .orElseThrow(QuestionSetException::questionSetNotFound);
             
             // 새로운 expectedAnswer로 새 질문 생성 (불변성 보장)
-            Question newQuestion = Question.defaultBuilder()
-                    .content(existingQuestion.getContent())
-                    .expectedAnswer(questionRequest.getNewExpectedAnswer())
-                    .build();
+            Question newQuestion = Question.createDefault(existingQuestion.getContent(), questionRequest.getNewExpectedAnswer());
             Question savedQuestion = questionRepository.save(newQuestion);
             
             // 질문 매핑 생성
