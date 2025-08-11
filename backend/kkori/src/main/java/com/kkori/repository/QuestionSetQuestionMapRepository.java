@@ -14,12 +14,37 @@ import java.util.Optional;
 @Repository
 public interface QuestionSetQuestionMapRepository extends JpaRepository<QuestionSetQuestionMap, Long> {
 
+    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
+           "JOIN FETCH qsqm.question q " +
+           "WHERE qsqm.questionSet.id = :questionSetId " +
+           "ORDER BY qsqm.displayOrder ASC")
+    List<QuestionSetQuestionMap> findByQuestionSetIdWithDetails(@Param("questionSetId") Long questionSetId);
+
+    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
+           "JOIN FETCH qsqm.question q " +
+           "WHERE qsqm.id = :mapId")
+    Optional<QuestionSetQuestionMap> findByIdWithDetails(@Param("mapId") Long mapId);
+
+    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
+           "WHERE qsqm.questionSet.id = :questionSetId " +
+           "ORDER BY qsqm.displayOrder ASC")
+    List<QuestionSetQuestionMap> findByQuestionSetId(@Param("questionSetId") Long questionSetId);
+
+    @Query("SELECT COUNT(qsqm) FROM QuestionSetQuestionMap qsqm " +
+           "WHERE qsqm.questionSet.id = :questionSetId")
+    long countByQuestionSetId(@Param("questionSetId") Long questionSetId);
+
+    @Query("SELECT MAX(qsqm.displayOrder) FROM QuestionSetQuestionMap qsqm " +
+           "WHERE qsqm.questionSet.id = :questionSetId")
+    Optional<Integer> findMaxDisplayOrderByQuestionSetId(@Param("questionSetId") Long questionSetId);
+
+    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
+           "WHERE qsqm.questionSet.id = :questionSetId " +
+           "ORDER BY qsqm.displayOrder ASC")
+    List<QuestionSetQuestionMap> findByQuestionSetIdOrderByDisplayOrder(@Param("questionSetId") Long questionSetId);
+
     // 특정 QuestionSet에 속한 모든 매핑을 displayOrder 순으로 조회
     List<QuestionSetQuestionMap> findByQuestionSetOrderByDisplayOrder(QuestionSet questionSet);
-
-    // 특정 QuestionSet ID로 매핑을 displayOrder 순으로 조회
-    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm WHERE qsqm.questionSet.id = :questionSetId ORDER BY qsqm.displayOrder")
-    List<QuestionSetQuestionMap> findByQuestionSetIdOrderByDisplayOrder(@Param("questionSetId") Long questionSetId);
 
     // 특정 Question에 대한 모든 매핑 조회
     List<QuestionSetQuestionMap> findByQuestion(Question question);

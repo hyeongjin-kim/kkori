@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.mockito.ArgumentCaptor;
+
 @ExtendWith(MockitoExtension.class)
 @DisplayName("InterviewSessionService 구현 테스트")
 class InterviewSessionServiceImplTest {
@@ -457,41 +459,208 @@ class InterviewSessionServiceImplTest {
         }
 
         @Test
-        @DisplayName("꼬리질문 저장 시 부모 질문 정보가 올바르게 처리되어야 함")
-        void completeInterview_WithTailQuestion() {
+        @DisplayName("기본 질문 → 꼬리질문 저장 시 현재 질문이 부모로 설정됨")
+        void completeInterview_DefaultQuestionToTailQuestion() {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockRoom.isStarted()).thenReturn(true);
             when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
             when(mockRoom.getSession()).thenReturn(mockSession);
             when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
-            // 꼬리질문이 포함된 질문-답변 데이터
-            QuestionForm parentQuestion = new QuestionForm(DEFAULT, 1, QUESTION_1_TEXT);
+            
+            // 기본 질문 → 꼬리질문 순서의 질문-답변 데이터 (LinkedHashMap으로 순서 보장)
+            QuestionForm defaultQuestion = new QuestionForm(DEFAULT, 1, QUESTION_1_TEXT);
             QuestionForm tailQuestion = new QuestionForm(TAIL, 2, TAIL_QUESTION_1);
-            tailQuestion.setParentQuestion(parentQuestion);
-            Map<QuestionForm, String> questionAnswers = Map.of(
-                    parentQuestion, "부모 질문 답변",
-                    tailQuestion, "꼬리 질문 답변"
-            );
+            LinkedHashMap<QuestionForm, String> questionAnswers = new LinkedHashMap<>();
+            questionAnswers.put(defaultQuestion, "기본 질문 답변");
+            questionAnswers.put(tailQuestion, "꼬리 질문 답변");
+            
             when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
-            Question mockParentQuestion = mock(Question.class);
-            Question mockTailQuestion = mock(Question.class);
+            
+            Question mockDefaultQuestion = mock(Question.class);
             Answer mockAnswer1 = mock(Answer.class);
             Answer mockAnswer2 = mock(Answer.class);
-            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockParentQuestion));
-            when(questionRepository.save(any(Question.class))).thenReturn(mockTailQuestion);
+            
+            // 기본 질문 조회 (저장하지 않음)
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockDefaultQuestion));
+            // 꼬리질문 저장 시 실제 생성된 Question 객체를 그대로 반환하도록 설정
+            when(questionRepository.save(any(Question.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            
             when(answerRepository.save(any(Answer.class)))
                     .thenReturn(mockAnswer1)
                     .thenReturn(mockAnswer2);
             when(mockInterview.getInterviewee()).thenReturn(mockUser);
+            
             // when
             service.completeInterview(ROOM_ID);
+            
             // then
-            // findById(1L)이 2번 호출됨: 기본 질문 저장 시 + 꼬리질문의 부모 찾기 시
-            verify(questionRepository, times(2)).findById(1L);
-            verify(questionRepository, times(1)).save(any(Question.class)); // 꼬리질문 저장
+            verify(questionRepository).findById(1L); // 기본 질문 조회
+            
+            // ArgumentCaptor로 저장된 Question 객체 검증 (꼬리질문만 저장됨)
+            ArgumentCaptor<Question> questionCaptor = ArgumentCaptor.forClass(Question.class);
+            verify(questionRepository).save(questionCaptor.capture()); // save() 호출 검증 (횟수 확인 안함)
+            
+            Question savedTailQuestion = questionCaptor.getValue();
+            
+            // 디버깅: 실제 저장된 객체 확인
+            System.out.println("=== DEBUG INFO ===");
+            System.out.println("Captured Question Type: " + savedTailQuestion.getQuestionType());
+            System.out.println("Expected: " + com.kkori.entity.QuestionType.TAIL);
+            System.out.println("Question Content: " + savedTailQuestion.getContent());
+            System.out.println("Question Parent: " + savedTailQuestion.getParent());
+            
+            // 실제 Question.createTail() 동작 확인
+            try {
+                Question testTailQuestion = Question.createTail("테스트 꼬리질문", mockDefaultQuestion);
+                System.out.println("Direct createTail() Type: " + testTailQuestion.getQuestionType());
+                System.out.println("Direct createTail() Parent: " + testTailQuestion.getParent());
+            } catch (Exception e) {
+                System.out.println("createTail() ERROR: " + e.getMessage());
+            }
+            System.out.println("==================");
+            
+            // 실제 Question.createTail()로 생성된 객체 검증
+            assertThat(savedTailQuestion.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.TAIL);
+            assertThat(savedTailQuestion.getParent()).isEqualTo(mockDefaultQuestion);
+            assertThat(savedTailQuestion.getContent()).isEqualTo(TAIL_QUESTION_1);
+            
+            verify(answerRepository, times(2)).save(any(Answer.class)); // 답변 2개 저장
+            verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class)); // 면접 기록 2개 저장
+        }
+
+        @Test
+        @DisplayName("커스텀 질문 → 꼬리질문 저장 시 현재 질문이 부모로 설정됨")
+        void completeInterview_CustomQuestionToTailQuestion() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
+            when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
+            
+            // 커스텀 질문 → 꼬리질문 순서의 질문-답변 데이터
+            QuestionForm customQuestion = new QuestionForm(CUSTOM, 1, CUSTOM_QUESTION_TEXT);
+            QuestionForm tailQuestion = new QuestionForm(TAIL, 2, TAIL_QUESTION_1);
+            LinkedHashMap<QuestionForm, String> questionAnswers = new LinkedHashMap<>();
+            questionAnswers.put(customQuestion, "커스텀 질문 답변");
+            questionAnswers.put(tailQuestion, "꼬리 질문 답변");
+            
+            when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
+            
+            Question mockCustomQuestion = mock(Question.class);
+            Question mockTailQuestion = mock(Question.class);
+            Answer mockAnswer1 = mock(Answer.class);
+            Answer mockAnswer2 = mock(Answer.class);
+            
+            // 질문 저장 - 순서대로 반환
+            when(questionRepository.save(any(Question.class)))
+                    .thenReturn(mockCustomQuestion)  // 첫 번째: 커스텀 질문
+                    .thenReturn(mockTailQuestion);   // 두 번째: 꼬리질문
+            
+            when(answerRepository.save(any(Answer.class)))
+                    .thenReturn(mockAnswer1)
+                    .thenReturn(mockAnswer2);
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
+            
+            // when
+            service.completeInterview(ROOM_ID);
+            
+            // then
+            // ArgumentCaptor로 저장된 Question 객체들 검증
+            ArgumentCaptor<Question> questionCaptor = ArgumentCaptor.forClass(Question.class);
+            verify(questionRepository, times(2)).save(questionCaptor.capture());
+            
+            List<Question> savedQuestions = questionCaptor.getAllValues();
+            
+            // 첫 번째 저장: 커스텀 질문
+            Question savedCustomQuestion = savedQuestions.get(0);
+            assertThat(savedCustomQuestion.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.CUSTOM);
+            assertThat(savedCustomQuestion.getContent()).isEqualTo(CUSTOM_QUESTION_TEXT);
+            
+            // 두 번째 저장: 꼬리질문 (커스텀 질문이 부모)
+            Question savedTailQuestion = savedQuestions.get(1);
+            assertThat(savedTailQuestion.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.TAIL);
+            assertThat(savedTailQuestion.getParent()).isEqualTo(mockCustomQuestion);
+            assertThat(savedTailQuestion.getContent()).isEqualTo(TAIL_QUESTION_1);
+            
             verify(answerRepository, times(2)).save(any(Answer.class));
             verify(interviewRecordRepository, times(2)).save(any(InterviewRecord.class));
+        }
+
+        @Test
+        @DisplayName("복합 시나리오: 기본질문 → 꼬리질문 → 커스텀질문 → 꼬리질문")
+        void completeInterview_ComplexScenario() {
+            // given
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.isStarted()).thenReturn(true);
+            when(mockRoom.getInterviewId()).thenReturn(INTERVIEW_ID);
+            when(mockRoom.getSession()).thenReturn(mockSession);
+            when(interviewRepository.findById(INTERVIEW_ID)).thenReturn(Optional.of(mockInterview));
+            
+            // 복합 시나리오: DEFAULT → TAIL → CUSTOM → TAIL
+            QuestionForm defaultQuestion = new QuestionForm(DEFAULT, 1, QUESTION_1_TEXT);
+            QuestionForm tailQuestion1 = new QuestionForm(TAIL, 2, TAIL_QUESTION_1);
+            QuestionForm customQuestion = new QuestionForm(CUSTOM, 3, CUSTOM_QUESTION_TEXT);
+            QuestionForm tailQuestion2 = new QuestionForm(TAIL, 4, TAIL_QUESTION_2);
+            
+            LinkedHashMap<QuestionForm, String> questionAnswers = new LinkedHashMap<>();
+            questionAnswers.put(defaultQuestion, "기본 질문 답변");
+            questionAnswers.put(tailQuestion1, "첫 번째 꼬리질문 답변");
+            questionAnswers.put(customQuestion, "커스텀 질문 답변");
+            questionAnswers.put(tailQuestion2, "두 번째 꼬리질문 답변");
+            
+            when(mockSession.getQuestionAnswer()).thenReturn(questionAnswers);
+            
+            Question mockDefaultQuestion = mock(Question.class);
+            Question mockTailQuestion1 = mock(Question.class);
+            Question mockCustomQuestion = mock(Question.class);
+            Question mockTailQuestion2 = mock(Question.class);
+            
+            // 기본 질문 조회
+            when(questionRepository.findById(1L)).thenReturn(Optional.of(mockDefaultQuestion));
+            
+            // 질문 저장 순서대로 반환
+            when(questionRepository.save(any(Question.class)))
+                    .thenReturn(mockTailQuestion1)    // 첫 번째 꼬리질문
+                    .thenReturn(mockCustomQuestion)   // 커스텀 질문  
+                    .thenReturn(mockTailQuestion2);   // 두 번째 꼬리질문
+            
+            when(answerRepository.save(any(Answer.class)))
+                    .thenReturn(mock(Answer.class))
+                    .thenReturn(mock(Answer.class))
+                    .thenReturn(mock(Answer.class))
+                    .thenReturn(mock(Answer.class));
+            when(mockInterview.getInterviewee()).thenReturn(mockUser);
+            
+            // when
+            service.completeInterview(ROOM_ID);
+            
+            // then
+            verify(questionRepository).findById(1L); // 기본 질문 조회
+            
+            // ArgumentCaptor로 저장된 Question 객체들 검증
+            ArgumentCaptor<Question> questionCaptor = ArgumentCaptor.forClass(Question.class);
+            verify(questionRepository, times(3)).save(questionCaptor.capture());
+            
+            List<Question> savedQuestions = questionCaptor.getAllValues();
+            
+            // 첫 번째 저장: 꼬리질문 (기본 질문을 부모로)
+            Question savedTailQuestion1 = savedQuestions.get(0);
+            assertThat(savedTailQuestion1.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.TAIL);
+            assertThat(savedTailQuestion1.getParent()).isEqualTo(mockDefaultQuestion);
+            
+            // 두 번째 저장: 커스텀 질문
+            Question savedCustomQuestion = savedQuestions.get(1);
+            assertThat(savedCustomQuestion.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.CUSTOM);
+            
+            // 세 번째 저장: 꼬리질문 (커스텀 질문을 부모로)
+            Question savedTailQuestion2 = savedQuestions.get(2);
+            assertThat(savedTailQuestion2.getQuestionType()).isEqualTo(com.kkori.entity.QuestionType.TAIL);
+            assertThat(savedTailQuestion2.getParent()).isEqualTo(mockCustomQuestion);
+            
+            verify(answerRepository, times(4)).save(any(Answer.class));
+            verify(interviewRecordRepository, times(4)).save(any(InterviewRecord.class));
         }
     }
 

@@ -13,11 +13,13 @@ import com.kkori.dto.interview.response.InterviewStartResponse;
 import com.kkori.dto.interview.response.JoinedUserResponse;
 import com.kkori.dto.interview.response.NextQuestionChoicesResponse;
 import com.kkori.dto.interview.response.RoomCreateResponse;
+import com.kkori.dto.interview.response.RoomReconnectionResponse;
 import com.kkori.dto.interview.response.RoomStatusResponse;
 import com.kkori.dto.interview.response.STTResultResponse;
 import com.kkori.dto.interview.response.SuccessResponse;
 import com.kkori.entity.User;
 import com.kkori.exception.ExceptionCode;
+import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.message.InterviewMessages;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.service.UserService;
@@ -61,11 +63,15 @@ public class InterviewWebSocketController {
 
         try {
             String roomId = request.getRoomId();
-            interviewSessionService.joinRoom(roomId, authenticatedUserId);
 
-            InterviewRoom interviewRoom = interviewSessionService.getRoom(roomId);
+            if (!isReconnection(roomId, authenticatedUserId)) {
 
-            sendJoinMessage(interviewRoom.getCreatorId(), authenticatedUserId);
+                interviewSessionService.joinRoom(roomId, authenticatedUserId);
+
+                InterviewRoom interviewRoom = interviewSessionService.getRoom(roomId);
+
+                sendJoinMessage(interviewRoom.getCreatorId(), authenticatedUserId);
+            }
 
         } catch (Exception e) {
             webSocketHelper.sendErrorToUser(authenticatedUserId, ExceptionCode.ROOM_JOIN_FAILED, e.getMessage());
@@ -108,6 +114,25 @@ public class InterviewWebSocketController {
         }
     }
 
+    @MessageMapping("/roles-swap")
+    public void handleRolesSwap(@Payload CommonRoomRequest request, SimpMessageHeaderAccessor headerAccessor) {
+        Long authenticatedUserId = webSocketHelper.requireAuthenticatedUserId(headerAccessor);
+
+        try {
+            String roomId = request.getRoomId();
+            interviewSessionService.swapRoles(roomId);
+
+            SuccessResponse response = new SuccessResponse(
+                    InterviewMessages.ROLES_SWAPPED,
+                    String.valueOf(System.currentTimeMillis())
+            );
+            webSocketHelper.broadcastToRoom(roomId, "roles-swapped", response);
+
+        } catch (Exception e) {
+            webSocketHelper.sendErrorToUser(authenticatedUserId, ExceptionCode.ROLE_SWAP_FAILED, e.getMessage());
+        }
+    }
+
     // ==================== 면접 진행 ====================
 
     @MessageMapping("/interview-start")
@@ -144,7 +169,7 @@ public class InterviewWebSocketController {
                     InterviewMessages.INTERVIEW_COMPLETED,
                     String.valueOf(System.currentTimeMillis())
             );
-            webSocketHelper.broadcastToRoom(roomId, "interview-ended", response);
+            // webSocketHelper.broadcastToRoom(roomId, "interview-ended", response);
 
         } catch (Exception e) {
             webSocketHelper.sendErrorToUser(authenticatedUserId, ExceptionCode.INTERVIEW_END_FAILED, e.getMessage());
@@ -162,7 +187,7 @@ public class InterviewWebSocketController {
                 InterviewMessages.ANSWER_RECORDING_STARTED,
                 String.valueOf(System.currentTimeMillis())
         );
-        webSocketHelper.broadcastToRoom(roomId, "answer-recording-started", response);
+        // webSocketHelper.broadcastToRoom(roomId, "answer-recording-started", response);
     }
 
     @MessageMapping("/answer-submit")
@@ -235,7 +260,7 @@ public class InterviewWebSocketController {
                 InterviewMessages.CUSTOM_QUESTION_RECORDING_STARTED,
                 String.valueOf(System.currentTimeMillis())
         );
-        webSocketHelper.broadcastToRoom(roomId, "custom-question-recording-started", response);
+        //webSocketHelper.broadcastToRoom(roomId, "custom-question-recording-started", response);
     }
 
     @MessageMapping("/custom-question-create")
@@ -278,6 +303,27 @@ public class InterviewWebSocketController {
 
         webSocketHelper.sendPersonalMessage(participantId, "existing-user", toParticipantResponse);
         webSocketHelper.sendPersonalMessage(creatorId, "joined-user", toCreatorResponse);
+    }
+
+    private boolean isReconnection(String roomId, Long userId) {
+        if (roomId != null) {
+            return false;
+        }
+        handleReconnection(userId);
+        return true;
+    }
+
+    private void handleReconnection(Long userId) {
+        try {
+            String roomId = interviewSessionService.getRoomIdByUserId(userId);
+
+            RoomReconnectionResponse response = new RoomReconnectionResponse(roomId);
+            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
+
+            webSocketHelper.sendLastEventToUser(userId);
+        } catch (InterviewRoomException e) {
+            webSocketHelper.sendErrorToUser(userId, e.getExceptionCode());
+        }
     }
 
 }

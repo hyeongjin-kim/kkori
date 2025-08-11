@@ -16,7 +16,9 @@ function useInitMediaStream() {
           audio: true,
         });
         setMyStream(stream);
-        setMyRecorder(new MediaRecorder(stream));
+        setMyRecorder(
+          new MediaRecorder(new MediaStream(stream.getAudioTracks())),
+        );
         setIsMyVideoOn(true);
         setIsMyAudioOn(true);
       } catch (error) {

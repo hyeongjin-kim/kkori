@@ -10,17 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignalingMessage {
-    private String type;
     private String roomId;
-    private Long senderId;
-    private Long receiverId;
     private String sdp;
-
-    public void setTypeReceivedOffer() {
-        this.type = "received-offer";
-    }
-    
-    public void setTypeReceivedAnswer() {
-        this.type = "received-answer";
-    }
 }

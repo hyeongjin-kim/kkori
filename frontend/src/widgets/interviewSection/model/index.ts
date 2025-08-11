@@ -1,6 +1,8 @@
-import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+
+const MAX_RECORD_TIME = 600000;
 
 export function switchScreen() {
   const { mainStreamType, subStreamType, setMainStreamType, setSubStreamType } =
@@ -18,48 +20,69 @@ export function startAnswer() {
     useMediaStreamStore.getState().myRecorder?.state !== 'inactive'
   )
     return;
+  usePracticeSessionStore.getState().answerStart();
   const myMediaStream = useMediaStreamStore.getState().myStream;
   if (!myMediaStream) return;
-  console.log('미디어 스트림 준비');
-  const recorder = new MediaRecorder(myMediaStream);
-  useMediaStreamStore.getState().setMyRecorder(recorder);
+  const recorder = useMediaStreamStore.getState().myRecorder;
+  if (!recorder) return;
   let data: BlobPart[] = [];
   recorder.ondataavailable = event => {
     data.push(event.data);
   };
-  recorder.onstop = () => {
+  recorder.onstop = async () => {
     const blob = new Blob(data, { type: 'audio/webm' });
-    const reader = new FileReader();
-    let base64data = '';
-    reader.onload = () => {
-      base64data = reader.result as string;
-    };
-    reader.readAsDataURL(blob);
+    downloadBlob(blob, 'answer.webm');
     useMediaStreamStore.getState().setData([]);
-    usePracticeSessionStore.getState().answerSubmit(base64data);
-    console.log(base64data);
+    usePracticeSessionStore.getState().answerSubmit(blob);
   };
   recorder.start();
-  console.log('미디어 스트림 녹화 시작');
-  setTimeout(() => {
+  const timerId = setTimeout(() => {
     if (recorder.state === 'recording') {
       recorder.stop();
     }
-  }, 10000);
-  usePracticeSessionStore.getState().answerStart();
+  }, MAX_RECORD_TIME);
+  useMediaStreamStore.getState().setTimerId(timerId);
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename; // 예: 'answer.webm'
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  // Safari 등 호환을 위해 DOM에 붙였다가 제거
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
 }
 
 export function endAnswer() {
-  console.log(useMediaStreamStore.getState().myRecorder);
-  console.log(useMediaStreamStore.getState().myRecorder?.state);
-  if (
-    useMediaStreamStore.getState().myRecorder === null ||
-    useMediaStreamStore.getState().myRecorder?.state !== 'recording'
-  )
-    return;
-  useMediaStreamStore.getState().myRecorder?.stop();
+  const { myRecorder, timerId } = useMediaStreamStore.getState();
+
+  console.log(
+    'endAnswer 호출됨. recorder=',
+    !!myRecorder,
+    'state=',
+    myRecorder?.state,
+  );
+
+  if (!myRecorder) return;
+
+  if (timerId) {
+    clearTimeout(timerId);
+    useMediaStreamStore.getState().setTimerId(null);
+  }
+
+  if (myRecorder.state === 'recording') {
+    myRecorder.stop();
+  }
+
+  console.log('답변 종료 까지 올까?');
 }
-console.log('endAnswer');
+
 export function endInterview() {
   usePracticeSessionStore.getState().interviewEnd();
 }

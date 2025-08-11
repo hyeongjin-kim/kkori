@@ -6,9 +6,7 @@ import { tagFilterStyle } from '@/pages/interviewQuestionsPage/ui/TagFilter';
 describe('TagFilter', () => {
   const testFunction = jest.fn();
   beforeEach(() => {
-    render(
-      <TagFilter tag={{ id: 1, tag: 'interview' }} onClick={testFunction} />,
-    );
+    render(<TagFilter tag="interview" onClick={testFunction} />);
   });
 
   test('TagFilter 컴포넌트가 렌더링되어야 합니다.', () => {
@@ -27,9 +25,7 @@ describe('TagFilter', () => {
 describe('tagFilterStyle', () => {
   [true, false].forEach(selected => {
     test(`${selected ? 'selected' : 'unselected'} 스타일이 적용되어야 한다.`, () => {
-      render(
-        <TagFilter tag={{ id: 1, tag: 'interview' }} selected={selected} />,
-      );
+      render(<TagFilter tag="interview" selected={selected} />);
       const tagFilter = screen.getByRole('button', {
         name: 'tag-filter-interview',
       });
