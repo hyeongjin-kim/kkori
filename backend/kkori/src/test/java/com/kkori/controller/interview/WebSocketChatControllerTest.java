@@ -10,8 +10,6 @@ import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.dto.interview.request.CommonRoomRequest;
-import com.kkori.dto.interview.request.RoomCreateRequest;
-import com.kkori.dto.interview.response.RoomCreateResponse;
 import com.kkori.dto.websocket.WebSocketChatMessage;
 import com.kkori.entity.User;
 import com.kkori.exception.interview.InterviewRoomException;
@@ -128,7 +126,8 @@ public class WebSocketChatControllerTest {
                 .willReturn(TEST_ROOM_ID_1);
         doNothing().when(interviewSessionService).canSendChatMessage(any(), any());
 
-        String roomId = createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW", 1l);
+        String roomId = testHelper.createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW",
+                1l);
 
         CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
         stompSession_user2.send("/app/room-join", roomJoinRequest);
@@ -167,8 +166,10 @@ public class WebSocketChatControllerTest {
                 .canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_1));
         doNothing().when(interviewSessionService).canSendChatMessage(eq(TEST_ROOM_ID_2), eq(TEST_USER_ID_2));
 
-        String roomId_1 = createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW", 1l);
-        String roomId_2 = createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW", 1l);
+        String roomId_1 = testHelper.createRoomAndGetId(stompSession_user1, personalSubscriber_user1, "PAIR_INTERVIEW",
+                1l);
+        String roomId_2 = testHelper.createRoomAndGetId(stompSession_user2, personalSubscriber_user2, "PAIR_INTERVIEW",
+                1l);
 
         List<WebSocketTestHelper.MessageSubscriber> chatSubscriberList = subscribeChat(
                 stompSession_user1, roomId_1,
@@ -201,19 +202,6 @@ public class WebSocketChatControllerTest {
         return List.of(chatSubscriber_user1, chatSubscriber_user2);
     }
 
-    private String createRoomAndGetId(StompSession creatorSession,
-                                      WebSocketTestHelper.MessageSubscriber creatorSubscriber, String mode,
-                                      Long questionSetId) throws Exception {
-
-        RoomCreateRequest roomCreateRequest = new RoomCreateRequest(mode, questionSetId);
-        creatorSession.send("/app/room-create", roomCreateRequest);
-
-        Map<String, Object> response = creatorSubscriber.waitForMessage("room-created", 3);
-        Map<String, Object> responsePayload = (Map<String, Object>) response.get("data");
-        RoomCreateResponse roomCreateResponse = objectMapper.convertValue(responsePayload, RoomCreateResponse.class);
-
-        return roomCreateResponse.getRoomId();
-    }
 
     private void sendChat(User user, StompSession senderSession, String roomId, String message) {
         WebSocketChatMessage chatMessage = new WebSocketChatMessage(

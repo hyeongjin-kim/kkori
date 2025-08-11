@@ -1,7 +1,10 @@
 package com.kkori.controller.interview;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
+import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.websocket.SignalingMessage;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
@@ -83,8 +86,19 @@ public class WebRTCControllerTest {
     @Test
     @DisplayName("WebRTC Offer 전송 테스트")
     void sendOffer() throws Exception {
+        given(interviewSessionService.createPairRoom(1L, USER_ID_1))
+                .willReturn(ROOM_ID);
+        given(interviewSessionService.getOpponentId(any(), any()))
+                .willReturn(USER_ID_1);
+
+        String roomId = testHelper.createRoomAndGetId(stompSession1, personalSubscriber1, "PAIR_INTERVIEW",
+                1l);
+
+        CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
+        stompSession2.send("/app/room-join", roomJoinRequest);
+
         SignalingMessage offer = new SignalingMessage(
-                "offer", ROOM_ID, USER_ID_2, USER_ID_1, "v=0\r\no=- 123 456 IN IP4 127.0.0.1\r\n..."
+                ROOM_ID, "v=0\r\no=- 123 456 IN IP4 127.0.0.1\r\n..."
         );
 
         stompSession2.send("/app/create-offer", offer);
@@ -92,15 +106,24 @@ public class WebRTCControllerTest {
         Map<String, Object> received = personalSubscriber1.waitForMessage("received-offer", 10);
         assertThat(received).isNotNull();
         assertThat(received.get("type")).isEqualTo("received-offer");
-        assertThat(((Number) received.get("senderId")).longValue()).isEqualTo(USER_ID_2);
-        assertThat(((Number) received.get("receiverId")).longValue()).isEqualTo(USER_ID_1);
     }
 
     @Test
     @DisplayName("WebRTC Answer 전송 테스트")
     void sendAnswer() throws Exception {
+        given(interviewSessionService.createPairRoom(1L, USER_ID_1))
+                .willReturn(ROOM_ID);
+        given(interviewSessionService.getOpponentId(any(), any()))
+                .willReturn(USER_ID_2);
+
+        String roomId = testHelper.createRoomAndGetId(stompSession1, personalSubscriber1, "PAIR_INTERVIEW",
+                1l);
+
+        CommonRoomRequest roomJoinRequest = new CommonRoomRequest(roomId);
+        stompSession2.send("/app/room-join", roomJoinRequest);
+
         SignalingMessage answer = new SignalingMessage(
-                "answer", ROOM_ID, USER_ID_1, USER_ID_2, "v=0\r\no=- 789 012 IN IP4 127.0.0.1\r\n..."
+                roomId, "v=0\r\no=- 789 012 IN IP4 127.0.0.1\r\n..."
         );
 
         stompSession1.send("/app/create-answer", answer);
@@ -108,8 +131,6 @@ public class WebRTCControllerTest {
         Map<String, Object> received = personalSubscriber2.waitForMessage("received-answer", 10);
         assertThat(received).isNotNull();
         assertThat(received.get("type")).isEqualTo("received-answer");
-        assertThat(((Number) received.get("senderId")).longValue()).isEqualTo(USER_ID_1);
-        assertThat(((Number) received.get("receiverId")).longValue()).isEqualTo(USER_ID_2);
     }
 
     // ==================== 헬퍼 메서드들 ====================
