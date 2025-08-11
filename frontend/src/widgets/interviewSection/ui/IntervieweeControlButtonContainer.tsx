@@ -1,5 +1,5 @@
-import ControlButton from './ControlButton';
-import { soloIntervieweeControlButtonProps } from '../model/constants';
+import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
+import { soloIntervieweeControlButtonProps } from '@/widgets/interviewSection/model/constants';
 
 function IntervieweeControlButtonContainer() {
   const controlButtonProps = soloIntervieweeControlButtonProps;
