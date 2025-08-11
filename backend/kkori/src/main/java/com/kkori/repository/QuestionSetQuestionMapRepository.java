@@ -1,11 +1,8 @@
 package com.kkori.repository;
 
 import com.kkori.entity.QuestionSetQuestionMap;
-<<<<<<< backend/kkori/src/main/java/com/kkori/repository/QuestionSetQuestionMapRepository.java
-=======
 import com.kkori.entity.QuestionSet;
 import com.kkori.entity.Question;
->>>>>>> backend/kkori/src/main/java/com/kkori/repository/QuestionSetQuestionMapRepository.java
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -52,10 +49,6 @@ public interface QuestionSetQuestionMapRepository extends JpaRepository<Question
 
     // 특정 QuestionSet에 속한 모든 매핑을 displayOrder 순으로 조회
     List<QuestionSetQuestionMap> findByQuestionSetOrderByDisplayOrder(QuestionSet questionSet);
-
-    // 특정 QuestionSet ID로 매핑을 displayOrder 순으로 조회
-    @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm WHERE qsqm.questionSet.id = :questionSetId ORDER BY qsqm.displayOrder")
-    List<QuestionSetQuestionMap> findByQuestionSetIdOrderByDisplayOrder(@Param("questionSetId") Long questionSetId);
 
     // 특정 Question에 대한 모든 매핑 조회
     List<QuestionSetQuestionMap> findByQuestion(Question question);
