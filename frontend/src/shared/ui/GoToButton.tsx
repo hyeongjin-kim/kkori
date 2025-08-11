@@ -12,7 +12,7 @@ function GoToButton({ to, label, icon, text }: GoToButtonProps) {
     <Link
       to={to}
       aria-label={label}
-      className="ml-auto block rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
+      className="bg-point hover:bg-point/80 ml-auto block rounded-full px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
     >
       <div className="flex items-center justify-center">
         {icon && <span>{icon}</span>}
