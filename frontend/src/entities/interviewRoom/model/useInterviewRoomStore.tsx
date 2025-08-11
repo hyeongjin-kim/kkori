@@ -5,7 +5,6 @@ export const interviewStatus = {
   QUESTION_PRESENTED: 'questionPresented',
   ANSWER_START: 'answerStart',
   ANSWER_END: 'answerEnd',
-  NEXT_QUESTIONS_PRESENTED: 'nextQuestionsPresented',
   NEXT_QUESTION_SELECTED: 'nextQuestionSelected',
   CUSTOM_QUESTION_START: 'customQuestionStart',
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
