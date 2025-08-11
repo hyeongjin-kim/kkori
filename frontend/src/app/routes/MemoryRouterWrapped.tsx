@@ -1,5 +1,6 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { mainLayoutRoutes } from '@/app/model/routes';
+import { QueryProvider } from '@/app/providers/QueryProvider';
 
 interface MemoryRouterWrappedProps {
   component: React.ReactNode;
@@ -14,14 +15,16 @@ function MemoryRouterWrapped({
 }: MemoryRouterWrappedProps) {
   const routes = mainLayoutRoutes;
   return (
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route path={path} element={component} />
-        {routes.map(route => (
-          <Route key={route.path} path={route.path} element={route.element} />
-        ))}
-      </Routes>
-    </MemoryRouter>
+    <QueryProvider>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route path={path} element={component} />
+          {routes.map(route => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+        </Routes>
+      </MemoryRouter>
+    </QueryProvider>
   );
 }
 
