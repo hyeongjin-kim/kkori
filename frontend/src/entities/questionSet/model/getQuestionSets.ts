@@ -7,7 +7,7 @@ export const getQuestionSets = async () => {
 };
 
 export const getQuestionSet = async (questionSetId: number) => {
-  const response = await get<QuestionSetResponse>(
+  const response = await get<{ data: QuestionSetResponse }>(
     `/api/questionsets/${questionSetId}`,
   );
   return response;
