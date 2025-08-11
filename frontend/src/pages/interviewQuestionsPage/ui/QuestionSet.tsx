@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { QuestionSetResponse } from '@/entities/questionSet/model/response';
 
 interface QuestionSetProps {
@@ -5,10 +6,14 @@ interface QuestionSetProps {
 }
 
 function QuestionSet({ questionSet }: QuestionSetProps) {
+  const navigate = useNavigate();
   return (
     <li
       aria-label="question-set"
-      className="relative flex w-full flex-col gap-2 rounded-xl border border-gray-200 bg-white p-5 pb-10 shadow-sm transition hover:shadow-md"
+      className="relative flex w-full cursor-pointer flex-col gap-2 rounded-xl border border-gray-200 bg-white p-5 pb-10 shadow-sm transition hover:bg-gray-50 hover:shadow-md"
+      onClick={() => {
+        navigate(`/question-set-detail/${questionSet.questionSetId}`);
+      }}
     >
       <h3 className="text-base font-semibold text-gray-900">
         {questionSet.title}
