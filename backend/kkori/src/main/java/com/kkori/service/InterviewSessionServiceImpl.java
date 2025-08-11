@@ -7,8 +7,12 @@ import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
-import com.kkori.dto.interview.response.InterviewCompletionResponse;
-import com.kkori.entity.*;
+import com.kkori.entity.Answer;
+import com.kkori.entity.Interview;
+import com.kkori.entity.InterviewRecord;
+import com.kkori.entity.Question;
+import com.kkori.entity.QuestionSet;
+import com.kkori.entity.User;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
@@ -24,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -65,6 +70,11 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     @Override
     public void joinRoom(String roomId, Long userId) {
         roomManager.joinRoom(roomId, userId);
+    }
+
+    @Override
+    public String getRoomIdByUserId(Long userId) {
+        return roomManager.getRoomIdByUserId(userId);
     }
 
     // ==================== 면접 라이프사이클 ====================
@@ -253,6 +263,11 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         throw InterviewRoomException.userNotFoundInRoom();
     }
 
+    @Override
+    public Set<Long> getUserIdsInRoom(String roomId) {
+        return roomManager.getRoom(roomId).getUserIds();
+    }
+
     // ==================== Private 헬퍼 메서드들 ====================
 
     /**
@@ -270,7 +285,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         Map<QuestionForm, String> questionAnswers = session.getQuestionAnswer();
         Question currentQuestion = null;  // 현재 질문 추적
         int orderNum = 1;
-        
+
         for (Map.Entry<QuestionForm, String> entry : questionAnswers.entrySet()) {
             QuestionForm questionForm = entry.getKey();
             String answerText = entry.getValue();
@@ -280,7 +295,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             Answer answer = saveAnswer(question, interview.getInterviewee(), answerText);
             // 3. InterviewRecord 저장 (면접-질문-답변 연결)
             saveInterviewRecord(interview, question, answer, orderNum++);
-            
+
             // 4. TAIL이 아닌 경우 현재 질문 갱신 (부모 질문이 될 수 있는 질문들)
             if (questionForm.getQuestionType() != QuestionType.TAIL) {
                 currentQuestion = question;
@@ -322,7 +337,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         if (currentQuestion == null) {
             throw InterviewSessionException.parentQuestionNotFound();
         }
-        
+
         Question question = Question.createTail(questionForm.getQuestionText(), currentQuestion);
         return questionRepository.save(question);
     }
