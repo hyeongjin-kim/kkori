@@ -5,6 +5,8 @@ import { InterviewSlice } from '@/widgets/interviewSection/model/interviewSlice'
 import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWindowSlice';
 import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { audioPost } from '../api/api';
 
 interface RoomCreateRequest {
   mode: string;
@@ -33,7 +35,7 @@ interface WebSocketAction {
   sendMessage: (sender: string, content: string, timestamp: number) => void;
   roomExit: () => void;
   answerStart: () => void;
-  answerSubmit: (base64data: string) => void;
+  answerSubmit: (blob: Blob) => void;
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
   customQuestionCreate: (base64data: string) => void;
@@ -96,12 +98,14 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   interviewStart: () => {
+    useInterviewRoomStore.getState().setStatus('questionPresented');
     get().client?.publish({
       destination: `/app/interview-start`,
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
   interviewEnd: () => {
+    useInterviewRoomStore.getState().setStatus('endInterview');
     get().client?.publish({
       destination: `/app/interview-end`,
       body: JSON.stringify({ roomId: get().roomID }),
@@ -131,21 +135,30 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   answerStart: () => {
+    useInterviewRoomStore.getState().setStatus('answerStart');
     get().client?.publish({
       destination: `/app/answer-start`,
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  answerSubmit: (base64data: string) => {
+  answerSubmit: async (blob: Blob) => {
+    useInterviewRoomStore.getState().setStatus('answerEnd');
+    const response = await audioPost({
+      url: '/api/interview/answer-submit',
+      roomId: get().roomID || '',
+      audioFile: blob,
+    });
+    console.log('Response:', response);
     get().client?.publish({
       destination: `/app/answer-submit`,
       body: JSON.stringify({
         roomId: get().roomID,
-        audioBase64: base64data,
       }),
     });
+    console.log('답변 제출 이벤트 끝');
   },
   nextQuestionSelect: () => {
+    useInterviewRoomStore.getState().setStatus('questionPresented');
     get().client?.publish({
       destination: `/app/next-question-select`,
       body: JSON.stringify({
@@ -214,6 +227,7 @@ const roomCreatedHandler = (
   set({ roomID: response.roomId });
   client.subscribe(`/topic/interview/${response.roomId}`, message => {
     const response = JSON.parse(message.body);
+    console.log(response);
     get().InterviewMessageHandler(client, response);
   });
 };
@@ -253,11 +267,12 @@ const offerHandler = async (client: Client, set: any, response: any) => {
     iceServers: [
       {
         urls: process.env.TURN_URL || '',
-        credential: process.env.TURN_CREDENTIAL || '',
         username: process.env.TURN_USERNAME || '',
+        credential: process.env.TURN_CREDENTIAL || '',
       },
     ],
   });
+  console.log(peerConnection);
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
