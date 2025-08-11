@@ -5,11 +5,11 @@ import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.Permission;
 import com.kkori.component.interview.UserRole;
 import com.kkori.exception.interview.InterviewRoomException;
-import org.springframework.stereotype.Component;
-
+import com.kkori.exception.interview.InterviewSessionException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class InterviewRoomManager {
@@ -17,6 +17,7 @@ public class InterviewRoomManager {
     private static final int MAX_USERS = 2;
 
     private final Map<String, InterviewRoom> rooms = new ConcurrentHashMap<>();
+    private final Map<Long, String> userRoomMap = new ConcurrentHashMap<>();
 
     /**
      * 혼자 연습하기 방 생성
@@ -240,5 +241,15 @@ public class InterviewRoomManager {
     public boolean isCreator(String roomId, Long userId) {
         InterviewRoom room = getRoom(roomId);
         return room.getCreatorId().equals(userId);
+    }
+
+    /**
+     * (재연결 시) userId로 방 번호 조회
+     */
+    public String getRoomIdByUserId(Long userId) {
+        if (userRoomMap.containsKey(userId)) {
+            return userRoomMap.get(userId);
+        }
+        throw InterviewSessionException.roomIdNotFoundForUser();
     }
 }

@@ -3,10 +3,8 @@ package com.kkori.service;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
-import com.kkori.component.interview.InterviewRoom;
-import com.kkori.dto.interview.response.InterviewCompletionResponse;
-
 import java.util.List;
+import java.util.Set;
 
 public interface InterviewSessionService {
 
@@ -26,6 +24,17 @@ public interface InterviewSessionService {
      * 방 참여 (함께 연습하기만 가능)
      */
     void joinRoom(String roomId, Long userId);
+
+    /**
+     * (재연결 시) roomId 조회
+     */
+    String getRoomIdByUserId(Long userId);
+
+
+    /**
+     * 방의 참여자 id 조회
+     */
+    Set<Long> getUserIdsInRoom(String roomId);
 
     // ==================== 면접 ====================
 
