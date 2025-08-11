@@ -49,7 +49,7 @@ public class GuestLoginController {
             return ResponseEntity.status(UNAUTHORIZED).build();
         }
 
-        addLoginCookies(response, accessToken, loginResponse.getRefreshToken());
+        setAccessAndRefreshCookies(response, accessToken, loginResponse.getRefreshToken());
         log.info("게스트 로그인 성공: nickname={}", loginResponse.getNickname());
 
         return ResponseEntity.ok(loginResponse);
@@ -72,7 +72,7 @@ public class GuestLoginController {
         return ResponseEntity.ok(newAccessToken);
     }
 
-    private void addLoginCookies(HttpServletResponse response, Token accessToken, Token refreshToken) {
+    private void setAccessAndRefreshCookies(HttpServletResponse response, Token accessToken, Token refreshToken) {
         CookieUtil.addAccessTokenJwtCookie(response, TokenCookie.ACCESS_TOKEN,
                 accessToken.getToken(), TokenCookie.ACCESS_EXPIRE_SECONDS);
 
