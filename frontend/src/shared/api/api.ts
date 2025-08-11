@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 export const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: process.env.BASE_URL || '',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -48,5 +48,24 @@ export const del = async <T>(
   config?: AxiosRequestConfig,
 ): Promise<T> => {
   const res: AxiosResponse<T> = await api.delete(url, config);
+  return res.data;
+};
+
+export const audioApi = axios.create({
+  baseURL: process.env.WEBSOCKET_URL || '',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
+
+export const audioPost = async (url: string, blob: Blob) => {
+  const formData = new FormData();
+  formData.append('file', blob, 'answer.webm');
+  const res = await audioApi.post(url, formData, {
+    onUploadProgress: e =>
+      console.log('progress', Math.round((e.loaded / e.total!) * 100)),
+  });
   return res.data;
 };
