@@ -1,56 +1,51 @@
 package com.kkori.controller;
 
-import com.kkori.dto.SignalingMessage;
+import com.kkori.dto.websocket.SignalingMessage;
+import com.kkori.util.WebSocketHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
 public class WebRTCSignalingController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketHelper webSocketHelper;
 
-    @MessageMapping("/offer")
+    @MessageMapping("/create-offer")
     public void handleOffer(@Payload SignalingMessage message, SimpMessageHeaderAccessor headerAccessor) {
-        // 송신자 ID를 인증된 사용자 ID로 설정
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) {
-            return;
-        }
+        Long authenticatedUserId = webSocketHelper.requireAuthenticatedUserId(headerAccessor);
 
-        message.setSenderId(authenticatedUserId);
+        String receiverId = initReceivedOfferMessage(authenticatedUserId, message);
 
-        // 수신자에게 offer 전송
-        messagingTemplate.convertAndSendToUser(
-                message.getReceiverId().toString(),
-                "/queue/interview",
-                message
-        );
+        webSocketHelper.sendSDP(receiverId, message);
     }
 
-    @MessageMapping("/answer")
+
+    @MessageMapping("/create-answer")
     public void handleAnswer(@Payload SignalingMessage message, SimpMessageHeaderAccessor headerAccessor) {
-        // 송신자 ID를 인증된 사용자 ID로 설정
-        Long authenticatedUserId = getAuthenticatedUserId(headerAccessor);
-        if (authenticatedUserId == null) {
-            return;
-        }
+        Long authenticatedUserId = webSocketHelper.requireAuthenticatedUserId(headerAccessor);
 
-        message.setSenderId(authenticatedUserId);
+        String receiverId = initReceivedAnswerMessage(authenticatedUserId, message);
 
-        // 수신자에게 answer 전송
-        messagingTemplate.convertAndSendToUser(
-                message.getReceiverId().toString(),
-                "/queue/interview",
-                message
-        );
+        webSocketHelper.sendSDP(receiverId, message);
     }
 
-    private Long getAuthenticatedUserId(SimpMessageHeaderAccessor headerAccessor) {
-        return (Long) headerAccessor.getSessionAttributes().get("userId");
+    // ==================== 헬퍼 메서드 ====================
+
+    private String initReceivedAnswerMessage(Long authenticatedUserId, SignalingMessage message) {
+        message.setSenderId(authenticatedUserId);
+        message.setTypeReceivedAnswer();
+
+        return message.getReceiverId().toString();
+    }
+
+    private String initReceivedOfferMessage(Long authenticatedUserId, SignalingMessage message) {
+        message.setSenderId(authenticatedUserId);
+        message.setTypeReceivedOffer();
+
+        return message.getReceiverId().toString();
     }
 }
