@@ -4,6 +4,7 @@ import {
   endAnswer,
   startInterview,
   endInterview,
+  openNextQuestionModal,
 } from '@/widgets/interviewSection/model';
 
 export const soloIntervieweeControlButtonProps = [
@@ -20,7 +21,7 @@ export const soloIntervieweeControlButtonProps = [
     status: 'beforeInterview',
   },
   {
-    onClick: startInterview,
+    onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
     status: 'answerEnd',
@@ -53,7 +54,7 @@ export const peerIntervieweeControlButtonProps = [
     status: 'beforeInterview',
   },
   {
-    onClick: startInterview,
+    onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
     status: 'answerEnd',
@@ -104,7 +105,7 @@ export const peerInterviewerControlButtonProps = [
     status: 'always',
   },
   {
-    onClick: startInterview,
+    onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
     status: 'questionPresented',
