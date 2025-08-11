@@ -5,7 +5,7 @@ import {
 } from '@/entities/questionSet/model/getQuestionSets';
 import { FIVE_MINUTES_IN_MS, NO_STALE_TIME_MS } from '@/app/model/constants';
 import { GetQuestionSetsParams } from '@/entities/questionSet/model/request';
-import { postQuestionSet } from './postQuestionSet';
+import { postQuestionSet } from '@/entities/questionSet/model/postQuestionSet';
 
 export const useQuestionSets = (params: GetQuestionSetsParams) => {
   return useQuery({
