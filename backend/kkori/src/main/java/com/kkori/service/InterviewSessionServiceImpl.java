@@ -128,13 +128,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
 
     @Override
     public String processAudioAnswer(String roomId, Long userId, String audioBase64) {
+        // Base64 디코딩 후 바이트 배열 버전 호출
+        byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+        return processAudioAnswer(roomId, userId, audioBytes);
+    }
+
+    @Override
+    public String processAudioAnswer(String roomId, Long userId, byte[] audioBytes) {
         // 권한 검증
         InterviewRoom room = roomManager.getRoom(roomId);
         validateAnswerPermission(room, userId);
         try {
-            // Base64 디코딩
-            byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
 

@@ -50,6 +50,11 @@ public interface InterviewSessionService {
      * 음성 파일로 답변 처리 (STT 변환 포함)
      */
     String processAudioAnswer(String roomId, Long userId, String audioBase64);
+    
+    /**
+     * 음성 파일로 답변 처리 (바이트 배열 직접 처리)
+     */
+    String processAudioAnswer(String roomId, Long userId, byte[] audioBytes);
 
     // ==================== 질문 관리 ====================
 
