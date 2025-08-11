@@ -19,4 +19,20 @@ public class TailQuestionException extends CustomRuntimeException {
     public static TailQuestionException jsonConversionFailed() {
         return new TailQuestionException(ExceptionCode.JSON_CONVERSION_FAILED);
     }
+
+    public static TailQuestionException tailQuestionNotFound() {
+        return new TailQuestionException(ExceptionCode.TAIL_QUESTION_NOT_FOUND);
+    }
+    
+    public static TailQuestionException tailQuestionAlreadyAnswered() {
+        return new TailQuestionException(ExceptionCode.TAIL_QUESTION_ALREADY_ANSWERED);
+    }
+
+    public static TailQuestionException interviewAlreadyCompleted() {
+        return new TailQuestionException(ExceptionCode.INTERVIEW_ALREADY_COMPLETED);
+    }
+
+    public static TailQuestionException interviewConcurrencyError() {
+        return new TailQuestionException(ExceptionCode.INTERVIEW_CONCURRENCY_ERROR);
+    }
 }

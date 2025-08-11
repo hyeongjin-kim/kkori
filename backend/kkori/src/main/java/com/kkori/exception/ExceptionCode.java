@@ -15,6 +15,7 @@ public enum ExceptionCode {
     BOTH_ROLES_REQUIRED(1006, "면접관과 면접자가 모두 필요합니다.", HttpStatus.PRECONDITION_FAILED),
     CANNOT_CHANGE_ROLES_AFTER_START(1007, "면접 시작 후에는 역할을 변경할 수 없습니다.", HttpStatus.LOCKED),
     USER_NOT_FOUND_IN_ROOM(1008, "방에서 해당 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ROOM_ID_NOT_FOUND_FOR_USER(1009, "해당 사용자에 대한 방 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // ==== Permission 관련 ====
     ONLY_INTERVIEWEE_CAN_SUBMIT_ANSWER(2001, "면접자만 답변을 제출할 수 있습니다.", HttpStatus.FORBIDDEN),
@@ -43,6 +44,10 @@ public enum ExceptionCode {
     // ==== User 관련 ====
     USER_NOT_FOUND(6001, "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     WEBSOCKET_AUTHENTICATION_FAILED(6002, "WebSocket 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED_ACCESS(6003, "인증이 필요합니다.", HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED(6004, "접근이 거부되었습니다.", HttpStatus.FORBIDDEN),
+    INVALID_USER_FORMAT(6005, "잘못된 사용자 ID 형식입니다.", HttpStatus.BAD_REQUEST),
+    ADMIN_REQUIRED(6006, "관리자 권한이 필요합니다.", HttpStatus.FORBIDDEN),
 
     // ==== WebSocket 관련 ====
     ROOM_CREATE_FAILED(7001, "방 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -52,6 +57,7 @@ public enum ExceptionCode {
     INTERVIEW_END_FAILED(7005, "면접 종료에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     ANSWER_PROCESSING_FAILED(7006, "답변 처리에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     QUESTION_SELECT_FAILED(7007, "질문 선택에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    ROLE_SWAP_FAILED(7008, "역할 변경에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ==== QuestionSet 생성 관련 ====
     EMPTY_QUESTIONS(8001, "질문이 비어있습니다.", HttpStatus.BAD_REQUEST),
@@ -62,7 +68,24 @@ public enum ExceptionCode {
     NOT_LOGGED_IN(8006, "로그인이 필요합니다.", HttpStatus.BAD_REQUEST),
     QUESTION_SET_INTERNAL_ERROR(8007, "질문 세트 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     QUESTION_SET_NOT_FOUND_EXCEPTION(8008, "질문 세트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    NO_PERMISSION(8009, "질문 세트에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN);
+    NO_PERMISSION(8009, "질문 세트에 대한 권한이 없습니다.", HttpStatus.FORBIDDEN),
+
+    // ==== InterviewTailQuestion 관련 ====
+    TAIL_QUESTION_NOT_FOUND(9001, "꼬리 질문을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    TAIL_QUESTION_ALREADY_ANSWERED(9002, "이미 답변한 꼬리 질문입니다.", HttpStatus.CONFLICT),
+    INTERVIEW_ACCESS_DENIED(9003, "면접에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    INTERVIEW_ALREADY_COMPLETED(9004, "이미 완료된 면접입니다.", HttpStatus.CONFLICT),
+    INTERVIEW_CONCURRENCY_ERROR(9005, "동시 수정 오류가 발생했습니다.", HttpStatus.CONFLICT),
+
+    // ==== 동시성 제어 관련 ====
+    RESOURCE_LOCK_TIMEOUT(9010, "리소스 락 획득 시간이 초과되었습니다.", HttpStatus.REQUEST_TIMEOUT),
+    CONCURRENT_MODIFICATION_ERROR(9011, "동시 수정이 감지되었습니다.", HttpStatus.CONFLICT),
+
+    // ==== InterviewRecord 관련 ====
+    INTERVIEW_RECORD_NOT_FOUND(10001, "면접 기록을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INTERVIEW_RECORD_ACCESS_DENIED(10002, "면접 기록에 접근할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    INTERVIEW_RECORD_LIST_FETCH_FAILED(10003, "면접 기록 목록 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    INTERVIEW_RECORD_DETAIL_FETCH_FAILED(10004, "면접 기록 상세 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String message;
