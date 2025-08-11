@@ -1,13 +1,18 @@
 package com.kkori.dto.question.response;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 public class TagResponse {
 
     private Long id;
     private String tag;
+
+    @Builder
+    public TagResponse(Long id, String tag) {
+        this.id = id;
+        this.tag = tag;
+    }
 
 }

@@ -3,6 +3,9 @@ package com.kkori.service;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.component.interview.InterviewRoom;
+import com.kkori.dto.interview.response.InterviewCompletionResponse;
+
 import java.util.List;
 
 public interface InterviewSessionService {
@@ -47,6 +50,11 @@ public interface InterviewSessionService {
      * 음성 파일로 답변 처리 (STT 변환 포함)
      */
     String processAudioAnswer(String roomId, Long userId, String audioBase64);
+    
+    /**
+     * 음성 파일로 답변 처리 (바이트 배열 직접 처리)
+     */
+    String processAudioAnswer(String roomId, Long userId, byte[] audioBytes);
 
     // ==================== 질문 관리 ====================
 
@@ -102,4 +110,9 @@ public interface InterviewSessionService {
      * 채팅 전송 가능 여부 확인
      */
     void canSendChatMessage(String roomId, Long userId);
+
+    /**
+     * 상대방 id 조회(시그널링용)
+     */
+    Long getOpponentId(String roomId, Long userId);
 }

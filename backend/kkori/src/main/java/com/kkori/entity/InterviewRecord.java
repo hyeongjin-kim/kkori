@@ -42,4 +42,8 @@ public class InterviewRecord extends BaseEntity {
     public boolean hasAnswer() {
         return answer != null;
     }
+    
+    public boolean isGeneralQuestion() {
+        return question != null;
+    }
 }

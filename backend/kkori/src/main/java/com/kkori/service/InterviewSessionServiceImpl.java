@@ -7,12 +7,8 @@ import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.InterviewSession;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
-import com.kkori.entity.Answer;
-import com.kkori.entity.Interview;
-import com.kkori.entity.InterviewRecord;
-import com.kkori.entity.Question;
-import com.kkori.entity.QuestionSet;
-import com.kkori.entity.User;
+import com.kkori.dto.interview.response.InterviewCompletionResponse;
+import com.kkori.entity.*;
 import com.kkori.exception.audio.AudioProcessingException;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.exception.interview.InterviewSessionException;
@@ -51,6 +47,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     private final TailQuestionGenerator tailQuestionGenerator;
 
     // ==================== 방 생성 및 참여 ====================
+
     @Override
     public String createSoloRoom(Long questionSetId, Long creatorId) {
         List<QuestionForm> defaultQuestions = loadQuestionSet(questionSetId);
@@ -71,6 +68,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     // ==================== 면접 라이프사이클 ====================
+
     @Override
     @Transactional
     public Long startInterview(String roomId, Long userId) {
@@ -127,15 +125,20 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     // ==================== 답변 처리 ====================
+
     @Override
     public String processAudioAnswer(String roomId, Long userId, String audioBase64) {
+        // Base64 디코딩 후 바이트 배열 버전 호출
+        byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+        return processAudioAnswer(roomId, userId, audioBytes);
+    }
+
+    @Override
+    public String processAudioAnswer(String roomId, Long userId, byte[] audioBytes) {
         // 권한 검증
         InterviewRoom room = roomManager.getRoom(roomId);
         validateAnswerPermission(room, userId);
         try {
-            // Base64 디코딩
-            byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
-
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
 
@@ -151,6 +154,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     // ==================== 질문 관리 ====================
+
     @Override
     public QuestionForm getCurrentQuestion(String roomId) {
         InterviewSession session = getSession(roomId);
@@ -208,6 +212,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     // ==================== 역할 및 상태 관리 ====================
+
     @Override
     public void swapRoles(String roomId) {
         roomManager.swapRoles(roomId);
@@ -231,8 +236,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     @Override
     public void canSendChatMessage(String roomId, Long userId) {
         InterviewRoom room = roomManager.getRoom(roomId);
-        if (room.getUserIds().contains(userId)) {
-            return;
+        validateUserInRoom(room, userId);
+    }
+
+    @Override
+    public Long getOpponentId(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        validateUserInRoom(room, userId);
+        Long opponentId = room.getUserIds().stream()
+                .filter(id -> !id.equals(userId))
+                .findFirst()
+                .orElse(null);
+        if (opponentId != null) {
+            return opponentId;
         }
         throw InterviewRoomException.userNotFoundInRoom();
     }
@@ -252,27 +268,34 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private void saveInterviewData(Interview interview, InterviewSession session) {
         Map<QuestionForm, String> questionAnswers = session.getQuestionAnswer();
+        Question currentQuestion = null;  // 현재 질문 추적
         int orderNum = 1;
+        
         for (Map.Entry<QuestionForm, String> entry : questionAnswers.entrySet()) {
             QuestionForm questionForm = entry.getKey();
             String answerText = entry.getValue();
             // 1. 질문 타입별로 Question 엔티티 저장
-            Question question = saveQuestionByType(questionForm);
+            Question question = saveQuestionByType(questionForm, currentQuestion);
             // 2. Answer 엔티티 저장
             Answer answer = saveAnswer(question, interview.getInterviewee(), answerText);
             // 3. InterviewRecord 저장 (면접-질문-답변 연결)
             saveInterviewRecord(interview, question, answer, orderNum++);
+            
+            // 4. TAIL이 아닌 경우 현재 질문 갱신 (부모 질문이 될 수 있는 질문들)
+            if (questionForm.getQuestionType() != QuestionType.TAIL) {
+                currentQuestion = question;
+            }
         }
     }
 
     /**
      * 질문 타입별 Question 엔티티 저장
      */
-    private Question saveQuestionByType(QuestionForm questionForm) {
+    private Question saveQuestionByType(QuestionForm questionForm, Question currentQuestion) {
         return switch (questionForm.getQuestionType()) {
             case DEFAULT -> findOrCreateDefaultQuestion(questionForm);
             case CUSTOM -> saveCustomQuestion(questionForm);
-            case TAIL -> saveTailQuestion(questionForm);
+            case TAIL -> saveTailQuestion(questionForm, currentQuestion);
         };
     }
 
@@ -288,22 +311,19 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 커스텀 질문 저장
      */
     private Question saveCustomQuestion(QuestionForm questionForm) {
-        Question question = Question.builder()
-                .content(questionForm.getQuestionText())
-                .questionType(com.kkori.entity.QuestionType.CUSTOM)
-                .build();
+        Question question = Question.createCustom(questionForm.getQuestionText());
         return questionRepository.save(question);
     }
 
     /**
      * 꼬리 질문 저장
      */
-    private Question saveTailQuestion(QuestionForm questionForm) {
-        Question parentQuestion = findParentQuestion(questionForm);
-        Question question = Question.builder()
-                .content(questionForm.getQuestionText())
-                .questionType(com.kkori.entity.QuestionType.DEFAULT)
-                .build();
+    private Question saveTailQuestion(QuestionForm questionForm, Question currentQuestion) {
+        if (currentQuestion == null) {
+            throw InterviewSessionException.parentQuestionNotFound();
+        }
+        
+        Question question = Question.createTail(questionForm.getQuestionText(), currentQuestion);
         return questionRepository.save(question);
     }
 
@@ -321,7 +341,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      */
     private Answer saveAnswer(Question question, User user, String answerText) {
         // Answer 엔티티를 확인해서 생성자 사용
-        Answer answer = new Answer(question, user, answerText);
+        Answer answer = Answer.create(answerText, user);
         return answerRepository.save(answer);
     }
 
@@ -356,9 +376,11 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     /**
      * 세션 조회
      */
+
     private InterviewSession getSession(String roomId) {
         return roomManager.getSession(roomId);
     }
+
     // ==================== 검증 메서드들 ====================
 
     /**
@@ -381,6 +403,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             throw InterviewRoomException.interviewNotStarted();
         }
     }
+
+    /**
+     * 방 소속 여부 검증
+     */
+    private void validateUserInRoom(InterviewRoom room, Long userId) {
+        if (room.getUserIds().contains(userId)) {
+            return;
+        }
+        throw InterviewRoomException.userNotFoundInRoom();
+    }
+
     // ==================== 엔티티 조회 메서드들 ====================
 
     /**

@@ -17,7 +17,7 @@ public final class QuestionSetConstants {
     public static final class DefaultValue {
         public static final Integer INITIAL_VERSION_NUMBER = 1;
         public static final Integer NEXT_VERSION_NUMBER = 2;
-        public static final Boolean DEFAULT_SHARED_STATUS = false;
+        public static final Boolean DEFAULT_PUBLIC_STATUS = false;
         public static final Integer INITIAL_DISPLAY_ORDER = 1;
 
         private DefaultValue() {
