@@ -1,7 +1,6 @@
 import useQuestionSetFilterStore from '@/pages/interviewQuestionsPage/model/useQuestionSetFilterStore';
 import QuestionSet from '@/pages/interviewQuestionsPage/ui/QuestionSet';
 import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
-import { Tag } from '@/entities/questionSet/model/response';
 
 function QuestionSetList() {
   const { questionSets, selectedTag } = useQuestionSetFilterStore();
@@ -13,11 +12,14 @@ function QuestionSetList() {
       {questionSets
         .filter(questionSet =>
           selectedTag !== TAG_FILTER_LIST[0].tag
-            ? questionSet.tags.some((tag: Tag) => tag.tag === selectedTag)
+            ? questionSet.tags.some(tag => tag === selectedTag)
             : true,
         )
         .map(questionSet => (
-          <QuestionSet key={questionSet.id} questionSet={questionSet} />
+          <QuestionSet
+            key={questionSet.questionSetId}
+            questionSet={questionSet}
+          />
         ))}
     </ul>
   );

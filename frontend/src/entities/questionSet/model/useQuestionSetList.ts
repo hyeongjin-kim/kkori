@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getQuestionSet,
   getQuestionSets,
-} from '@/shared/api/questionSet/getQuestionSets';
+} from '@/entities/questionSet/model/getQuestionSets';
 import { FIVE_MINUTES_IN_MS } from '@/app/model/constants';
 
 export const useQuestionSetList = () => {

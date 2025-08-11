@@ -2,6 +2,7 @@ import TagInputForm from '@/pages/interviewQuestionsPage/ui/TagInputForm';
 import useQuestionSetFilterStore from '@/pages/interviewQuestionsPage/model/useQuestionSetFilterStore';
 import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
 import TagFilter from '@/pages/interviewQuestionsPage/ui/TagFilter';
+import { TagResponse } from '@/entities/questionSet/model/response';
 
 function QuestionSetTagFilter() {
   const { selectedTag, setSelectedTag } = useQuestionSetFilterStore();
@@ -12,12 +13,12 @@ function QuestionSetTagFilter() {
     >
       <p className="mb-2 text-xl font-bold">태그 필터</p>
       <ul aria-label="tag-filter-list" className="flex flex-wrap gap-2">
-        {TAG_FILTER_LIST.map(tag => (
+        {TAG_FILTER_LIST.map(({ tag }: TagResponse) => (
           <TagFilter
-            key={tag.id}
+            key={tag}
             tag={tag}
-            selected={selectedTag === tag.tag}
-            onClick={() => setSelectedTag(tag.tag)}
+            selected={selectedTag === tag}
+            onClick={() => setSelectedTag(tag)}
           />
         ))}
       </ul>
