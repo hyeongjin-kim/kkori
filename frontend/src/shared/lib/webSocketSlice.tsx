@@ -253,11 +253,12 @@ const offerHandler = async (client: Client, set: any, response: any) => {
     iceServers: [
       {
         urls: process.env.TURN_URL || '',
-        credential: process.env.TURN_CREDENTIAL || '',
         username: process.env.TURN_USERNAME || '',
+        credential: process.env.TURN_CREDENTIAL || '',
       },
     ],
   });
+  console.log(peerConnection);
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
