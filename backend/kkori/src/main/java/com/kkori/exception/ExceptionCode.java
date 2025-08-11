@@ -15,6 +15,7 @@ public enum ExceptionCode {
     BOTH_ROLES_REQUIRED(1006, "면접관과 면접자가 모두 필요합니다.", HttpStatus.PRECONDITION_FAILED),
     CANNOT_CHANGE_ROLES_AFTER_START(1007, "면접 시작 후에는 역할을 변경할 수 없습니다.", HttpStatus.LOCKED),
     USER_NOT_FOUND_IN_ROOM(1008, "방에서 해당 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    ROOM_ID_NOT_FOUND_FOR_USER(1009, "해당 사용자에 대한 방 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // ==== Permission 관련 ====
     ONLY_INTERVIEWEE_CAN_SUBMIT_ANSWER(2001, "면접자만 답변을 제출할 수 있습니다.", HttpStatus.FORBIDDEN),

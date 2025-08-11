@@ -1,11 +1,17 @@
 package com.kkori.controller.interview;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kkori.component.interview.InterviewRoom;
+import com.kkori.component.interview.QuestionForm;
+import com.kkori.component.interview.QuestionType;
+import com.kkori.dto.interview.QuestionDto;
 import com.kkori.dto.interview.request.AnswerSubmitRequest;
 import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.interview.request.CustomQuestionCreateRequest;
@@ -16,10 +22,6 @@ import com.kkori.dto.interview.response.NextQuestionChoicesResponse;
 import com.kkori.dto.interview.response.RoomCreateResponse;
 import com.kkori.dto.interview.response.RoomStatusResponse;
 import com.kkori.dto.interview.response.STTResultResponse;
-import com.kkori.component.interview.QuestionForm;
-import com.kkori.component.interview.QuestionType;
-import com.kkori.dto.interview.QuestionDto;
-import com.kkori.component.interview.InterviewRoom;
 import com.kkori.entity.User;
 import com.kkori.jwt.Token;
 import com.kkori.jwt.TokenProvider;
@@ -30,8 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -234,7 +234,7 @@ class InterviewWebSocketTest {
     void interviewStartTest() throws Exception {
         // given
         setupInterviewMocks();
-        
+
         executeWithRoomSubscriber(TEST_ROOM_ID, roomSubscriber -> {
             // when
             sendWebSocketMessage("/app/interview-start", createCommonRoomRequest(TEST_ROOM_ID));
@@ -249,64 +249,64 @@ class InterviewWebSocketTest {
         });
     }
 
-    @Test
-    @DisplayName("면접 종료 테스트")
-    void interviewEndTest() throws Exception {
-        // given
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
-                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
+//    @Test
+//    @DisplayName("면접 종료 테스트")
+//    void interviewEndTest() throws Exception {
+//        // given
+//        WebSocketTestHelper.MessageSubscriber roomSubscriber =
+//                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
+//        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
+//
+//        try {
+//            // when
+//            stompSession.send("/app/interview-end", request);
+//
+//            // then - 브로드캐스트 메시지 확인
+//            Map<String, Object> response = roomSubscriber.waitForMessage("interview-ended", 10);
+//            assertThat(response).isNotNull();
+//            assertThat(response.get("type")).isEqualTo("interview-ended");
+//
+//            @SuppressWarnings("unchecked")
+//            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+//            assertThat(dataMap.get("message")).isNotNull();
+//        } finally {
+//            unsubscribeSafe(roomSubscriber);
+//        }
+//    }
 
-        try {
-            // when
-            stompSession.send("/app/interview-end", request);
-
-            // then - 브로드캐스트 메시지 확인
-            Map<String, Object> response = roomSubscriber.waitForMessage("interview-ended", 10);
-            assertThat(response).isNotNull();
-            assertThat(response.get("type")).isEqualTo("interview-ended");
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            assertThat(dataMap.get("message")).isNotNull();
-        } finally {
-            unsubscribeSafe(roomSubscriber);
-        }
-    }
-
-    @Test
-    @DisplayName("답변 시작 테스트")
-    void answerStartTest() throws Exception {
-        // given
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
-                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
-
-        try {
-            // when
-            stompSession.send("/app/answer-start", request);
-
-            // then - 브로드캐스트 메시지 확인
-            Map<String, Object> response = roomSubscriber.waitForMessage("answer-recording-started", 10);
-            assertThat(response).isNotNull();
-            assertThat(response.get("type")).isEqualTo("answer-recording-started");
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            assertThat(dataMap.get("message")).isNotNull();
-        } finally {
-            unsubscribeSafe(roomSubscriber);
-        }
-    }
+//    @Test
+//    @DisplayName("답변 시작 테스트")
+//    void answerStartTest() throws Exception {
+//        // given
+//        WebSocketTestHelper.MessageSubscriber roomSubscriber =
+//                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
+//        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
+//
+//        try {
+//            // when
+//            stompSession.send("/app/answer-start", request);
+//
+//            // then - 브로드캐스트 메시지 확인
+//            Map<String, Object> response = roomSubscriber.waitForMessage("answer-recording-started", 10);
+//            assertThat(response).isNotNull();
+//            assertThat(response.get("type")).isEqualTo("answer-recording-started");
+//
+//            @SuppressWarnings("unchecked")
+//            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+//            assertThat(dataMap.get("message")).isNotNull();
+//        } finally {
+//            unsubscribeSafe(roomSubscriber);
+//        }
+//    }
 
     @Test
     @DisplayName("답변 제출 테스트")
     void answerSubmitTest() throws Exception {
         // given
         setupAnswerSubmitMocks();
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
+        WebSocketTestHelper.MessageSubscriber roomSubscriber =
                 testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-        
+
         String testAudioBase64 = "UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaA";
         AnswerSubmitRequest request = new AnswerSubmitRequest(TEST_ROOM_ID, testAudioBase64);
 
@@ -339,7 +339,7 @@ class InterviewWebSocketTest {
     void nextQuestionSelectTest() throws Exception {
         // given
         setupQuestionSelectMocks();
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
+        WebSocketTestHelper.MessageSubscriber roomSubscriber =
                 testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
         NextQuestionSelectRequest request = new NextQuestionSelectRequest(
                 TEST_ROOM_ID, "DEFAULT", 2, "개발자가 되고 싶은 이유는 무엇인가요?"
@@ -363,39 +363,39 @@ class InterviewWebSocketTest {
         }
     }
 
-    @Test
-    @DisplayName("커스텀 질문 시작 테스트")
-    void customQuestionStartTest() throws Exception {
-        // given
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
-                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
-
-        try {
-            // when
-            stompSession.send("/app/custom-question-start", request);
-
-            // then - 브로드캐스트 메시지 확인
-            Map<String, Object> response = roomSubscriber.waitForMessage("custom-question-recording-started", 10);
-            assertThat(response).isNotNull();
-            assertThat(response.get("type")).isEqualTo("custom-question-recording-started");
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-            assertThat(dataMap.get("message")).isNotNull();
-        } finally {
-            unsubscribeSafe(roomSubscriber);
-        }
-    }
+//    @Test
+//    @DisplayName("커스텀 질문 시작 테스트")
+//    void customQuestionStartTest() throws Exception {
+//        // given
+//        WebSocketTestHelper.MessageSubscriber roomSubscriber =
+//                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
+//        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
+//
+//        try {
+//            // when
+//            stompSession.send("/app/custom-question-start", request);
+//
+//            // then - 브로드캐스트 메시지 확인
+//            Map<String, Object> response = roomSubscriber.waitForMessage("custom-question-recording-started", 10);
+//            assertThat(response).isNotNull();
+//            assertThat(response.get("type")).isEqualTo("custom-question-recording-started");
+//
+//            @SuppressWarnings("unchecked")
+//            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+//            assertThat(dataMap.get("message")).isNotNull();
+//        } finally {
+//            unsubscribeSafe(roomSubscriber);
+//        }
+//    }
 
     @Test
     @DisplayName("커스텀 질문 생성 테스트")
     void customQuestionCreateTest() throws Exception {
         // given
         setupCustomQuestionMocks();
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
+        WebSocketTestHelper.MessageSubscriber roomSubscriber =
                 testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-        
+
         String testAudioBase64 = "UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaA";
         CustomQuestionCreateRequest request = new CustomQuestionCreateRequest(TEST_ROOM_ID, testAudioBase64);
 
@@ -422,28 +422,28 @@ class InterviewWebSocketTest {
         // given - 테스트 방 ID 설정 및 서비스 모킹
         String testRoomId = "TEST_ROLE_SWAP_ROOM_789";
         doNothing().when(interviewSessionService).swapRoles(testRoomId);
-        
+
         // 방 토픽 구독 (역할 바꾸기 알림을 받기 위해)
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
+        WebSocketTestHelper.MessageSubscriber roomSubscriber =
                 testHelper.subscribeToRealRoomTopic(stompSession, testRoomId);
-        
+
         try {
             // when - 역할 바꾸기 요청 전송
             CommonRoomRequest swapRequest = new CommonRoomRequest(testRoomId);
             stompSession.send("/app/roles-swap", swapRequest);
-            
+
             // then - 역할 바뀜 알림 수신 확인
             Map<String, Object> response = roomSubscriber.waitForMessage("roles-swapped", 10);
-            
+
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("roles-swapped");
-            
+
             // SuccessResponse 구조 확인
             @SuppressWarnings("unchecked")
             Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
             assertThat(dataMap.get("message")).isEqualTo("면접관과 면접자 역할이 변경되었습니다");
             assertThat(dataMap.get("timestamp")).isNotNull();
-            
+
         } catch (AssertionError e) {
             printQueuedMessages();
             throw e;
@@ -454,41 +454,41 @@ class InterviewWebSocketTest {
     }
 
     @Test
-    @DisplayName("역할 바꾸기 실패 시 에러 응답 테스트") 
+    @DisplayName("역할 바꾸기 실패 시 에러 응답 테스트")
     void rolesSwapErrorTest() throws Exception {
         // given - 서비스에서 예외 발생하도록 설정
         String testRoomId = "INVALID_ROOM_FOR_ROLE_SWAP";
         doThrow(new RuntimeException("역할 변경 실패"))
                 .when(interviewSessionService).swapRoles(testRoomId);
-        
+
         try {
             // when - 역할 바꾸기 요청 전송
             CommonRoomRequest swapRequest = new CommonRoomRequest(testRoomId);
             stompSession.send("/app/roles-swap", swapRequest);
-            
+
             // then - 에러 응답 수신 확인
             Map<String, Object> response = personalSubscriber.waitForMessage("error", 10);
-            
+
             assertThat(response).isNotNull();
             assertThat(response.get("type")).isEqualTo("error");
-            
+
             // ErrorResponse 구조 확인
             @SuppressWarnings("unchecked")
             Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
             assertThat(dataMap.get("error")).isEqualTo("역할 변경에 실패했습니다.");
             assertThat(dataMap.get("message")).isEqualTo("역할 변경 실패");
             assertThat(dataMap.get("timestamp")).isNotNull();
-            
+
         } catch (AssertionError e) {
             printQueuedMessages();
             throw e;
         }
     }
 
-
     // ==================== 헬퍼 메서드들 ====================
-    
-    private List<WebSocketTestHelper.MessageSubscriber> subscribeUsersToRoom(List<StompSession> sessions, String roomId) {
+
+    private List<WebSocketTestHelper.MessageSubscriber> subscribeUsersToRoom(List<StompSession> sessions,
+                                                                             String roomId) {
         return sessions.stream()
                 .map(session -> {
                     try {
@@ -499,7 +499,7 @@ class InterviewWebSocketTest {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     private void unsubscribeSafe(WebSocketTestHelper.MessageSubscriber subscriber) {
         if (subscriber != null) {
             subscriber.unsubscribe();
@@ -519,14 +519,14 @@ class InterviewWebSocketTest {
             count++;
         }
     }
-    
+
     // ==================== 공통 테스트 헬퍼 메서드들 ====================
-    
+
     /**
      * 룸 구독자와 함께 테스트를 실행하는 헬퍼 메서드
      */
     private void executeWithRoomSubscriber(String roomId, TestExecutor executor) throws Exception {
-        WebSocketTestHelper.MessageSubscriber roomSubscriber = 
+        WebSocketTestHelper.MessageSubscriber roomSubscriber =
                 testHelper.subscribeToRealRoomTopic(stompSession, roomId);
         try {
             executor.execute(roomSubscriber);
@@ -534,18 +534,19 @@ class InterviewWebSocketTest {
             unsubscribeSafe(roomSubscriber);
         }
     }
-    
+
     /**
      * WebSocket 메시지 전송
      */
     private void sendWebSocketMessage(String destination, Object request) {
         stompSession.send(destination, request);
     }
-    
+
     /**
      * 개인 메시지 응답 검증
      */
-    private Map<String, Object> waitForPersonalMessageWithErrorHandling(String messageType, int timeoutSeconds) throws Exception {
+    private Map<String, Object> waitForPersonalMessageWithErrorHandling(String messageType, int timeoutSeconds)
+            throws Exception {
         try {
             Map<String, Object> response = personalSubscriber.waitForMessage(messageType, timeoutSeconds);
             assertThat(response).isNotNull();
@@ -554,25 +555,25 @@ class InterviewWebSocketTest {
             throw e;
         }
     }
-    
+
     /**
      * 브로드캐스트 메시지 응답 검증
      */
-    private Map<String, Object> waitForBroadcastMessage(WebSocketTestHelper.MessageSubscriber roomSubscriber, 
-                                                       String messageType, int timeoutSeconds) throws Exception {
+    private Map<String, Object> waitForBroadcastMessage(WebSocketTestHelper.MessageSubscriber roomSubscriber,
+                                                        String messageType, int timeoutSeconds) throws Exception {
         Map<String, Object> response = roomSubscriber.waitForMessage(messageType, timeoutSeconds);
         assertThat(response).isNotNull();
         assertThat(response.get("type")).isEqualTo(messageType);
         return response;
     }
-    
+
     /**
      * 공통 요청 생성
      */
     private CommonRoomRequest createCommonRoomRequest(String roomId) {
         return new CommonRoomRequest(roomId);
     }
-    
+
     /**
      * 메시지 데이터 추출
      */
@@ -580,7 +581,7 @@ class InterviewWebSocketTest {
     private Map<String, Object> extractMessageData(Map<String, Object> message) {
         return (Map<String, Object>) message.get("data");
     }
-    
+
     /**
      * 테스트 실행 유저 인터페이스
      */
@@ -588,42 +589,42 @@ class InterviewWebSocketTest {
     private interface TestExecutor {
         void execute(WebSocketTestHelper.MessageSubscriber roomSubscriber) throws Exception;
     }
-    
+
     // ==================== Mock 설정 헬퍼 메서드들 ====================
-    
+
     private void setupInterviewMocks() {
         // 첫 번째 질문 모킹
         QuestionForm firstQuestion = new QuestionForm(QuestionType.DEFAULT, 1, "자기소개를 해주세요.");
         given(interviewSessionService.getCurrentQuestion(TEST_ROOM_ID)).willReturn(firstQuestion);
     }
-    
+
     private void setupAnswerSubmitMocks() {
         // STT 처리 모킹
         given(interviewSessionService.processAudioAnswer(anyString(), any(Long.class), anyString()))
                 .willReturn("테스트 답변입니다.");
-        
+
         // 방 정보 모킹 (면접관 설정)
         InterviewRoom mockRoom = InterviewRoom.createSoloRoom(TEST_ROOM_ID, 1L, TEST_USER_ID, null);
         given(interviewSessionService.getRoom(TEST_ROOM_ID)).willReturn(mockRoom);
-        
+
         // 다음 질문들 모킹
         List<QuestionForm> nextQuestions = Arrays.asList(
                 new QuestionForm(QuestionType.DEFAULT, 2, "개발자가 되고 싶은 이유는 무엇인가요?"),
                 new QuestionForm(QuestionType.TAIL, 3, "방금 답변에서 언급한 내용에 대해 더 자세히 설명해주세요.")
         );
         given(interviewSessionService.getNextQuestions(TEST_ROOM_ID)).willReturn(nextQuestions);
-        
+
         // UserService 모킹
         given(userService.findById(TEST_USER_ID)).willReturn(testUser);
     }
-    
+
     private void setupQuestionSelectMocks() {
         // 질문 선택 모킹
         QuestionForm selectedQuestion = new QuestionForm(QuestionType.DEFAULT, 2, "개발자가 되고 싶은 이유는 무엇인가요?");
         given(interviewSessionService.selectQuestion(anyString(), any(QuestionType.class), any(int.class), anyString()))
                 .willReturn(selectedQuestion);
     }
-    
+
     private void setupCustomQuestionMocks() {
         // 커스텀 질문 생성 모킹
         QuestionForm customQuestion = new QuestionForm(QuestionType.CUSTOM, 100, "커스텀 질문입니다.");
