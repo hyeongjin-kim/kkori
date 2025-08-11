@@ -66,17 +66,17 @@ public class GuestLoginController {
             return ResponseEntity.status(UNAUTHORIZED).build();
         }
 
-        CookieUtil.addSecureJwtCookie(response, TokenCookie.ACCESS_TOKEN, newAccessToken.getToken(),
+        CookieUtil.addAccessTokenJwtCookie(response, TokenCookie.ACCESS_TOKEN, newAccessToken.getToken(),
                 TokenCookie.ACCESS_EXPIRE_SECONDS);
 
         return ResponseEntity.ok(newAccessToken);
     }
 
     private void addLoginCookies(HttpServletResponse response, Token accessToken, Token refreshToken) {
-        CookieUtil.addSecureJwtCookie(response, TokenCookie.ACCESS_TOKEN,
+        CookieUtil.addAccessTokenJwtCookie(response, TokenCookie.ACCESS_TOKEN,
                 accessToken.getToken(), TokenCookie.ACCESS_EXPIRE_SECONDS);
 
-        CookieUtil.addJwtCookie(response, TokenCookie.REFRESH_TOKEN,
+        CookieUtil.addRefreshTokenJwtCookie(response, TokenCookie.REFRESH_TOKEN,
                 refreshToken.getToken(), TokenCookie.REFRESH_EXPIRE_SECONDS);
     }
 

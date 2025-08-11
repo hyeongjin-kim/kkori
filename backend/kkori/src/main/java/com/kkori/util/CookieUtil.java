@@ -6,7 +6,7 @@ import org.springframework.http.ResponseCookie;
 
 public class CookieUtil {
 
-    public static void addJwtCookie(HttpServletResponse response, String name, String value, int maxAge) {
+    public static void addRefreshTokenJwtCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(true)
@@ -19,8 +19,8 @@ public class CookieUtil {
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    public static void addSecureJwtCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        addJwtCookie(response, name, value, maxAge);
+    public static void addAccessTokenJwtCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        addRefreshTokenJwtCookie(response, name, value, maxAge);
     }
 
 }
