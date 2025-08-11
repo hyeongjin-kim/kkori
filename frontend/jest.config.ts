@@ -12,6 +12,8 @@ export default {
     '@entities/*': '<rootDir>/src/entities/*',
     '@shared/*': '<rootDir>/src/shared/*',
     '@widgets/*': '<rootDir>/src/widgets/*',
+    '@assets/*': '<rootDir>/src/assets/*',
+    '\\.(png|jpg|jpeg|gif|svg|webp)$': '<rootDir>/__mocks__/fileMock.ts',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
