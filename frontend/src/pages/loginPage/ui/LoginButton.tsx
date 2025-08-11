@@ -1,15 +1,21 @@
+import kakaoLogo from '@/assets/kakao_login_medium_narrow.png';
+
 interface LoginButtonProps {
   onClick: () => void;
-  socialLoginRequestText: string;
 }
 
-function LoginButton({ onClick, socialLoginRequestText }: LoginButtonProps) {
+function LoginButton({ onClick }: LoginButtonProps) {
   return (
     <button
-      className="w-full rounded border bg-white px-4 py-2 text-sm font-medium text-black hover:bg-gray-100 active:bg-gray-200"
       onClick={onClick}
+      aria-label="oauth-login-button"
+      className="flex w-full items-center justify-center gap-2 rounded px-4 py-3 text-sm font-medium text-black transition"
     >
-      {socialLoginRequestText}
+      <img
+        src={kakaoLogo}
+        alt="kakao-logo"
+        className="transition-transform hover:scale-98"
+      />
     </button>
   );
 }
