@@ -79,3 +79,18 @@ export interface GetQuestionSetsResponse {
     empty: boolean;
   };
 }
+
+export interface CreateQuestionSetResponse {
+  questionSetId: number;
+  title: string;
+  description: string;
+  versionNumber: number;
+  parentVersionId: number | null;
+  isPublic: boolean;
+  ownerNickname: string;
+  questionMaps: QuestionMap[];
+  tailQuestions: TailQuestionResponse[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
