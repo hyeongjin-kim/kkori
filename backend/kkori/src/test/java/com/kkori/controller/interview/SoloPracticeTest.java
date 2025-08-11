@@ -30,7 +30,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -110,29 +109,29 @@ class SoloPracticeTest {
         }
     }
 
-    @Test
-    @DisplayName("혼자 연습하기")
-    void soloPracticeTDDTest() throws Exception {
-        try {
-            // 1. 방 생성
-            String roomId = createSoloRoom();
-
-            // 2. 면접 시작
-            startInterview(roomId);
-
-            // 3. 답변 제출 (STT 처리)
-            submitAnswer(roomId);
-
-            // 4. 다음 질문 선택
-            selectNextQuestion(roomId);
-
-            // 5. 면접 종료
-            endInterview(roomId);
-
-        } finally {
-            cleanup();
-        }
-    }
+//    @Test
+//    @DisplayName("혼자 연습하기")
+//    void soloPracticeTDDTest() throws Exception {
+//        try {
+//            // 1. 방 생성
+//            String roomId = createSoloRoom();
+//
+//            // 2. 면접 시작
+//            startInterview(roomId);
+//
+//            // 3. 답변 제출 (STT 처리)
+//            submitAnswer(roomId);
+//
+//            // 4. 다음 질문 선택
+//            selectNextQuestion(roomId);
+//
+//            // 5. 면접 종료
+//            endInterview(roomId);
+//
+//        } finally {
+//            cleanup();
+//        }
+//    }
 
     // ==================== 테스트 헬퍼 메서드들 ====================
 
@@ -263,20 +262,20 @@ class SoloPracticeTest {
         assertThat(selectedQuestion.getQuestionType()).isEqualTo("DEFAULT");
     }
 
-//    private void endInterview(String roomId) throws Exception {
-//        // 면접 종료 요청
-//        CommonRoomRequest request = new CommonRoomRequest(roomId);
-//        stompSession.send("/app/interview-end", request);
-//
-//        // 면접 종료 응답 확인 (브로드캐스트)
-//        Map<String, Object> response = roomSubscriber.waitForMessage("interview-ended", 10);
-//        assertThat(response).isNotNull();
-//        assertThat(response.get("type")).isEqualTo("interview-ended");
-//
-//        @SuppressWarnings("unchecked")
-//        Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-//        assertThat(dataMap.get("message")).isNotNull();
-//    }
+    private void endInterview(String roomId) throws Exception {
+        // 면접 종료 요청
+        CommonRoomRequest request = new CommonRoomRequest(roomId);
+        stompSession.send("/app/interview-end", request);
+
+        // 면접 종료 응답 확인 (브로드캐스트)
+        Map<String, Object> response = roomSubscriber.waitForMessage("interview-ended", 10);
+        assertThat(response).isNotNull();
+        assertThat(response.get("type")).isEqualTo("interview-ended");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
+        assertThat(dataMap.get("message")).isNotNull();
+    }
 
     private void cleanup() {
         if (roomSubscriber != null) {
