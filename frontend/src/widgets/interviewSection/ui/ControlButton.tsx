@@ -7,14 +7,17 @@ interface ControlButtonProps {
   status: (typeof interviewStatus)[keyof typeof interviewStatus];
 }
 function ControlButton({ onClick, label, text, status }: ControlButtonProps) {
-  const currentStatus = useInterviewRoomStore(state => state.status) !== status;
+  const isDisabled =
+    status === 'ALWAYS'
+      ? false
+      : useInterviewRoomStore(state => state.status) !== status;
 
   return (
     <button
       aria-label={`${label}-control-button`}
       onClick={onClick}
       className="inline-flex justify-start rounded-md bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-150 hover:border-gray-400 hover:bg-gray-50 hover:text-black active:scale-95"
-      disabled={currentStatus}
+      disabled={isDisabled}
     >
       {text}
     </button>
