@@ -1,25 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import QuestionSetForm from '@/pages/questionSetCreatePage/ui/QuestionSetForm';
+import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('QuestionSetForm', () => {
   const title = 'test';
   const description = 'test';
-  const isShared = false;
+  const isPublic = false;
   const tagList = new Set(['test']);
 
   test('QuestionSetForm이 렌더링 된다.', () => {
     render(
-      <QuestionSetForm
-        title={title}
-        description={description}
-        isShared={isShared}
-        tagList={tagList}
-        onChange={{
-          title: () => {},
-          description: () => {},
-          isShared: () => {},
-          tagList: () => {},
-        }}
+      <MemoryRouterWrapped
+        component={
+          <QuestionSetForm
+            title={title}
+            description={description}
+            isPublic={isPublic}
+            tagList={tagList}
+            onChange={{
+              title: () => {},
+              description: () => {},
+              isPublic: () => {},
+              tagList: () => {},
+            }}
+          />
+        }
       />,
     );
     expect(

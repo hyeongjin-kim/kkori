@@ -9,7 +9,7 @@ export const questionSetList: QuestionSetResponse[] = [
     versionNumber: 1,
     parentVersionId: null,
     isPublic: true,
-    tags: ['HTTP', '네트워크'],
+    tags: [{ tag: 'HTTP' }, { tag: '네트워크' }],
     questionMaps: [
       {
         mapId: 1,

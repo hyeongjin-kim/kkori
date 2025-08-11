@@ -8,7 +8,7 @@ export interface QuestionSetResponse {
   ownerNickname: string;
   questionMaps: QuestionMap[];
   tailQuestions: TailQuestionResponse[];
-  tags: string[];
+  tags: { tag: string }[];
   createdAt: string;
   updatedAt: string;
 }
