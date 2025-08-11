@@ -16,8 +16,10 @@ describe('LoginPage', () => {
 
   test('소셜 로그인 버튼이 렌더링 된다.', () => {
     const socialLoginRequestText = Object.values(SOCIAL_LOGIN_REQUEST_PATHS);
-    socialLoginRequestText.forEach(({ text }) => {
-      expect(screen.getByRole('button', { name: text })).toBeInTheDocument();
+    socialLoginRequestText.forEach(({ path }) => {
+      expect(
+        screen.getByRole('button', { name: /oauth-login-button/i }),
+      ).toBeInTheDocument();
     });
   });
 });
