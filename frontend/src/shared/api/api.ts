@@ -52,7 +52,7 @@ export const del = async <T>(
 };
 
 export const audioApi = axios.create({
-  baseURL: process.env.WEBSOCKET_URL || '',
+  baseURL: process.env.BASE_URL || '',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -62,7 +62,8 @@ export const audioApi = axios.create({
 
 export const audioPost = async (url: string, blob: Blob) => {
   const formData = new FormData();
-  formData.append('file', blob, 'answer.webm');
+  formData.append('audioFile', blob, 'answer.webm');
+  console.log(formData);
   const res = await audioApi.post(url, formData, {
     onUploadProgress: e =>
       console.log('progress', Math.round((e.loaded / e.total!) * 100)),
