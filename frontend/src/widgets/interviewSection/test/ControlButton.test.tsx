@@ -7,15 +7,14 @@ describe('ControlButton', () => {
   const testFunction = jest.fn();
 
   beforeEach(() => {
-    useInterviewRoomStore.setState({
-      status: 'BEFORE_INTERVIEW',
-    });
+    useInterviewRoomStore.getState().setStatus('beforeInterview');
+    const status = useInterviewRoomStore.getState().status;
     render(
       <ControlButton
         onClick={testFunction}
         label="test"
         text="test"
-        status="BEFORE_INTERVIEW"
+        status={status}
       />,
     );
   });
