@@ -2,6 +2,7 @@ package com.kkori.entity;
 
 import com.kkori.common.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.persistence.Index;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -11,7 +12,17 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "question_sets")
+@Table(name = "question_sets",
+    indexes = {
+        @Index(name = "idx_questionset_owner", columnList = "owner_user_id"),
+        @Index(name = "idx_questionset_public", columnList = "is_public"),
+        @Index(name = "idx_questionset_deleted", columnList = "is_deleted"),
+        @Index(name = "idx_questionset_parent_version", columnList = "parent_version_id"),
+        @Index(name = "idx_questionset_version_number", columnList = "version_number"),
+        @Index(name = "idx_questionset_created_at", columnList = "created_at"),
+        @Index(name = "idx_questionset_owner_public_deleted", columnList = "owner_user_id, is_public, is_deleted"),
+        @Index(name = "idx_questionset_public_deleted_created", columnList = "is_public, is_deleted, created_at")
+    })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSet extends BaseEntity {
 

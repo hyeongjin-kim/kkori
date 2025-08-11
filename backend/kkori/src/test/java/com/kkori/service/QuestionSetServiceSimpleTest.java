@@ -80,7 +80,10 @@ class QuestionSetServiceSimpleTest {
                 .isPublic(false)
                 .build();
 
-        Question savedQuestion = Question.createDefault("Spring Boot란?", "Spring Boot는 스프링 프레임워크를 기반으로 한...");
+        Question savedQuestion = Question.defaultBuilder()
+                .content("Spring Boot란?")
+                .expectedAnswer("Spring Boot는...")
+                .build();
 
         Answer savedAnswer = Answer.builder()
                 .content("Spring Boot는...")
@@ -90,14 +93,12 @@ class QuestionSetServiceSimpleTest {
         QuestionSetQuestionMap savedMap = QuestionSetQuestionMap.builder()
                 .questionSet(savedQuestionSet)
                 .question(savedQuestion)
-                .answer(savedAnswer)
                 .displayOrder(1)
                 .build();
 
         given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
         given(questionSetRepository.save(any(QuestionSet.class))).willReturn(savedQuestionSet);
         given(questionRepository.save(any(Question.class))).willReturn(savedQuestion);
-        given(answerRepository.save(any(Answer.class))).willReturn(savedAnswer);
         given(questionSetQuestionMapRepository.save(any(QuestionSetQuestionMap.class))).willReturn(savedMap);
 
         // When
@@ -111,7 +112,6 @@ class QuestionSetServiceSimpleTest {
 
         verify(questionSetRepository).save(any(QuestionSet.class));
         verify(questionRepository).save(any(Question.class));
-        verify(answerRepository).save(any(Answer.class));
         verify(questionSetQuestionMapRepository).save(any(QuestionSetQuestionMap.class));
     }
 
@@ -143,7 +143,10 @@ class QuestionSetServiceSimpleTest {
                 .isPublic(false)
                 .build();
 
-        Question question = Question.createDefault("테스트 질문", "");
+        Question question = Question.defaultBuilder()
+                .content("테스트 질문")
+                .expectedAnswer("테스트 답변")
+                .build();
 
         Answer answer = Answer.builder()
                 .content("테스트 답변")
@@ -153,14 +156,12 @@ class QuestionSetServiceSimpleTest {
         QuestionSetQuestionMap originalMap = QuestionSetQuestionMap.builder()
                 .questionSet(originalQuestionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(1)
                 .build();
 
         QuestionSetQuestionMap newMap = QuestionSetQuestionMap.builder()
                 .questionSet(copiedQuestionSet)
                 .question(question)
-                .answer(answer)
                 .displayOrder(1)
                 .build();
 

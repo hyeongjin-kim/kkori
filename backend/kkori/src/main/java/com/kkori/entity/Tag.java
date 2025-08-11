@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -15,7 +16,10 @@ import lombok.ToString;
 
 @Entity
 @Getter
-@Table(name = "tag")
+@Table(name = "tag",
+    indexes = {
+        @Index(name = "idx_tag_name", columnList = "tag")
+    })
 @ToString(of = "tag")
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

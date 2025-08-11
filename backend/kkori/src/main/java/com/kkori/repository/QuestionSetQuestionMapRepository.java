@@ -16,16 +16,12 @@ public interface QuestionSetQuestionMapRepository extends JpaRepository<Question
 
     @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
            "JOIN FETCH qsqm.question q " +
-           "JOIN FETCH qsqm.answer a " +
-           "JOIN FETCH a.createdBy " +
            "WHERE qsqm.questionSet.id = :questionSetId " +
            "ORDER BY qsqm.displayOrder ASC")
     List<QuestionSetQuestionMap> findByQuestionSetIdWithDetails(@Param("questionSetId") Long questionSetId);
 
     @Query("SELECT qsqm FROM QuestionSetQuestionMap qsqm " +
            "JOIN FETCH qsqm.question q " +
-           "JOIN FETCH qsqm.answer a " +
-           "JOIN FETCH a.createdBy " +
            "WHERE qsqm.id = :mapId")
     Optional<QuestionSetQuestionMap> findByIdWithDetails(@Param("mapId") Long mapId);
 

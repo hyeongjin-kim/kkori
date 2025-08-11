@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +17,12 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "question_set_tag")
+@Table(name = "question_set_tag",
+    indexes = {
+        @Index(name = "idx_questionset_tag_questionset", columnList = "question_set_id"),
+        @Index(name = "idx_questionset_tag_tag", columnList = "tag_id"),
+        @Index(name = "idx_questionset_tag_composite", columnList = "question_set_id, tag_id")
+    })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSetTag extends BaseEntity {
 
