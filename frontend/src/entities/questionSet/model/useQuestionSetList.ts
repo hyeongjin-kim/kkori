@@ -3,13 +3,14 @@ import {
   getQuestionSet,
   getQuestionSets,
 } from '@/entities/questionSet/model/getQuestionSets';
-import { FIVE_MINUTES_IN_MS } from '@/app/model/constants';
+import { FIVE_MINUTES_IN_MS, NO_STALE_TIME_MS } from '@/app/model/constants';
+import { GetQuestionSetsParams } from '@/entities/questionSet/model/request';
 
-export const useQuestionSetList = () => {
+export const useQuestionSets = (params: GetQuestionSetsParams) => {
   return useQuery({
-    queryKey: ['questionSets'],
-    queryFn: getQuestionSets,
-    staleTime: FIVE_MINUTES_IN_MS,
+    queryKey: ['questionSets', params],
+    queryFn: () => getQuestionSets(params),
+    staleTime: NO_STALE_TIME_MS,
   });
 };
 

@@ -22,3 +22,12 @@ export interface CreateQuestionSetRequest {
   tags?: string[];
   questions: QuestionRequest[];
 }
+
+export type GetQuestionSetsParams = {
+  page?: number;
+  size?: number;
+  sort?: string;
+  createdBy?: string;
+  isPublic?: boolean;
+  tags?: string[];
+};
