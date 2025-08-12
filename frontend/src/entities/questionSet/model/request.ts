@@ -32,6 +32,11 @@ export type GetQuestionSetsParams = {
   tags?: string[];
 };
 
+export type GetMyQuestionSetsParams = {
+  page?: number;
+  size?: number;
+};
+
 export interface CopyQuestionSetRequest {
   originalQuestionSetId: number;
   title: string;
