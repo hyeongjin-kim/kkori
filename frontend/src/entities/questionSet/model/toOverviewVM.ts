@@ -7,7 +7,7 @@ export type QuestionSetOverviewVM = {
   version: string;
   isPublic: boolean;
   owner?: string;
-  tags: string[];
+  tags: { tag: string }[];
   createdAt: string;
   updatedAt: string;
 };

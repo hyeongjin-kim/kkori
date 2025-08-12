@@ -8,12 +8,12 @@ import TagDisplay from '@/entities/questionSet/ui/TagDisplay';
 interface QuestionSetFormProps {
   title: string;
   description: string;
-  isShared: boolean;
+  isPublic: boolean;
   tagList: Set<string>;
   onChange: {
     title: (title: string) => void;
     description: (description: string) => void;
-    isShared: (isShared: boolean) => void;
+    isPublic: (isPublic: boolean) => void;
     tagList: (tagList: Set<string>) => void;
   };
 }
@@ -21,7 +21,7 @@ interface QuestionSetFormProps {
 function QuestionSetForm({
   title,
   description,
-  isShared,
+  isPublic,
   tagList,
   onChange,
 }: QuestionSetFormProps) {
@@ -34,8 +34,8 @@ function QuestionSetForm({
     onChange.description(e.target.value);
   };
 
-  const handleIsSharedChange = (value: boolean) => {
-    onChange.isShared(value);
+  const handleIsPublicChange = (value: boolean) => {
+    onChange.isPublic(value);
   };
 
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,8 +70,8 @@ function QuestionSetForm({
         />
         <SharedToggleSwitch
           displayTitle="공개 여부"
-          value={isShared}
-          onChange={handleIsSharedChange}
+          value={isPublic}
+          onChange={handleIsPublicChange}
         />
         <TagListInput
           displayTitle="태그"

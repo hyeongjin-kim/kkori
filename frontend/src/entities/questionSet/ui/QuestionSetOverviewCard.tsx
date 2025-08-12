@@ -30,8 +30,8 @@ export default function QuestionSetOverviewCard({
         {vm.tags.length > 0 && (
           <div className="ml-1 flex flex-wrap gap-2">
             {vm.tags.map(tag => (
-              <Pill key={tag} color="gray">
-                #{tag}
+              <Pill key={tag.tag} color="gray">
+                #{tag.tag}
               </Pill>
             ))}
           </div>

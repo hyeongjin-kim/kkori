@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { QuestionSetResponse } from '@/entities/questionSet/model/response';
+import QuestionSetTagList from '@/pages/interviewQuestionsPage/ui/QusetionSetTagList';
 
 interface QuestionSetProps {
   questionSet: QuestionSetResponse;
@@ -7,36 +8,43 @@ interface QuestionSetProps {
 
 function QuestionSet({ questionSet }: QuestionSetProps) {
   const navigate = useNavigate();
+
+  const goDetail = () =>
+    navigate(`/question-set-detail/${questionSet.questionSetId}`);
+
   return (
     <li
       aria-label="question-set"
-      className="relative flex w-full cursor-pointer flex-col gap-2 rounded-xl border border-gray-200 bg-white p-5 pb-10 shadow-sm transition hover:bg-gray-50 hover:shadow-md"
-      onClick={() => {
-        navigate(`/question-set-detail/${questionSet.questionSetId}`);
+      role="button"
+      tabIndex={0}
+      onClick={goDetail}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          goDetail();
+        }
       }}
+      className="relative flex w-full cursor-pointer flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:border-gray-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6] focus-visible:ring-offset-2"
     >
-      <h3 className="text-base font-semibold text-gray-900">
+      <h3 className="mb-1 line-clamp-2 text-lg leading-snug font-bold text-gray-900">
         {questionSet.title}
       </h3>
 
-      <p className="text-sm text-gray-600">{questionSet.description}</p>
-
-      {questionSet.ownerNickname && (
-        <p className="text-sm text-gray-500">
-          작성자: {questionSet.ownerNickname}
+      {questionSet.description && (
+        <p className="mb-2 line-clamp-2 text-sm leading-relaxed font-semibold text-gray-500">
+          {questionSet.description}
         </p>
       )}
 
-      <ul className="absolute right-4 bottom-4 flex flex-wrap gap-2 pt-1">
-        {questionSet.tags.map((tag: string) => (
-          <li
-            key={tag}
-            className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
-          >
-            {tag}
-          </li>
-        ))}
-      </ul>
+      <div className="flex items-center justify-between gap-2">
+        {questionSet.ownerNickname && (
+          <p className="text-xs font-medium text-gray-500">
+            작성자&nbsp;
+            <span className="text-gray-700">{questionSet.ownerNickname}</span>
+          </p>
+        )}
+        <QuestionSetTagList questionSet={questionSet} />
+      </div>
     </li>
   );
 }

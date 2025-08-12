@@ -8,7 +8,7 @@ export interface QuestionSetResponse {
   ownerNickname: string;
   questionMaps: QuestionMap[];
   tailQuestions: TailQuestionResponse[];
-  tags: string[];
+  tags: { tag: string }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -78,4 +78,19 @@ export interface GetQuestionSetsResponse {
     numberOfElements: number;
     empty: boolean;
   };
+}
+
+export interface CreateQuestionSetResponse {
+  questionSetId: number;
+  title: string;
+  description: string;
+  versionNumber: number;
+  parentVersionId: number | null;
+  isPublic: boolean;
+  ownerNickname: string;
+  questionMaps: QuestionMap[];
+  tailQuestions: TailQuestionResponse[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
 }
