@@ -31,3 +31,10 @@ export type GetQuestionSetsParams = {
   isPublic?: boolean;
   tags?: string[];
 };
+
+export interface CopyQuestionSetRequest {
+  originalQuestionSetId: number;
+  title: string;
+  description: string;
+  copyTags?: boolean;
+}

@@ -1,5 +1,8 @@
 import { post } from '@/shared/api/api';
-import { CreateQuestionSetRequest } from '@/entities/questionSet/model/request';
+import {
+  CreateQuestionSetRequest,
+  CopyQuestionSetRequest,
+} from '@/entities/questionSet/model/request';
 import { CreateQuestionSetResponse } from '@/entities/questionSet/model/response';
 
 export const postQuestionSet = async (
@@ -7,6 +10,16 @@ export const postQuestionSet = async (
 ) => {
   const response = await post<CreateQuestionSetResponse>(
     '/api/questionsets',
+    questionSet,
+  );
+  return response;
+};
+
+export const postCopyQuestionSet = async (
+  questionSet: CopyQuestionSetRequest,
+) => {
+  const response = await post<CreateQuestionSetResponse>(
+    '/api/questionsets/copy',
     questionSet,
   );
   return response;

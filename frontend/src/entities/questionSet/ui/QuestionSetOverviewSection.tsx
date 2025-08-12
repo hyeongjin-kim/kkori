@@ -7,6 +7,8 @@ import Alert from '@/shared/ui/Alert';
 import Skeleton from '@/pages/questionSetDetailPage/ui/Skeleton';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { QuestionSetResponse } from '@/entities/questionSet/model/response';
+import { postCopyQuestionSet } from '../model/postQuestionSet';
+import DetailPageActions from './DetailPageActions';
 
 export default function QuestionSetOverviewSection() {
   const { id = '' } = useParams();
@@ -31,16 +33,16 @@ export default function QuestionSetOverviewSection() {
 function Content({ id }: { id: string }) {
   const { data } = useQuestionSet(Number(id));
   const vm = toOverviewVM(data?.data as QuestionSetResponse);
+
   return (
     <QuestionSetOverviewCard
       vm={vm}
       actions={
-        <Link
-          to="/interview-questions"
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 active:scale-[0.99]"
-        >
-          목록으로
-        </Link>
+        <DetailPageActions
+          id={id}
+          title={vm.title}
+          description={vm.description ?? ''}
+        />
       }
     />
   );
