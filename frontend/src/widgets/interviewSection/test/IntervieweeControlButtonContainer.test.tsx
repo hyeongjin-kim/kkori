@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import IntervieweeControlButtonContainer from '@/widgets/interviewSection/ui/IntervieweeControlButtonContainer';
 import useInterviewRoomStore, {
   interviewStatus,
+  interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { act } from 'react';
 
@@ -17,7 +18,7 @@ describe('IntervieweeControlButtonContainer', () => {
 
   describe('Sole Mode', () => {
     beforeEach(() => {
-      useInterviewRoomStore.getState().setInterviewType('solo');
+      useInterviewRoomStore.getState().setType(interviewType.SOLO);
       useInterviewRoomStore
         .getState()
         .setStatus(interviewStatus.BEFORE_INTERVIEW);

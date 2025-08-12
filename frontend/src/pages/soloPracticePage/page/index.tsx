@@ -3,8 +3,9 @@ import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
 import InterviewSection from '@/widgets/interviewSection';
 import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
-import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 
 function SoloPracticePage() {
@@ -13,10 +14,10 @@ function SoloPracticePage() {
 
   useEffect(() => {
     //TODO: 1은 질문 넘버로 대체
-    connect(PRACTICE_MODE.SOLO_PRACTICE, 1);
     useInterviewRoomStore.getState().setStatus('beforeInterview');
     useInterviewRoomStore.getState().setRole('interviewee');
-    useInterviewRoomStore.getState().setInterviewType('solo');
+    useInterviewRoomStore.getState().setType(interviewType.SOLO);
+    connect(1);
     return () => {
       disconnect();
     };

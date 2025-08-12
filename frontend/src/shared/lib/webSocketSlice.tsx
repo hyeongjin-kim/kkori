@@ -3,17 +3,15 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { InterviewSlice } from '@/widgets/interviewSection/model/interviewSlice';
 import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWindowSlice';
-import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
-import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import useInterviewRoomStore, {
   interviewStatus,
+  interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { audioPost } from '../api/api';
-import {
-  Question,
-  useInterviewQuestionStore,
-} from '@/widgets/interviewSection/model/useInterviewQuestionStore';
-import { mockupQuestion } from '@/__mocks__/questionMocks';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import { soloWebSocketEventHandler } from '@/shared/lib/soloWebSocketEventHandler';
+import { pairWebSocketEventHandler } from '@/shared/lib/pairWebSocketEventHandler';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 interface RoomCreateRequest {
   mode: string;
@@ -23,17 +21,13 @@ interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
   roomID: string | null;
-  practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE];
   questionSetId: number;
   opponentNickname: string;
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
 
 interface WebSocketAction {
-  connect: (
-    practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE],
-    questionSetId: number,
-  ) => void;
+  connect: (questionSetId: number) => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
   interviewStart: () => void;
@@ -54,7 +48,6 @@ const initialState: WebSocketState = {
   client: null,
   isConnected: false,
   roomID: null,
-  practiceMode: PRACTICE_MODE.SOLO_PRACTICE,
   questionSetId: 0,
   opponentNickname: '',
 };
@@ -66,11 +59,9 @@ export const createWebSocketSlice: StateCreator<
   WebSocketSlice
 > = (set, get) => ({
   ...initialState,
-  connect: (
-    practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE],
-    questionSetId: number,
-  ) => {
+  connect: (questionSetId: number) => {
     if (get().client || get().isConnected) return;
+    const type = useInterviewRoomStore.getState().type;
     const client = new Client({
       webSocketFactory: () => new SockJS(process.env.WEBSOCKET_URL || ''),
       debug: str => {
@@ -83,10 +74,15 @@ export const createWebSocketSlice: StateCreator<
         set({ client, isConnected: true });
         client.subscribe('/user/queue/interview', message => {
           const response = JSON.parse(message.body);
+
           console.log(response);
-          personalMessageHandler(client, get, set, response);
+          if (type === interviewType.SOLO) {
+            soloWebSocketEventHandler(client, get, set, response);
+          } else {
+            pairWebSocketEventHandler(client, get, set, response);
+          }
         });
-        get().roomCreate({ mode: practiceMode, questionSetId: questionSetId });
+        get().roomCreate({ mode: type, questionSetId: questionSetId });
       },
       onDisconnect: () => {
         set({ client: null, isConnected: false });
@@ -191,153 +187,3 @@ export const createWebSocketSlice: StateCreator<
     });
   },
 });
-
-const personalMessageHandler = (
-  client: Client,
-  get: any,
-  set: any,
-  response: any,
-) => {
-  switch (response.type) {
-    case 'room-created':
-      roomCreatedHandler(client, get, set, response.data);
-      break;
-    case 'existing-user':
-      existingUserHandler(client, set, response.data);
-      break;
-    case 'joined-user':
-      joinedUserHandler(client, set, response.data);
-      break;
-    case 'room-status':
-      roomStatusHandler(client, set, response.data);
-      break;
-    case 'offer':
-      offerHandler(client, set, response.data);
-      break;
-    case 'answer':
-      answerHandler(client, set, response.data);
-      break;
-    case 'next-question-choices':
-      nextQuestionChoiceHandler(client, set, response.data);
-      break;
-    case 'custom-question-created':
-      customQuestionCreatedHandler(client, set, response.data);
-      break;
-    default:
-      errorHandler(client, set, response.data);
-      break;
-  }
-};
-
-const roomCreatedHandler = (
-  client: Client,
-  get: any,
-  set: any,
-  response: any,
-) => {
-  set({ roomID: response.roomId });
-  client.subscribe(`/topic/interview/${response.roomId}`, message => {
-    const response = JSON.parse(message.body);
-    console.log(response);
-    get().InterviewMessageHandler(client, response);
-  });
-};
-
-const existingUserHandler = async (client: Client, set: any, data: any) => {
-  set({ opponentNickname: data.nickname });
-  const peerConnection = new RTCPeerConnection();
-  const myStream = useMediaStreamStore.getState().myStream;
-
-  if (!myStream) return;
-
-  myStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, myStream);
-  });
-
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-  client.publish({
-    destination: `/app/offer`,
-    body: JSON.stringify({
-      roomId: data.roomId,
-      offer: offer,
-    }),
-  });
-};
-
-const joinedUserHandler = (client: Client, set: any, data: any) => {
-  set({ opponentNickname: data.nickname });
-};
-
-const roomStatusHandler = (client: Client, set: any, data: any) => {
-  console.log(data);
-};
-
-const offerHandler = async (client: Client, set: any, data: any) => {
-  const peerConnection = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: process.env.TURN_URL || '',
-        username: process.env.TURN_USERNAME || '',
-        credential: process.env.TURN_CREDENTIAL || '',
-      },
-    ],
-  });
-  const myStream = useMediaStreamStore.getState().myStream;
-  if (!myStream) return;
-  myStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, myStream);
-  });
-  peerConnection.setRemoteDescription(data.offer);
-  useMediaStreamStore.getState().setPeerStream(data.offer.stream);
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-  client.publish({
-    destination: `/app/answer`,
-    body: JSON.stringify({
-      roomId: data.roomId,
-      answer: answer,
-    }),
-  });
-};
-
-const answerHandler = (client: Client, set: any, data: any) => {
-  const peerConnection = new RTCPeerConnection();
-  peerConnection.setRemoteDescription(data.answer);
-  useMediaStreamStore.getState().setPeerStream(data.answer.stream);
-};
-
-const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
-  const questions: Question[] = [];
-  data.nextQuestionChoices.forEach((choice: any) => {
-    questions.push({
-      question: choice.questionText,
-      id: choice.questionId,
-      questionType: choice.questionType,
-    });
-  });
-  useInterviewQuestionStore
-    .getState()
-    .setTailQuestion([questions[0], questions[1]]);
-  useInterviewQuestionStore.getState().setDefaultQuestion(questions[2]);
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
-  console.log(useInterviewRoomStore.getState().status);
-};
-
-const customQuestionCreatedHandler = (client: Client, set: any, data: any) => {
-  const question: Question = {
-    question: data.questionText,
-    id: data.questionId,
-    questionType: data.questionType,
-  };
-  useInterviewQuestionStore.getState().setCurrentQuestion(question);
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
-};
-
-const errorHandler = (client: Client, set: any, data: any) => {
-  const errorMessage = data.error;
-};

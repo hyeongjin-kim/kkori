@@ -1,15 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-
-export const PRACTICE_MODE = Object.freeze({
-  SOLO_PRACTICE: 'SOLO_PRACTICE',
-  PAIR_PRACTICE: 'PAIR_PRACTICE',
-});
+import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 interface PracticeButtonProps {
   text: string;
   path: string;
   className?: string;
-  mode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE];
+  mode: (typeof interviewType)[keyof typeof interviewType];
 }
 
 export function PracticeButton({

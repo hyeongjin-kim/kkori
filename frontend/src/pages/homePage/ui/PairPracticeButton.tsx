@@ -1,7 +1,5 @@
-import {
-  PRACTICE_MODE,
-  PracticeButton,
-} from '@/pages/homePage/ui/PracticeButton';
+import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
+import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 function PairPracticeButton() {
   return (
@@ -9,7 +7,7 @@ function PairPracticeButton() {
       text="같이 연습하기"
       path="/pair-practice"
       className="border-point-300 text-point-300 border"
-      mode={PRACTICE_MODE.PAIR_PRACTICE}
+      mode={interviewType.PAIR}
     />
   );
 }
