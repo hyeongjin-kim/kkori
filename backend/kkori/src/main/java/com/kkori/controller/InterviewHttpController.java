@@ -83,10 +83,8 @@ public class InterviewHttpController {
             @RequestParam("audioFile") MultipartFile audioFile
     ) {
         try {
-            // 파일 바이트 배열로 직접 처리 (Base64 변환 불필요)
             byte[] audioBytes = audioFile.getBytes();
 
-            // STT 처리 및 답변 저장
             QuestionForm customQuestion = interviewSessionService.createCustomQuestion(
                     roomId, userId, audioBytes);
 
