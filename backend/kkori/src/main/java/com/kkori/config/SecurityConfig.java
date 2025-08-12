@@ -64,7 +64,8 @@ public class SecurityConfig {
                 )
 
 //                // 모든 요청 HTTPS 강제 적용
-//                .requiresChannel(channel -> channel.anyRequest().requiresSecure())
+                .redirectToHttps(redirect -> {
+                })
 
                 // 보안 헤더 설정
                 .headers(headers -> headers
