@@ -56,7 +56,6 @@ export const audioApi = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'multipart/form-data',
-    Accept: 'multipart/form-data',
   },
 });
 
