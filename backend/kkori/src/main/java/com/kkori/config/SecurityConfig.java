@@ -27,7 +27,8 @@ public class SecurityConfig {
 
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:5173",
-            "http://localhost:8080"
+            "http://localhost:8080",
+            "https://kkori.site"
     );
 
     private static final List<String> ALLOWED_METHODS = List.of(
