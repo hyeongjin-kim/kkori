@@ -726,6 +726,9 @@ class InterviewSessionServiceImplTest {
             // given
             QuestionForm customQuestion = new QuestionForm(CUSTOM, 1, CUSTOM_QUESTION_TEXT);
 
+            when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
+            when(mockRoom.getInterviewerId()).thenReturn(USER_ID);
+            when(mockRoom.isStarted()).thenReturn(true);
             when(roomManager.getSession(ROOM_ID)).thenReturn(mockSession);
             when(transcriber.transcribe(anyString())).thenReturn(CUSTOM_QUESTION_TEXT);
             when(mockSession.createCustomQuestion(CUSTOM_QUESTION_TEXT)).thenReturn(customQuestion);
