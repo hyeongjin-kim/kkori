@@ -3,6 +3,7 @@ import QuestionAnswerForm from '@/pages/questionSetCreatePage/ui/QuestionAnswerF
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateQuestionSet } from '@/entities/questionSet/model/useQuestionSetList';
+import { toast } from 'sonner';
 
 interface QuestionAnswer {
   question: string;
@@ -35,6 +36,7 @@ function QuestionSetCreatePage() {
         questionType: 1,
       })),
     });
+    toast.success('질문 세트가 생성되었습니다.');
     navigate('/interview-questions');
   };
   return (
