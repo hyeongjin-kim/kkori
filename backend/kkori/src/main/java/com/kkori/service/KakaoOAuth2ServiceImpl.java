@@ -119,7 +119,7 @@ public class KakaoOAuth2ServiceImpl implements KakaoOAuth2Service {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        return new UserProfileResponse(user.getNickname());
+        return new UserProfileResponse(user.getUserId(), user.getNickname());
     }
 
     @Override

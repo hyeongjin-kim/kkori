@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,7 +36,9 @@ public class KakaoOAuth2Controller {
     private static final String AUTHORIZATION_CODE_PARAM = "code";
     private static final String ERROR_MISSING_CODE = "인가코드가 필요합니다";
     private static final String ERROR_UNSUPPORTED_PRINCIPAL_TYPE = "지원하지 않는 principal 타입: ";
-    public static final String LOGIN_SUCCESS_REDIRECT = "http://localhost:5173/"; // 우리 도메인 쓰기
+
+    @Value("${app.frontend-url}")
+    private String loginSuccessRedirect;
 
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
@@ -76,7 +79,7 @@ public class KakaoOAuth2Controller {
                 REFRESH_TOKEN_EXPIRE_SECONDS);
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", LOGIN_SUCCESS_REDIRECT)
+                .header("Location", loginSuccessRedirect)
                 .build();
     }
 

@@ -23,7 +23,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<CommonApiResponse<UserProfileResponse>> getUserInfo(@LoginUser Long userId) {
         User user = userService.findById(userId);
-        return ResponseEntity.ok(CommonApiResponse.ok(new UserProfileResponse(user.getNickname())));
+        return ResponseEntity.ok(CommonApiResponse.ok(new UserProfileResponse(user.getUserId(), user.getNickname())));
     }
 
     @PostMapping("/logout")

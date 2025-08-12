@@ -295,6 +295,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
                 .isPublic(questionSet.getIsPublic())
+                .ownerId(questionSet.getOwnerUserId().getUserId())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questions(questions)
                 .tags(tags)
@@ -316,6 +317,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                     questionSet.getParentVersionId().getId() : null)
                 .isPublic(questionSet.getIsPublic())
+                .ownerId(questionSet.getOwnerUserId().getUserId())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .createdAt(questionSet.getCreatedAt())
                 .build();
@@ -437,6 +439,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
                 .isPublic(questionSet.getIsPublic())
+                .ownerId(questionSet.getOwnerUserId().getUserId())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionMaps(questionMapResponses)
                 .tags(convertQuestionSetTagsToResponse(questionSet))
@@ -911,6 +914,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
                 .parentVersionId(questionSet.getParentVersionId() != null ? 
                         questionSet.getParentVersionId().getId() : null)
                 .isPublic(questionSet.getIsPublic())
+                .ownerId(questionSet.getOwnerUserId().getUserId())
                 .ownerNickname(questionSet.getOwnerUserId().getNickname())
                 .questionCount((int) questionCount)
                 .tags(convertQuestionSetTagsToResponse(questionSet))

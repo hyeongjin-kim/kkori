@@ -294,12 +294,13 @@ class KakaoOAuth2ControllerTest {
     @WithMockUser(username = "1")
     @DisplayName("인증된 사용자는 사용자 정보 조회에 성공")
     void getUserInfo_Success() throws Exception {
-        UserProfileResponse userProfileResponse = new UserProfileResponse("홍길동");
+        UserProfileResponse userProfileResponse = new UserProfileResponse(1L, "홍길동");
 
         given(kakaoOAuth2Service.getUserProfile(1L)).willReturn(userProfileResponse);
 
         mockMvc.perform(get("/oauth2/authorization/kakao/userinfo").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1L))
                 .andExpect(jsonPath("$.nickname").value("홍길동"));
     }
 
