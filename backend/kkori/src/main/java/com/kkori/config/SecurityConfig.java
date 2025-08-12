@@ -46,8 +46,7 @@ public class SecurityConfig {
             "/oauth2/authorization/kakao",
             "/oauth2/authorization/kakao/callback",
             "/ws/**",
-            "/actuator/health",
-            "/actuator/info",
+            "/actuator/**",
             "/api/login/guest",
             "/api/questionsets",
             "/api/questionsets/*"
