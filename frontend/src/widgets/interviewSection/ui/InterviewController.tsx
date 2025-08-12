@@ -1,6 +1,4 @@
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 import IntervieweeControlButtonContainer from './IntervieweeControlButtonContainer';
 
 const switchStatus = (
@@ -19,7 +17,7 @@ const switchStatus = (
 function InterviewController() {
   const status = useInterviewRoomStore(state => state.status);
   const role = useInterviewRoomStore(state => state.role);
-  const interviewType = useInterviewRoomStore(state => state.interviewType);
+  const interviewType = useInterviewRoomStore(state => state.type);
   return (
     <div
       aria-label="interview-controller"
