@@ -165,24 +165,32 @@ pipeline {
                     env.PATH = "${nodeJS}/bin:${env.PATH}"
                 }
                 dir('frontend') {
-                    sh '''
-                        # Node.js 및 npm 버전 확인
-                        node --version
-                        npm --version
+                    withCredentials([file(credentialsId: 'frontend-env-file', variable: 'ENV_FILE')]) {
+                        sh '''
+                            # frontend 디렉토리 안에 .env 파일 복사
+                            cp $ENV_FILE .env
+                            
+                            # Node.js 및 npm 버전 확인
+                            node --version
+                            npm --version
 
-                        # 의존성 설치
-                        npm ci
+                            # 의존성 설치
+                            npm ci
 
-                        # 프로덕션 빌드
-                        npm run build
+                            # 프로덕션 빌드
+                            npm run build
 
-                        # 빌드 결과 확인
-                        echo "Frontend build artifacts:"
-                        ls -la dist/
+                            # 빌드 결과 확인
+                            echo "Frontend build artifacts:"
+                            ls -la dist/
 
-                        # 빌드 크기 확인
-                        du -sh dist/
-                    '''
+                            # 빌드 크기 확인
+                            du -sh dist/
+                            
+                            # 보안을 위해 .env 파일 삭제
+                            rm -f .env
+                        '''
+                    }
                 }
             }
         }
