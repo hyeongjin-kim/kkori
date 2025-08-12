@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -77,7 +78,7 @@ public class SecurityConfig {
                         .frameOptions(FrameOptionsConfig::sameOrigin)
                         .referrerPolicy(referrer ->
                                 referrer.policy(
-                                        org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                                        ReferrerPolicy.NO_REFERRER))
                 )
 
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider, kakaoOAuth2Service),
