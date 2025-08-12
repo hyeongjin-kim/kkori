@@ -65,7 +65,7 @@ describe('IntervieweeControlButtonContainer', () => {
       act(() => {
         useInterviewRoomStore
           .getState()
-          .setStatus(interviewStatus.NEXT_QUESTION_CHOICE);
+          .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
       });
       expect(
         screen.getByLabelText('next-question-select-control-button'),

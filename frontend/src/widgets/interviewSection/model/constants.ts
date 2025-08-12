@@ -25,7 +25,7 @@ export const soloIntervieweeControlButtonProps = [
     onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_CHOICE,
+    status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
   {
     onClick: startAnswer,
@@ -58,7 +58,7 @@ export const peerIntervieweeControlButtonProps = [
     onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_CHOICE,
+    status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
   {
     onClick: startAnswer,
@@ -103,7 +103,7 @@ export const peerInterviewerControlButtonProps = [
     onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_CHOICE,
+    status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
 ];
 
