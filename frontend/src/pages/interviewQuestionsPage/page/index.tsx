@@ -1,8 +1,8 @@
 import QuestionSetTagFilter from '@/pages/interviewQuestionsPage/ui/QuestionSetTagFilter';
-import QuestionSetList from '@/pages/interviewQuestionsPage/ui/QuestionSetList';
 import Separator from '@/shared/ui/Separator';
 import GoToButton from '@/shared/ui/GoToButton';
 import { FcPlus } from 'react-icons/fc';
+import QuestionSetListContainer from '../ui/QuestionSetListContainer';
 
 function InterviewQuestionsPage() {
   return (
@@ -18,7 +18,7 @@ function InterviewQuestionsPage() {
         icon={<FcPlus className="mr-2 text-lg" />}
       />
       <Separator />
-      <QuestionSetList />
+      <QuestionSetListContainer />
     </main>
   );
 }
