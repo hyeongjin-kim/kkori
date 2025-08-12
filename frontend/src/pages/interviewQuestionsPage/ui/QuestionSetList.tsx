@@ -1,26 +1,28 @@
-import useQuestionSetFilterStore from '@/pages/interviewQuestionsPage/model/useQuestionSetFilterStore';
 import QuestionSet from '@/pages/interviewQuestionsPage/ui/QuestionSet';
-import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
+import { QuestionSetResponse } from '@/entities/questionSet/model/response';
+import QuestionSetSkeleton from '@/pages/interviewQuestionsPage/ui/QuestionSetListSkeleton';
 
-function QuestionSetList() {
-  const { questionSets, selectedTag } = useQuestionSetFilterStore();
+interface QuestionSetListProps {
+  questionSets: QuestionSetResponse[];
+  isLoading: boolean;
+}
+
+function QuestionSetList({ questionSets, isLoading }: QuestionSetListProps) {
   return (
     <ul
       aria-label="question-set-list"
       className="grid w-full grid-cols-1 gap-4 overflow-y-auto md:grid-cols-2 lg:grid-cols-3"
     >
-      {questionSets
-        .filter(questionSet =>
-          selectedTag !== TAG_FILTER_LIST[0].tag
-            ? questionSet.tags.some(tag => tag === selectedTag)
-            : true,
-        )
-        .map(questionSet => (
+      {isLoading ? (
+        <QuestionSetSkeleton />
+      ) : (
+        questionSets.map(questionSet => (
           <QuestionSet
             key={questionSet.questionSetId}
             questionSet={questionSet}
           />
-        ))}
+        ))
+      )}
     </ul>
   );
 }

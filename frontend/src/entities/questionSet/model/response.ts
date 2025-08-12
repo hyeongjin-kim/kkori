@@ -8,7 +8,7 @@ export interface QuestionSetResponse {
   ownerNickname: string;
   questionMaps: QuestionMap[];
   tailQuestions: TailQuestionResponse[];
-  tags: string[];
+  tags: { tag: string }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -52,21 +52,6 @@ export interface TagResponse {
   tag: string;
 }
 
-// 목록 조회 아이템
-export interface QuestionSetListItem {
-  questionSetId: number;
-  title: string;
-  description: string;
-  versionNumber: number;
-  parentVersionId: number | null;
-  isPublic: boolean;
-  ownerNickname: string;
-  questionCount: number;
-  tags: TagResponse[];
-  createdAt: string;
-  lastModifiedAt: string;
-}
-
 export interface Pageable {
   sort: {
     empty: boolean;
@@ -78,11 +63,11 @@ export interface Pageable {
   pageNumber: number;
 }
 
-export interface GetQuestionSetListResponse {
+export interface GetQuestionSetsResponse {
   status: string;
   message: string;
   data: {
-    content: QuestionSetListItem[];
+    content: QuestionSetResponse[];
     pageable: Pageable;
     totalElements: number;
     totalPages: number;
@@ -93,4 +78,19 @@ export interface GetQuestionSetListResponse {
     numberOfElements: number;
     empty: boolean;
   };
+}
+
+export interface CreateQuestionSetResponse {
+  questionSetId: number;
+  title: string;
+  description: string;
+  versionNumber: number;
+  parentVersionId: number | null;
+  isPublic: boolean;
+  ownerNickname: string;
+  questionMaps: QuestionMap[];
+  tailQuestions: TailQuestionResponse[];
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
 }

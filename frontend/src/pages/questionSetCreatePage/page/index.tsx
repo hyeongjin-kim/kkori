@@ -1,6 +1,8 @@
 import QuestionSetForm from '@/pages/questionSetCreatePage/ui/QuestionSetForm';
 import QuestionAnswerForm from '@/pages/questionSetCreatePage/ui/QuestionAnswerForm';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCreateQuestionSet } from '@/entities/questionSet/model/useQuestionSetList';
 
 interface QuestionAnswer {
   question: string;
@@ -15,11 +17,26 @@ const initialQuestionAnswer: QuestionAnswer = {
 function QuestionSetCreatePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [isShared, setIsShared] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
   const [tagList, setTagList] = useState<Set<string>>(new Set());
   const [questionAnswerList, setQuestionAnswerList] = useState<
     QuestionAnswer[]
   >([initialQuestionAnswer]);
+  const navigate = useNavigate();
+  const { mutate: createQuestionSet } = useCreateQuestionSet();
+  const handleSubmit = () => {
+    createQuestionSet({
+      title,
+      description,
+      tags: Array.from(tagList),
+      questions: questionAnswerList.map(questionAnswer => ({
+        content: questionAnswer.question,
+        expectedAnswer: questionAnswer.answer,
+        questionType: 1,
+      })),
+    });
+    navigate('/interview-questions');
+  };
   return (
     <main
       aria-label="question-set-create-page"
@@ -28,27 +45,19 @@ function QuestionSetCreatePage() {
       <QuestionSetForm
         title={title}
         description={description}
-        isShared={isShared}
+        isPublic={isPublic}
         tagList={tagList}
         onChange={{
           title: setTitle,
           description: setDescription,
-          isShared: setIsShared,
+          isPublic: setIsPublic,
           tagList: setTagList,
         }}
       />
       <QuestionAnswerForm
         questionAnswerList={questionAnswerList}
         setQuestionAnswerList={setQuestionAnswerList}
-        onSubmit={() => {
-          console.log(
-            title,
-            description,
-            isShared,
-            tagList,
-            questionAnswerList,
-          );
-        }}
+        onSubmit={handleSubmit}
       />
     </main>
   );

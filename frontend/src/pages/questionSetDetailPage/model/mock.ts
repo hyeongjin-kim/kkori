@@ -41,7 +41,7 @@ export const mockQuestionSet: QuestionSetResponse = {
       answeredAt: null,
     },
   ],
-  tags: ['자바', '백엔드'],
+  tags: [{ tag: '자바' }, { tag: '백 엔드' }],
   createdAt: '2025-01-01T00:00:00',
   updatedAt: '2025-01-01T00:00:00',
 };
