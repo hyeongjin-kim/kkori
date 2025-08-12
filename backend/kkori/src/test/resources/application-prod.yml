@@ -35,6 +35,7 @@ spring:
   sql:
     init:
       mode: never
+      data-locations: []
 
   # 배포 환경에서는 환경변수로 설정 주입
 
