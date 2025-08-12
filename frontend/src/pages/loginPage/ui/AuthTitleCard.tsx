@@ -15,7 +15,7 @@ export default function AuthTitleCard({
       {description ? (
         <p className="mt-1 text-sm text-gray-500">{description}</p>
       ) : null}
-      <div className="mt-5 space-y-3">{children}</div>
+      <div className="mt-5 flex flex-col items-center gap-2">{children}</div>
     </section>
   );
 }
