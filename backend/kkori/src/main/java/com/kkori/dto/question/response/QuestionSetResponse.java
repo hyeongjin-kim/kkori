@@ -14,6 +14,7 @@ public class QuestionSetResponse {
     private Integer versionNumber;
     private Long parentVersionId;
     private Boolean isPublic;
+    private Long ownerId;
     private String ownerNickname;
     private List<QuestionSummaryResponse> questions;
     private List<TagResponse> tags;
@@ -23,7 +24,7 @@ public class QuestionSetResponse {
     @Builder
     public QuestionSetResponse(Long id, String title, String description,
                                Integer versionNumber, Long parentVersionId,
-                               Boolean isPublic, String ownerNickname,
+                               Boolean isPublic, Long ownerId, String ownerNickname,
                                List<QuestionSummaryResponse> questions,
                                List<TagResponse> tags,
                                LocalDateTime createdAt,
@@ -34,6 +35,7 @@ public class QuestionSetResponse {
         this.versionNumber = versionNumber;
         this.parentVersionId = parentVersionId;
         this.isPublic = isPublic;
+        this.ownerId = ownerId;
         this.ownerNickname = ownerNickname;
         this.questions = questions;
         this.tags = tags;

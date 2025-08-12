@@ -19,6 +19,7 @@ public class QuestionSetDetailResponse {
     private Integer versionNumber;
     private Long parentVersionId;
     private Boolean isPublic;
+    private Long ownerId;
     private String ownerNickname;
     
     private List<QuestionMapResponse> questionMaps;
@@ -33,7 +34,7 @@ public class QuestionSetDetailResponse {
     @Builder
     public QuestionSetDetailResponse(Long questionSetId, String title, String description,
                                    Integer versionNumber, Long parentVersionId, Boolean isPublic,
-                                   String ownerNickname, List<QuestionMapResponse> questionMaps, List<TagResponse> tags,
+                                   Long ownerId, String ownerNickname, List<QuestionMapResponse> questionMaps, List<TagResponse> tags,
                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.questionSetId = questionSetId;
         this.title = title;
@@ -41,6 +42,7 @@ public class QuestionSetDetailResponse {
         this.versionNumber = versionNumber;
         this.parentVersionId = parentVersionId;
         this.isPublic = isPublic;
+        this.ownerId = ownerId;
         this.ownerNickname = ownerNickname;
         this.questionMaps = questionMaps;
         this.tags = tags;
