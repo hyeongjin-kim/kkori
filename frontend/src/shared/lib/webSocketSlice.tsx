@@ -312,7 +312,10 @@ const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
   const questions: Question[] = [];
   console.log(data);
   data.nextQuestionChoices.forEach((choice: any) => {
-    questions.push(choice);
+    questions.push({
+      question: choice.questionText,
+      id: choice.questionId,
+    });
   });
   console.log(questions);
   useInterviewQuestionStore
