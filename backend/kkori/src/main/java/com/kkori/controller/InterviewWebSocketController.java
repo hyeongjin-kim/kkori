@@ -87,8 +87,7 @@ public class InterviewWebSocketController {
             interviewSessionService.exitRoom(roomId, authenticatedUserId);
 
             SuccessResponse broadcastResponse = new SuccessResponse(
-                    InterviewMessages.USER_EXITED,
-                    String.valueOf(System.currentTimeMillis())
+                    InterviewMessages.USER_EXITED
             );
             webSocketHelper.broadcastToRoom(roomId, "user-exited", broadcastResponse);
 
@@ -123,8 +122,7 @@ public class InterviewWebSocketController {
             interviewSessionService.swapRoles(roomId);
 
             SuccessResponse response = new SuccessResponse(
-                    InterviewMessages.ROLES_SWAPPED,
-                    String.valueOf(System.currentTimeMillis())
+                    InterviewMessages.ROLES_SWAPPED
             );
             webSocketHelper.broadcastToRoom(roomId, "roles-swapped", response);
 
@@ -166,10 +164,9 @@ public class InterviewWebSocketController {
             interviewSessionService.completeInterview(roomId);
 
             SuccessResponse response = new SuccessResponse(
-                    InterviewMessages.INTERVIEW_COMPLETED,
-                    String.valueOf(System.currentTimeMillis())
+                    InterviewMessages.INTERVIEW_COMPLETED
             );
-            // webSocketHelper.broadcastToRoom(roomId, "interview-ended", response);
+            webSocketHelper.broadcastToRoom(roomId, "interview-ended", response);
 
         } catch (Exception e) {
             webSocketHelper.sendErrorToUser(authenticatedUserId, ExceptionCode.INTERVIEW_END_FAILED, e.getMessage());
@@ -184,10 +181,9 @@ public class InterviewWebSocketController {
 
         String roomId = request.getRoomId();
         SuccessResponse response = new SuccessResponse(
-                InterviewMessages.ANSWER_RECORDING_STARTED,
-                String.valueOf(System.currentTimeMillis())
+                InterviewMessages.ANSWER_RECORDING_STARTED
         );
-        // webSocketHelper.broadcastToRoom(roomId, "answer-recording-started", response);
+        webSocketHelper.broadcastToRoom(roomId, "answer-recording-started", response);
     }
 
     @MessageMapping("/answer-submit")
@@ -257,10 +253,9 @@ public class InterviewWebSocketController {
 
         String roomId = request.getRoomId();
         SuccessResponse response = new SuccessResponse(
-                InterviewMessages.CUSTOM_QUESTION_RECORDING_STARTED,
-                String.valueOf(System.currentTimeMillis())
+                InterviewMessages.CUSTOM_QUESTION_RECORDING_STARTED
         );
-        //webSocketHelper.broadcastToRoom(roomId, "custom-question-recording-started", response);
+        webSocketHelper.broadcastToRoom(roomId, "custom-question-recording-started", response);
     }
 
     @MessageMapping("/custom-question-create")
@@ -298,7 +293,7 @@ public class InterviewWebSocketController {
         User creator = userService.findById(creatorId);
         User participant = userService.findById(participantId);
 
-        ExistingUserResponse toParticipantResponse = new ExistingUserResponse(creator.getNickname(), creatorId);
+        ExistingUserResponse toParticipantResponse = new ExistingUserResponse(creator.getNickname());
         JoinedUserResponse toCreatorResponse = new JoinedUserResponse(participant.getNickname());
 
         webSocketHelper.sendPersonalMessage(participantId, "existing-user", toParticipantResponse);

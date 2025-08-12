@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExistingUserResponse {
     private String nickName;
-    private Long id;
 }

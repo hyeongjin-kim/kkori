@@ -400,7 +400,6 @@ class InterviewWebSocketTest {
             @SuppressWarnings("unchecked")
             Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
             assertThat(dataMap.get("message")).isEqualTo("면접관과 면접자 역할이 변경되었습니다");
-            assertThat(dataMap.get("timestamp")).isNotNull();
 
         } catch (AssertionError e) {
             printQueuedMessages();
@@ -435,7 +434,6 @@ class InterviewWebSocketTest {
             Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
             assertThat(dataMap.get("error")).isEqualTo("역할 변경에 실패했습니다.");
             assertThat(dataMap.get("message")).isEqualTo("역할 변경 실패");
-            assertThat(dataMap.get("timestamp")).isNotNull();
 
         } catch (AssertionError e) {
             printQueuedMessages();
