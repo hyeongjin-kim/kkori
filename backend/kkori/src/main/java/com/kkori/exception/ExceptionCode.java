@@ -20,6 +20,7 @@ public enum ExceptionCode {
     // ==== Permission 관련 ====
     ONLY_INTERVIEWEE_CAN_SUBMIT_ANSWER(2001, "면접자만 답변을 제출할 수 있습니다.", HttpStatus.FORBIDDEN),
     PERMISSION_DENIED(2002, "접근 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    ONLY_INTERVIEWER_CAN_CREATE_QUESTION(2003, "면접관만 질문을 생성할 수 있습니다.", HttpStatus.FORBIDDEN),
 
     // ==== Question 관련 ====
     QUESTION_SET_NOT_FOUND(3001, "질문 세트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),

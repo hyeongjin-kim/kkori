@@ -273,7 +273,7 @@ public class InterviewWebSocketController {
             String audioBase64 = request.getAudioBase64();
 
             QuestionForm customQuestion = interviewSessionService.createCustomQuestion(
-                    roomId, audioBase64);
+                    roomId, authenticatedUserId, audioBase64);
 
             QuestionDto questionDto = QuestionDto.from(customQuestion);
             webSocketHelper.broadcastToRoom(roomId, "custom-question-created", questionDto);
