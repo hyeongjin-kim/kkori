@@ -5,6 +5,7 @@ export interface QuestionSetResponse {
   versionNumber: number;
   parentVersionId: number | null;
   isPublic: boolean;
+  ownerId: number;
   ownerNickname: string;
   questionMaps: QuestionMap[];
   tailQuestions: TailQuestionResponse[];
