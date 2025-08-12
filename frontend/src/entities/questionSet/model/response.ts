@@ -96,6 +96,16 @@ export interface CreateQuestionSetResponse {
   updatedAt: string;
 }
 
-export interface UpdateQuestionSetResponse extends CreateQuestionSetResponse {}
+export interface UpdateQuestionSetResponse extends DefaultResponse {
+  data: CreateQuestionSetResponse;
+}
 
 export interface DeleteQuestionSetResponse extends GetQuestionSetsResponse {}
+
+interface DefaultResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  data: any;
+  timestamp: string;
+}

@@ -8,7 +8,9 @@ import { QuestionAnswer } from '@/pages/questionSetCreatePage/page';
 import QuestionAnswerForm from '@/pages/questionSetCreatePage/ui/QuestionAnswerForm';
 import QuestionSetForm from '@/pages/questionSetCreatePage/ui/QuestionSetForm';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import { UpdateQuestionSetResponse } from '@/entities/questionSet/model/response';
 
 function QuestionSetUpdatePage() {
   const { id } = useParams();
@@ -25,30 +27,45 @@ function QuestionSetUpdatePage() {
   const [questionAnswerList, setQuestionAnswerList] = useState<
     QuestionAnswer[]
   >([]);
+  const navigate = useNavigate();
 
-  const handleMetaDataSubmit = () => {
-    updateQuestionSetMetadata({
-      title: title,
-      description: description,
-      isPublic: isPublic,
-    });
+  const handleMetaDataSubmit = async () => {
+    try {
+      const response = await new Promise<UpdateQuestionSetResponse>(
+        (resolve, reject) =>
+          updateQuestionSetMetadata(
+            { title, description, isPublic },
+            { onSuccess: resolve, onError: reject },
+          ),
+      );
+      toast.success('메타데이터가 수정되었습니다.');
+      navigate(`/question-set-detail/${response.data.questionSetId}`);
+    } catch (error) {
+      toast.error('메타데이터 수정 실패');
+    }
   };
 
-  const handleQuestionAnswerSubmit = () => {
-    updateQuestionSet({
-      questions: questionAnswerList.map((question, index) => ({
-        content: question.question,
-        questionType: 1,
-        expectedAnswer: question.answer,
-        displayOrder: index + 1,
-      })),
-    });
+  const handleQuestionAnswerSubmit = async () => {
+    try {
+      await updateQuestionSet({
+        questions: questionAnswerList.map((question, index) => ({
+          content: question.question,
+          questionType: 1,
+          expectedAnswer: question.answer,
+          displayOrder: index + 1,
+        })),
+      });
+      toast.success('질문 답변이 수정되었습니다.');
+      navigate('/my-question-set');
+    } catch (error) {
+      toast.error('질문 답변 수정 실패');
+    }
   };
 
   useEffect(() => {
     if (qs) {
-      setTitle(qs.title);
-      setDescription(qs.description);
+      setTitle(qs.title ?? '');
+      setDescription(qs.description ?? '');
       setIsPublic(qs.isPublic);
       setTagList(new Set(qs.tags.map(tag => tag.tag)));
       setQuestionAnswerList(

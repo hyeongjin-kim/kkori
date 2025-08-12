@@ -72,7 +72,7 @@ export const useUpdateQuestionSetMetadata = (questionSetId: number) => {
   return useMutation({
     mutationFn: (request: UpdateQuestionSetMetadataRequest) =>
       putQuestionSetMetadata(questionSetId, request),
-    onSuccess: () => {
+    onSuccess: response => {
       queryClient.invalidateQueries({
         queryKey: ['questionSet', questionSetId],
       });
