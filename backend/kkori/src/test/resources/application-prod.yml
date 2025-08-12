@@ -35,57 +35,62 @@ spring:
   # 배포 환경에서는 환경변수로 설정 주입
 
   # JWT 설정 (Jenkins 환경변수에서 주입)
-  jwt:
-    secret-key: ${JWT_SECRET_KEY}
-    ACCESS_TOKEN_MINUTE_TIME: ${JWT_ACCESS_TOKEN_MINUTE_TIME:30}
-    REFRESH_TOKEN_MINUTE_TIME: ${JWT_REFRESH_TOKEN_MINUTE_TIME:10080}
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  ACCESS_TOKEN_MINUTE_TIME: ${JWT_ACCESS_TOKEN_MINUTE_TIME:30}
+  REFRESH_TOKEN_MINUTE_TIME: ${JWT_REFRESH_TOKEN_MINUTE_TIME:10080}
 
-  # Kakao OAuth2 설정 (Jenkins 환경변수에서 주입)
-  kakao:
-    client-id: ${KAKAO_CLIENT_ID}
-    redirect-url: ${KAKAO_REDIRECT_URL}
-    client-secret: ${KAKAO_CLIENT_SECRET}
-    token-url: ${KAKAO_TOKEN_URL:https://kauth.kakao.com/oauth/token}
+# Kakao OAuth2 설정 (Jenkins 환경변수에서 주입)
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-url: ${KAKAO_REDIRECT_URL}
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  token-url: ${KAKAO_TOKEN_URL:https://kauth.kakao.com/oauth/token}
 
-  # GMS API 설정 (Jenkins 환경변수에서 주입)
-  gms:
-    api-key: ${GMS_API_KEY}
-    whisper-url: ${GMS_WHISPER_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/audio/transcriptions}
-    gpt-url: ${GMS_GPT_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions}
+# GMS API 설정 (Jenkins 환경변수에서 주입)
+gms:
+  api-key: ${GMS_API_KEY}
+  whisper-url: ${GMS_WHISPER_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/audio/transcriptions}
+  gpt-url: ${GMS_GPT_URL:https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions}
 
-  # Actuator 설정 (헬스체크용)
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-        base-path: /actuator
-    endpoint:
-      health:
-        show-details: always
-        show-components: always
+# Actuator 설정 (헬스체크용)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
     health:
-      db:
-        enabled: true
+      show-details: always
+      show-components: always
+  health:
+    db:
+      enabled: true
 
-  # 로깅 설정
-  logging:
-    level:
-      root: INFO
-      com.kkori: INFO
-      org.hibernate.SQL: WARN
-      org.hibernate.type.descriptor.sql.BasicBinder: WARN
-      org.springframework.web: INFO
-    pattern:
-      console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-      file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.kkori: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-  # 서버 설정
-  server:
-    port: 8080
-    servlet:
-      context-path: /
-    tomcat:
-      max-threads: 200
-      accept-count: 100
-      connection-timeout: 20000
+# 서버 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  tomcat:
+    max-threads: 200
+    accept-count: 100
+    connection-timeout: 20000
+
+app:
+  frontend-url: "https://kkori.site"
+  cors:
+    allowed-origins: "https://kkori.site"
