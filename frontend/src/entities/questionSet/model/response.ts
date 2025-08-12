@@ -95,3 +95,7 @@ export interface CreateQuestionSetResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UpdateQuestionSetResponse extends CreateQuestionSetResponse {}
+
+export interface DeleteQuestionSetResponse extends GetQuestionSetsResponse {}

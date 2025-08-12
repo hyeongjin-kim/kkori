@@ -1,10 +1,11 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Copy, ChevronLeft, Pencil } from 'lucide-react';
+import { Copy, ChevronLeft, Pencil, Trash } from 'lucide-react';
 import { postCopyQuestionSet } from '@/entities/questionSet/model/postQuestionSet';
 import { QuestionSetOverviewVM } from '@/entities/questionSet/model/toOverviewVM';
 import useUserStore from '@/entities/user/model/useUserStore';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { deleteQuestionSet } from '../model/deleteQuestionSets';
 
 function DetailPageActions({ vm }: { vm: QuestionSetOverviewVM }) {
   const { id: questionSetId } = useParams();
@@ -30,6 +31,20 @@ function DetailPageActions({ vm }: { vm: QuestionSetOverviewVM }) {
     }
   };
 
+  const handleEdit = () => {
+    navigate(`/question-set-update/${questionSetId}`);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteQuestionSet(Number(questionSetId));
+      toast.success('세트가 삭제되었습니다.');
+      navigate(-1);
+    } catch (error) {
+      toast.error('세트 삭제 실패');
+    }
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
       <Link
@@ -44,14 +59,24 @@ function DetailPageActions({ vm }: { vm: QuestionSetOverviewVM }) {
       <span className="hidden h-5 w-px bg-gray-200 sm:block" />
 
       {isOwner ? (
-        <button
-          aria-label="edit-question-set-button"
-          onClick={() => {}}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-blue-600 bg-white px-3.5 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:outline-none active:scale-[0.99]"
-        >
-          <Pencil className="h-4 w-4" />
-          세트 수정하기
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            aria-label="edit-question-set-button"
+            onClick={handleEdit}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-600 bg-white px-3.5 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:outline-none active:scale-[0.99]"
+          >
+            <Pencil className="h-4 w-4" />
+            세트 수정하기
+          </button>
+          <button
+            aria-label="edit-question-set-button"
+            onClick={handleDelete}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-600 bg-white px-3.5 py-2 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:outline-none active:scale-[0.99]"
+          >
+            <Trash className="h-4 w-4" />
+            세트 삭제하기
+          </button>
+        </div>
       ) : (
         <button
           aria-label="import-question-set-button"

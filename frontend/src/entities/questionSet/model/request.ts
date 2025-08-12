@@ -43,3 +43,21 @@ export interface CopyQuestionSetRequest {
   description: string;
   copyTags?: boolean;
 }
+
+export interface UpdateQuestionSet {
+  content: string;
+  questionType: number;
+  expectedAnswer: string;
+  displayOrder: number;
+}
+
+export interface UpdateQuestionSetRequest {
+  questions: UpdateQuestionSet[];
+  tags?: string[];
+}
+
+export interface UpdateQuestionSetMetadataRequest {
+  title?: string;
+  description?: string;
+  isPublic?: boolean;
+}
