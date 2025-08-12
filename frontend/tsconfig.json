@@ -16,7 +16,8 @@
       "@features/*": ["src/features/*"],
       "@entities/*": ["src/entities/*"],
       "@shared/*": ["src/shared/*"],
-      "@widgets/*": ["src/widgets/*"]
+      "@widgets/*": ["src/widgets/*"],
+      "@assets/*": ["src/assets/*"]
     }
   }
 }
