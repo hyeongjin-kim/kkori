@@ -31,6 +31,10 @@ spring:
         order_updates: true
     database-platform: ${DB_PLATFORM:org.hibernate.dialect.H2Dialect}
     open-in-view: false
+  
+  sql:
+    init:
+      mode: never
 
   # 배포 환경에서는 환경변수로 설정 주입
 
