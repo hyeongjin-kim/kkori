@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.config.GMSConfig;
 import com.kkori.exception.audio.AudioProcessingException;
+import com.kkori.message.InterviewMessages;
 import java.io.File;
 import lombok.RequiredArgsConstructor;
 import okhttp3.MediaType;
@@ -43,6 +44,8 @@ public class Transcriber {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.getName(), fileBody)
                 .addFormDataPart("model", WHISPER_MODEL)
+                .addFormDataPart("language", "kr")
+                .addFormDataPart("prompt", InterviewMessages.STT_PROMPT)
                 .build();
     }
 

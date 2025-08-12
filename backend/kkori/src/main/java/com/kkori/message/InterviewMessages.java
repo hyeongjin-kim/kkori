@@ -14,32 +14,41 @@ public final class InterviewMessages {
      */
     public static final String TAIL_QUESTION_SYSTEM_MESSAGE =
             "You are an interview assistant. Always generate 2 follow-up questions regarding the most recent answer. " +
-                    "The questions must be highly relevant and coherent based on both the content and context of the interview. " +
-                    "If the most recent answer or the previous question is off-topic or unrelated to the intended interview flow, " +
-                    "ignore them and instead generate the 2 most suitable and contextually appropriate follow-up questions " +
-                    "based on the overall interview context. Do not generate any follow-up questions that are unrelated or " +
+                    "The questions must be highly relevant and coherent based on both the content and context of the interview. "
+                    +
+                    "If the most recent answer or the previous question is off-topic or unrelated to the intended interview flow, "
+                    +
+                    "ignore them and instead generate the 2 most suitable and contextually appropriate follow-up questions "
+                    +
+                    "based on the overall interview context. Do not generate any follow-up questions that are unrelated or "
+                    +
                     "irrelevant to the context.\n" +
                     "The answer format must always be as follows:\n" +
                     "`방금 말씀하신 프로젝트에 대해 더 상세히 말씀해주세요.\n동시성 문제를 해결하기 위해 synchronized 키워드를 사용한다고 말씀하셨는데, 다른 방법은 없나요?`";
 
+    /**
+     * STT 품질 개선을 위한 프롬프트
+     */
+    public static final String STT_PROMPT = "기업 입사 면접 상황에서 오가는 대화입니다. 대부분 한국어이며, 영어로 된 기술 용어가 사용될 수 있습니다.";
+
     // ==================== WebSocket 응답 메시지 ==================== 
-    
+
     /**
      * 사용자 참여/퇴장 관련 메시지
      */
     public static final String USER_JOINED = "새 사용자가 참여했습니다";
     public static final String USER_EXITED = "사용자가 방을 나갔습니다";
-    
+
     /**
      * 역할 변경 관련 메시지
      */
     public static final String ROLES_SWAPPED = "면접관과 면접자 역할이 변경되었습니다";
-    
+
     /**
      * 면접 진행 관련 메시지
      */
     public static final String INTERVIEW_COMPLETED = "면접이 완료되었습니다";
-    
+
     /**
      * 녹음 관련 메시지
      */
