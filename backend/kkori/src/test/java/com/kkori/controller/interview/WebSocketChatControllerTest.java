@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kkori.config.validator.WebSocketSecurityValidator;
 import com.kkori.dto.interview.request.CommonRoomRequest;
 import com.kkori.dto.websocket.WebSocketChatMessage;
 import com.kkori.entity.User;
@@ -40,6 +41,9 @@ public class WebSocketChatControllerTest {
 
     @MockBean
     private InterviewSessionService interviewSessionService;
+
+    @MockBean
+    private WebSocketSecurityValidator webSocketSecurityValidator;
 
     @Autowired
     private TokenProvider tokenProvider;
@@ -78,6 +82,9 @@ public class WebSocketChatControllerTest {
                 .nickname("테스트사용자2")
                 .deleted(false)
                 .build();
+
+        // WebSocketSecurityValidator 모킹 - 모든 구독을 허용
+        given(webSocketSecurityValidator.isUserInRoom(any(), any())).willReturn(true);
 
         // User 객체로 JWT 토큰 생성
         Token user1_token = tokenProvider.generateAccessToken(user1);
