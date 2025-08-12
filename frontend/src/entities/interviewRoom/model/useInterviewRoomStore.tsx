@@ -5,10 +5,13 @@ export const interviewStatus = {
   QUESTION_PRESENTED: 'questionPresented',
   ANSWER_START: 'answerStart',
   ANSWER_END: 'answerEnd',
+  ANSWER_SUBMIT: 'answerSubmit',
+  NEXT_QUESTION_CHOICE: 'nextQuestionChoice',
   NEXT_QUESTION_SELECTED: 'nextQuestionSelected',
   CUSTOM_QUESTION_START: 'customQuestionStart',
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
   END_INTERVIEW: 'endInterview',
+  ALWAYS: 'always',
 };
 
 interface InterviewRoomState {
