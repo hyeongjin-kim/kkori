@@ -42,10 +42,10 @@ interface WebSocketAction {
   sendMessage: (sender: string, content: string, timestamp: number) => void;
   roomExit: () => void;
   answerStart: () => void;
-  answerSubmit: (blob: Blob) => void;
+  answerSubmit: () => void;
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
-  customQuestionCreate: (base64data: string) => void;
+  customQuestionCreate: () => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -147,7 +147,9 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  answerSubmit: async (blob: Blob) => {
+  answerSubmit: async () => {
+    const blob = useMediaStreamStore.getState().blob;
+    if (!blob) return;
     useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_SUBMIT);
     await audioPost({
       url: '/api/interview/answer-submit',
@@ -170,18 +172,22 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   customQuestionStart: () => {
+    useInterviewRoomStore.getState().setStatus('customQuestionStart');
     get().client?.publish({
       destination: `/app/custom-question-start`,
       body: JSON.stringify({ roomId: get().roomID }),
     });
   },
-  customQuestionCreate: (base64data: string) => {
-    get().client?.publish({
-      destination: `/app/custom-question-create`,
-      body: JSON.stringify({
-        roomId: get().roomID,
-        audioBase64: base64data,
-      }),
+  customQuestionCreate: async () => {
+    const blob = useMediaStreamStore.getState().blob;
+    if (!blob) return;
+    useInterviewRoomStore
+      .getState()
+      .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
+    await audioPost({
+      url: '/api/interview/custom-question-create',
+      roomId: get().roomID || '',
+      audioFile: blob,
     });
   },
 });
@@ -213,6 +219,9 @@ const personalMessageHandler = (
       break;
     case 'next-question-choices':
       nextQuestionChoiceHandler(client, set, response.data);
+      break;
+    case 'custom-question-created':
+      customQuestionCreatedHandler(client, set, response.data);
       break;
     default:
       errorHandler(client, set, response.data);
@@ -315,6 +324,18 @@ const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
     .getState()
     .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
   console.log(useInterviewRoomStore.getState().status);
+};
+
+const customQuestionCreatedHandler = (client: Client, set: any, data: any) => {
+  const question: Question = {
+    question: data.questionText,
+    id: data.questionId,
+    questionType: data.questionType,
+  };
+  useInterviewQuestionStore.getState().setCurrentQuestion(question);
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
 };
 
 const errorHandler = (client: Client, set: any, data: any) => {
