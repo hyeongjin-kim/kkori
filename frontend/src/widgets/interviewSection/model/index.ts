@@ -94,14 +94,17 @@ export function openNextQuestionModal() {
 export function chooseTailQuestion(questionIndex: number) {
   useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewRoomStore.getState().setStatus('questionPresented');
+  usePracticeSessionStore.getState().nextQuestionSelect();
 }
 
 export function chooseDefaultQuestion() {
   useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewRoomStore.getState().setStatus('questionPresented');
+  usePracticeSessionStore.getState().nextQuestionSelect();
 }
 
 export function chooseCustomQuestion() {
   useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewRoomStore.getState().setStatus('questionPresented');
+  usePracticeSessionStore.getState().nextQuestionSelect();
 }
