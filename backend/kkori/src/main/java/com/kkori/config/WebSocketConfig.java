@@ -103,21 +103,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             }
 
             private boolean isInterviewRelatedTopic(String destination) {
-                return destination.startsWith("/topic/") &&
-                       (destination.contains("/interview/") || destination.contains("/chat/") || destination.contains("/signal/"));
+                return destination.startsWith("/topic/interview/");
             }
 
             private String extractRoomIdFromDestination(String destination) {
-                // /topic/interview/{roomId}, /topic/chat/{roomId}, /topic/signal/{roomId} 패턴에서 roomId 추출
-                String[] parts = destination.split("/");
-                
-                for (int i = 0; i < parts.length - 1; i++) {
-                    if (("interview".equals(parts[i]) || "chat".equals(parts[i]) || "signal".equals(parts[i])) 
-                        && i + 1 < parts.length) {
-                        return parts[i + 1];
-                    }
+                // /topic/interview/{roomId} 패턴에서 roomId 추출
+                if (destination.startsWith("/topic/interview/")) {
+                    return destination.substring("/topic/interview/".length());
                 }
-                
                 return null;
             }
 
