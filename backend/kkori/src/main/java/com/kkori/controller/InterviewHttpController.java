@@ -76,7 +76,7 @@ public class InterviewHttpController {
         }
     }
 
-    @PostMapping("/api/custom-question-create")
+    @PostMapping("/custom-question-create")
     public ResponseEntity<CommonApiResponse<String>> createCustomQuestion(
             @LoginUser Long userId,
             @RequestParam String roomId,
