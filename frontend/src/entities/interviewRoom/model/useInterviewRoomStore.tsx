@@ -7,6 +7,7 @@ export const interviewStatus = {
   ANSWER_SUBMIT: 'answerSubmit',
   NEXT_QUESTION_PRESENTED: 'nextQuestionPresented',
   NEXT_QUESTION_SELECTED: 'nextQuestionSelected',
+  CUSTOM_QUESTION_SELECTED: 'customQuestionSelected',
   CUSTOM_QUESTION_START: 'customQuestionStart',
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
   END_INTERVIEW: 'endInterview',
