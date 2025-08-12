@@ -10,7 +10,7 @@ interface MediaStreamState {
   mainStreamType: MediaStreamType;
   subStreamType: MediaStreamType;
   myRecorder: MediaRecorder | null;
-  data: BlobPart[] | null;
+  blob: Blob | null;
   timerId: NodeJS.Timeout | null;
 }
 
@@ -25,7 +25,7 @@ interface MediaStreamActions {
   reset: () => void;
   setMainStreamType: (mainStreamType: MediaStreamType) => void;
   setSubStreamType: (subStreamType: MediaStreamType) => void;
-  setData: (data: BlobPart[]) => void;
+  setBlob: (blob: Blob | null) => void;
   setTimerId: (timerId: NodeJS.Timeout | null) => void;
 }
 
@@ -39,7 +39,7 @@ const initialState: MediaStreamState = {
   mainStreamType: 'my',
   subStreamType: 'peer',
   myRecorder: null,
-  data: [],
+  blob: null,
   timerId: null,
 };
 
@@ -56,7 +56,7 @@ const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
     reset: () => set(initialState),
     setMainStreamType: mainStreamType => set({ mainStreamType }),
     setSubStreamType: subStreamType => set({ subStreamType }),
-    setData: data => set({ data }),
+    setBlob: blob => set({ blob }),
     setTimerId: timerId => set({ timerId }),
   }),
 );
