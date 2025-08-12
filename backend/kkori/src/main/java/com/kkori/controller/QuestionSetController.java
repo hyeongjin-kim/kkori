@@ -83,7 +83,7 @@ public class QuestionSetController {
 
     @GetMapping
     public ResponseEntity<CommonApiResponse<Page<QuestionSetListResponse>>> getQuestionSetList(
-            @LoginUser Long userId,
+            @LoginUser(required = false) Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
@@ -98,7 +98,7 @@ public class QuestionSetController {
 
     @GetMapping("/{questionSetId}")
     public ResponseEntity<CommonApiResponse<QuestionSetDetailResponse>> getQuestionSetDetail(
-            @LoginUser Long userId,
+            @LoginUser(required = false) Long userId,
             @PathVariable Long questionSetId
     ) {
         QuestionSetDetailResponse response = questionSetService.getQuestionSetDetailNew(userId, questionSetId);
