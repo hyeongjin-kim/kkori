@@ -4,6 +4,7 @@ import LogoLink from '@/widgets/header/ui/LogoLink';
 import { useMe } from '@/features/auth/api/me';
 import LoginButtonSkeleton from '@/widgets/header/ui/LoginButtonSkelton';
 import UserMenu from '@/widgets/header/ui/UserMenu';
+import { post } from '@/shared/api/api';
 
 function Header() {
   const { data: me, isLoading } = useMe();
@@ -18,6 +19,13 @@ function Header() {
       ) : (
         <GoToLoginButton />
       )}
+      <button
+        onClick={() => {
+          post('/api/admin/create-dummy-data');
+        }}
+      >
+        더미 데이터 생성
+      </button>
     </header>
   );
 }
