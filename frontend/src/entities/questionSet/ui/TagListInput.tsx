@@ -17,7 +17,7 @@ function TagListInput({
     <LabeledTextField
       displayTitle={displayTitle}
       label="tag-input"
-      placeholder="#태그를 입력하세요"
+      placeholder="#태그를 입력하세요(Enter 키 입력 시 추가)"
       value={value}
       onChange={onChange}
       onSubmit={onSubmit}
