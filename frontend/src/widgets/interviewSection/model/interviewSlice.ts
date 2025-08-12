@@ -1,9 +1,13 @@
 import { Client } from '@stomp/stompjs';
 import { StateCreator } from 'zustand';
-import { INTERVIEW_MESSAGE_TYPE } from './constants';
+import { INTERVIEW_MESSAGE_TYPE } from '@/widgets/interviewSection/model/constants';
 import useInterviewRoomStore, {
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import {
+  Question,
+  useInterviewQuestionStore,
+} from './useInterviewQuestionStore';
 
 interface InterviewState {}
 
@@ -40,9 +44,6 @@ export const createInterviewSlice: StateCreator<
         break;
       case INTERVIEW_MESSAGE_TYPE.STT_RESULT:
         sttResultHandler(client, set, response.data);
-        break;
-      case INTERVIEW_MESSAGE_TYPE.NEXT_QUESTION_CHOICE:
-        nextQuestionChoiceHandler(client, set, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.NEXT_QUESTION_SELECTED:
         nextQuestionSelectedHandler(client, set, response.data);
@@ -86,13 +87,7 @@ const answerRecordingStartHandler = (
 };
 
 const sttResultHandler = (client: Client, set: any, response: any) => {
-  useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_END);
-};
-
-const nextQuestionChoiceHandler = (client: Client, set: any, response: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.QUESTION_PRESENTED);
+  useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_SUBMIT);
 };
 
 const nextQuestionSelectedHandler = (

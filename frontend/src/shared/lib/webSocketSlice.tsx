@@ -5,8 +5,14 @@ import { InterviewSlice } from '@/widgets/interviewSection/model/interviewSlice'
 import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWindowSlice';
 import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewStatus,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { audioPost } from '../api/api';
+import {
+  Question,
+  useInterviewQuestionStore,
+} from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 
 interface RoomCreateRequest {
   mode: string;
@@ -201,7 +207,6 @@ const personalMessageHandler = (
       break;
     case 'joined-user':
       joinedUserHandler(client, set, response.data);
-
       break;
     case 'room-status':
       roomStatusHandler(client, set, response.data);
@@ -211,6 +216,9 @@ const personalMessageHandler = (
       break;
     case 'answer':
       answerHandler(client, set, response.data);
+      break;
+    case 'next-question-choices':
+      nextQuestionChoiceHandler(client, set, response.data);
       break;
     default:
       errorHandler(client, set, response.data);
@@ -232,8 +240,8 @@ const roomCreatedHandler = (
   });
 };
 
-const existingUserHandler = async (client: Client, set: any, response: any) => {
-  set({ opponentNickname: response.nickname });
+const existingUserHandler = async (client: Client, set: any, data: any) => {
+  set({ opponentNickname: data.nickname });
   const peerConnection = new RTCPeerConnection();
   const myStream = useMediaStreamStore.getState().myStream;
 
@@ -248,21 +256,21 @@ const existingUserHandler = async (client: Client, set: any, response: any) => {
   client.publish({
     destination: `/app/offer`,
     body: JSON.stringify({
-      roomId: response.roomId,
+      roomId: data.roomId,
       offer: offer,
     }),
   });
 };
 
-const joinedUserHandler = (client: Client, set: any, response: any) => {
-  set({ opponentNickname: response.nickname });
+const joinedUserHandler = (client: Client, set: any, data: any) => {
+  set({ opponentNickname: data.nickname });
 };
 
-const roomStatusHandler = (client: Client, set: any, response: any) => {
-  console.log(response.data);
+const roomStatusHandler = (client: Client, set: any, data: any) => {
+  console.log(data);
 };
 
-const offerHandler = async (client: Client, set: any, response: any) => {
+const offerHandler = async (client: Client, set: any, data: any) => {
   const peerConnection = new RTCPeerConnection({
     iceServers: [
       {
@@ -278,25 +286,44 @@ const offerHandler = async (client: Client, set: any, response: any) => {
   myStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, myStream);
   });
-  peerConnection.setRemoteDescription(response.offer);
-  useMediaStreamStore.getState().setPeerStream(response.offer.stream);
+  peerConnection.setRemoteDescription(data.offer);
+  useMediaStreamStore.getState().setPeerStream(data.offer.stream);
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
   client.publish({
     destination: `/app/answer`,
     body: JSON.stringify({
-      roomId: response.roomId,
+      roomId: data.roomId,
       answer: answer,
     }),
   });
 };
 
-const answerHandler = (client: Client, set: any, response: any) => {
+const answerHandler = (client: Client, set: any, data: any) => {
   const peerConnection = new RTCPeerConnection();
-  peerConnection.setRemoteDescription(response.answer);
-  useMediaStreamStore.getState().setPeerStream(response.answer.stream);
+  peerConnection.setRemoteDescription(data.answer);
+  useMediaStreamStore.getState().setPeerStream(data.answer.stream);
 };
 
-const errorHandler = (client: Client, set: any, response: any) => {
-  console.log(response);
+const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.NEXT_QUESTION_CHOICE);
+  const questions: Question[] = [];
+  console.log(data);
+  data.nextQuestionChoices.forEach((choice: any) => {
+    questions.push(choice);
+  });
+  console.log(questions);
+  useInterviewQuestionStore
+    .getState()
+    .setTailQuestion([questions[0], questions[1]]);
+  useInterviewQuestionStore.getState().setDefaultQuestion(questions[2]);
+  console.log(useInterviewQuestionStore.getState().tailQuestion[0].question);
+  console.log(useInterviewQuestionStore.getState().tailQuestion[1].question);
+  console.log(useInterviewQuestionStore.getState().defaultQuestion.question);
+};
+
+const errorHandler = (client: Client, set: any, data: any) => {
+  console.log(data);
 };
