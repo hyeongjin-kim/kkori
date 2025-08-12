@@ -58,4 +58,8 @@ public class InterviewSessionException extends CustomRuntimeException {
     public static InterviewSessionException roomIdNotFoundForUser() {
         return new InterviewSessionException(ExceptionCode.ROOM_ID_NOT_FOUND_FOR_USER);
     }
+
+    public static InterviewSessionException onlyInterviewerCanCreateQuestion() {
+        return new InterviewSessionException(ExceptionCode.ONLY_INTERVIEWER_CAN_CREATE_QUESTION);
+    }
 }

@@ -584,7 +584,7 @@ class InterviewWebSocketTest {
     private void setupCustomQuestionMocks() {
         // 커스텀 질문 생성 모킹
         QuestionForm customQuestion = new QuestionForm(QuestionType.CUSTOM, 100, "커스텀 질문입니다.");
-        given(interviewSessionService.createCustomQuestion(anyString(), anyString()))
+        given(interviewSessionService.createCustomQuestion(anyString(), any(), anyString()))
                 .willReturn(customQuestion);
     }
 }

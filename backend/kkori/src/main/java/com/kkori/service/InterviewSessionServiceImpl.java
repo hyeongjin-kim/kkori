@@ -196,11 +196,16 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
     }
 
     @Override
-    public QuestionForm createCustomQuestion(String roomId, String audioBase64) {
-        try {
-            // Base64 디코딩
-            byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+    public QuestionForm createCustomQuestion(String roomId, Long userId, String audioBase64) {
+        byte[] audioBytes = java.util.Base64.getDecoder().decode(audioBase64);
+        return createCustomQuestion(roomId, userId, audioBytes);
+    }
 
+    @Override
+    public QuestionForm createCustomQuestion(String roomId, Long userId, byte[] audioBytes) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        validateCustomQuestionCreatePermission(room, userId);
+        try {
             // 임시 WebM 파일 생성
             String tempFilePath = createTempAudioFile(audioBytes);
 
@@ -427,6 +432,15 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
             return;
         }
         throw InterviewRoomException.userNotFoundInRoom();
+    }
+
+    private void validateCustomQuestionCreatePermission(InterviewRoom room, Long userId) {
+        if (!userId.equals(room.getInterviewerId())) {
+            throw InterviewSessionException.onlyInterviewerCanCreateQuestion();
+        }
+        if (!room.isStarted()) {
+            throw InterviewRoomException.interviewNotStarted();
+        }
     }
 
     // ==================== 엔티티 조회 메서드들 ====================

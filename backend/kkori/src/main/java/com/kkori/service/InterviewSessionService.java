@@ -59,7 +59,7 @@ public interface InterviewSessionService {
      * 음성 파일로 답변 처리 (STT 변환 포함)
      */
     String processAudioAnswer(String roomId, Long userId, String audioBase64);
-    
+
     /**
      * 음성 파일로 답변 처리 (바이트 배열 직접 처리)
      */
@@ -88,9 +88,14 @@ public interface InterviewSessionService {
     QuestionForm selectQuestion(String roomId, QuestionType type, int questionId, String questionText);
 
     /**
-     * 커스텀 질문 생성
+     * 커스텀 질문 생성 (바이트 배열로 변환 포함)
      */
-    QuestionForm createCustomQuestion(String roomId, String audioBase64);
+    QuestionForm createCustomQuestion(String roomId, Long userId, String audioBase64);
+
+    /**
+     * 커스텀 질문 생성 (바이트 배열로 변환 미포함)
+     */
+    QuestionForm createCustomQuestion(String roomId, Long userId, byte[] audioBytes);
 
     // ==================== 역할 및 상태 관리 ====================
 
