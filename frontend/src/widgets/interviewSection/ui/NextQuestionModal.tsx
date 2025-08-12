@@ -34,7 +34,7 @@ function NextQuestionModal() {
         onClick={chooseDefaultQuestion}
       />
       <NextQuestionButton
-        nextQuestion={customQuestion.question}
+        nextQuestion={customQuestion}
         label="custom-question"
         onClick={chooseCustomQuestion}
       />
