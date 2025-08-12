@@ -1,40 +1,44 @@
 spring:
-datasource:
-  # 테스트용 H2 설정 - Jenkins에서 환경변수로 오버라이드 가능
-  url: ${DB_URL:jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
-  username: ${DB_USERNAME:sa}
-  password: ${DB_PASSWORD:}
-  driver-class-name: ${DB_DRIVER_CLASS_NAME:org.h2.Driver}
+  datasource:
+    # 테스트용 H2 설정 - Jenkins에서 환경변수로 오버라이드 가능
+    url: ${DB_URL:jdbc:h2:mem:kkori-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER_CLASS_NAME:org.h2.Driver}
 
-  # 커넥션 풀 설정
-  hikari:
-    maximum-pool-size: 10
-    minimum-idle: 2
-    connection-timeout: 20000
-    idle-timeout: 300000
-    max-lifetime: 1200000
+    # 커넥션 풀 설정
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
 
-jpa:
-  hibernate:
-    # 테스트: create-drop, 배포: validate/update
-    ddl-auto: ${DDL_AUTO:create-drop}
-  properties:
+  jpa:
     hibernate:
-      # H2용 방언으로 기본값 설정, Jenkins에서 MySQL로 오버라이드 가능
-      dialect: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
-      show_sql: ${HIBERNATE_SHOW_SQL:true}
-      format_sql: ${HIBERNATE_FORMAT_SQL:true}
-      use_sql_comments: false
-      jdbc:
-        batch_size: 20
-      order_inserts: true
-      order_updates: true
-  database-platform: ${DB_PLATFORM:org.hibernate.dialect.H2Dialect}
-  open-in-view: false
+      # 테스트: create-drop, 배포: validate/update
+      ddl-auto: ${DDL_AUTO:create-drop}
+    properties:
+      hibernate:
+        # H2용 방언으로 기본값 설정, Jenkins에서 MySQL로 오버라이드 가능
+        dialect: ${DB_DIALECT:org.hibernate.dialect.H2Dialect}
+        show_sql: ${HIBERNATE_SHOW_SQL:true}
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+        use_sql_comments: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    database-platform: ${DB_PLATFORM:org.hibernate.dialect.H2Dialect}
+    open-in-view: false
+  
+  sql:
+    init:
+      mode: never
 
-# 배포 환경에서는 환경변수로 설정 주입
+  # 배포 환경에서는 환경변수로 설정 주입
 
-# JWT 설정 (Jenkins 환경변수에서 주입)
+  # JWT 설정 (Jenkins 환경변수에서 주입)
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   ACCESS_TOKEN_MINUTE_TIME: ${JWT_ACCESS_TOKEN_MINUTE_TIME:30}
@@ -89,3 +93,8 @@ server:
     max-threads: 200
     accept-count: 100
     connection-timeout: 20000
+
+app:
+  frontend-url: "https://kkori.site"
+  cors:
+    allowed-origins: "https://kkori.site"
