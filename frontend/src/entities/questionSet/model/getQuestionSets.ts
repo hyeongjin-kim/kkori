@@ -3,7 +3,10 @@ import {
   GetQuestionSetsResponse,
   QuestionSetResponse,
 } from '@/entities/questionSet/model/response';
-import { GetQuestionSetsParams } from '@/entities/questionSet/model/request';
+import {
+  GetMyQuestionSetsParams,
+  GetQuestionSetsParams,
+} from '@/entities/questionSet/model/request';
 import qs from 'qs';
 
 export const getQuestionSet = async (questionSetId: number) => {
@@ -23,6 +26,13 @@ export const getQuestionSets = async (params: GetQuestionSetsParams) => {
           skipNulls: true,
         }),
     },
+  });
+  return response;
+};
+
+export const getMyQuestionSets = async (params: GetMyQuestionSetsParams) => {
+  const response = await get<GetQuestionSetsResponse>(`/api/questionsets/my`, {
+    params,
   });
   return response;
 };

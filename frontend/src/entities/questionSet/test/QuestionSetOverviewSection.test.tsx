@@ -53,7 +53,9 @@ describe('QuestionSetOverviewSection', () => {
     expect(screen.getByText(/v3 \(forked from 1\)/i)).toBeInTheDocument();
     expect(screen.getByText('공개')).toBeInTheDocument();
     expect(screen.getByText(/작성자 : 이찬/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /목록으로/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'back-to-list-button' }),
+    ).toBeInTheDocument();
   });
 
   it('URL 파라미터가 달라도 훅이 다시 호출된다', () => {
