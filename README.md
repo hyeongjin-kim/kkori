@@ -1,4 +1,3 @@
-[![hits](https://myhits.vercel.app/api/hit/https%3A%2F%2Fgithub.com%2Ftoday-is-first%2Foneul?color=purple&label=hits&size=small)](https://myhits.vercel.app)
 
 ## 🗂️ 팀 문서 & 자료 링크
 
