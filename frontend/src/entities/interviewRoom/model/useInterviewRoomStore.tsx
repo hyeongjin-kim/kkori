@@ -14,8 +14,8 @@ export const interviewStatus = {
 };
 
 export const interviewType = Object.freeze({
-  SOLO: 'solo',
-  PAIR: 'pair',
+  SOLO: 'SOLO_PRACTICE',
+  PAIR: 'PAIR_INTERVIEW',
 });
 
 interface InterviewRoomState {

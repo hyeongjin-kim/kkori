@@ -1,11 +1,13 @@
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import IntervieweeControlButtonContainer from './IntervieweeControlButtonContainer';
 
 const switchStatus = (
   role: 'interviewee' | 'interviewer',
-  interviewType: 'solo' | 'pair',
+  type: (typeof interviewType)[keyof typeof interviewType],
 ) => {
-  if (interviewType === 'solo') {
+  if (type === interviewType.SOLO) {
     return <IntervieweeControlButtonContainer />;
   }
   if (role === 'interviewee') {
@@ -17,7 +19,7 @@ const switchStatus = (
 function InterviewController() {
   const status = useInterviewRoomStore(state => state.status);
   const role = useInterviewRoomStore(state => state.role);
-  const interviewType = useInterviewRoomStore(state => state.type);
+  const type = useInterviewRoomStore(state => state.type);
   return (
     <div
       aria-label="interview-controller"
@@ -27,7 +29,7 @@ function InterviewController() {
         aria-label="pre-interview-control-button-container"
         className="flex gap-4"
       >
-        {switchStatus(role, interviewType)}
+        {switchStatus(role, type)}
       </div>
     </div>
   );
