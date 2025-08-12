@@ -56,7 +56,6 @@ export const audioApi = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'multipart/form-data',
-    Accept: 'multipart/form-data',
   },
 });
 
@@ -74,9 +73,6 @@ export const audioPost = async ({
   const formData = new FormData();
   formData.append('roomId', roomId);
   formData.append('audioFile', audioFile, 'answer.webm');
-  console.log(formData);
-  console.log(url);
   const res = await audioApi.post(url, formData);
-  console.log(res);
   return res.data;
 };

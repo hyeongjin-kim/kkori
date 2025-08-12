@@ -1,6 +1,7 @@
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+import { useInterviewQuestionStore } from './useInterviewQuestionStore';
 
 const MAX_RECORD_TIME = 600000;
 
@@ -29,12 +30,14 @@ export function startAnswer() {
   recorder.ondataavailable = event => {
     data.push(event.data);
   };
+
   recorder.onstop = async () => {
     const blob = new Blob(data, { type: 'audio/webm' });
-    downloadBlob(blob, 'answer.webm');
+    //downloadBlob(blob, 'answer.webm');
     useMediaStreamStore.getState().setData([]);
     usePracticeSessionStore.getState().answerSubmit(blob);
   };
+
   recorder.start();
   const timerId = setTimeout(() => {
     if (recorder.state === 'recording') {
@@ -48,11 +51,11 @@ export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename; // 예: 'answer.webm'
+  a.download = filename;
   a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  // Safari 등 호환을 위해 DOM에 붙였다가 제거
+
   setTimeout(() => {
     URL.revokeObjectURL(url);
     a.remove();
@@ -61,13 +64,6 @@ export function downloadBlob(blob: Blob, filename: string) {
 
 export function endAnswer() {
   const { myRecorder, timerId } = useMediaStreamStore.getState();
-
-  console.log(
-    'endAnswer 호출됨. recorder=',
-    !!myRecorder,
-    'state=',
-    myRecorder?.state,
-  );
 
   if (!myRecorder) return;
 
@@ -79,8 +75,6 @@ export function endAnswer() {
   if (myRecorder.state === 'recording') {
     myRecorder.stop();
   }
-
-  console.log('답변 종료 까지 올까?');
 }
 
 export function endInterview() {
@@ -89,4 +83,34 @@ export function endInterview() {
 
 export function startInterview() {
   usePracticeSessionStore.getState().interviewStart();
+}
+
+export function openNextQuestionModal() {
+  useInterviewRoomStore.getState().setModalOpen(true);
+}
+
+export function chooseTailQuestion(questionIndex: number) {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(
+      useInterviewQuestionStore.getState().tailQuestion[questionIndex],
+    );
+  usePracticeSessionStore.getState().nextQuestionSelect();
+}
+
+export function chooseDefaultQuestion() {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().defaultQuestion);
+  usePracticeSessionStore.getState().nextQuestionSelect();
+}
+
+export function chooseCustomQuestion() {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().customQuestion);
+  usePracticeSessionStore.getState().nextQuestionSelect();
 }

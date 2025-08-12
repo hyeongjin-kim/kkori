@@ -5,8 +5,15 @@ import { InterviewSlice } from '@/widgets/interviewSection/model/interviewSlice'
 import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWindowSlice';
 import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewStatus,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { audioPost } from '../api/api';
+import {
+  Question,
+  useInterviewQuestionStore,
+} from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import { mockupQuestion } from '@/__mocks__/questionMocks';
 
 interface RoomCreateRequest {
   mode: string;
@@ -98,7 +105,6 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   interviewStart: () => {
-    useInterviewRoomStore.getState().setStatus('questionPresented');
     get().client?.publish({
       destination: `/app/interview-start`,
       body: JSON.stringify({ roomId: get().roomID }),
@@ -142,30 +148,24 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   answerSubmit: async (blob: Blob) => {
-    useInterviewRoomStore.getState().setStatus('answerEnd');
-    const response = await audioPost({
+    useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_SUBMIT);
+    await audioPost({
       url: '/api/interview/answer-submit',
       roomId: get().roomID || '',
       audioFile: blob,
     });
-    console.log('Response:', response);
-    get().client?.publish({
-      destination: `/app/answer-submit`,
-      body: JSON.stringify({
-        roomId: get().roomID,
-      }),
-    });
-    console.log('답변 제출 이벤트 끝');
+    console.log('answerSubmit');
   },
   nextQuestionSelect: () => {
-    useInterviewRoomStore.getState().setStatus('questionPresented');
+    useInterviewRoomStore.getState().setStatus('nextQuestionSelected');
+    const nextQuestion = useInterviewQuestionStore.getState().nextQuestion;
     get().client?.publish({
       destination: `/app/next-question-select`,
       body: JSON.stringify({
         roomId: get().roomID,
-        questionType: 'DEFAULT',
-        questionId: '1',
-        questionText: 'test',
+        questionType: nextQuestion.questionType,
+        questionId: nextQuestion.id,
+        questionText: nextQuestion.question,
       }),
     });
   },
@@ -201,7 +201,6 @@ const personalMessageHandler = (
       break;
     case 'joined-user':
       joinedUserHandler(client, set, response.data);
-
       break;
     case 'room-status':
       roomStatusHandler(client, set, response.data);
@@ -211,6 +210,9 @@ const personalMessageHandler = (
       break;
     case 'answer':
       answerHandler(client, set, response.data);
+      break;
+    case 'next-question-choices':
+      nextQuestionChoiceHandler(client, set, response.data);
       break;
     default:
       errorHandler(client, set, response.data);
@@ -232,8 +234,8 @@ const roomCreatedHandler = (
   });
 };
 
-const existingUserHandler = async (client: Client, set: any, response: any) => {
-  set({ opponentNickname: response.nickname });
+const existingUserHandler = async (client: Client, set: any, data: any) => {
+  set({ opponentNickname: data.nickname });
   const peerConnection = new RTCPeerConnection();
   const myStream = useMediaStreamStore.getState().myStream;
 
@@ -248,21 +250,21 @@ const existingUserHandler = async (client: Client, set: any, response: any) => {
   client.publish({
     destination: `/app/offer`,
     body: JSON.stringify({
-      roomId: response.roomId,
+      roomId: data.roomId,
       offer: offer,
     }),
   });
 };
 
-const joinedUserHandler = (client: Client, set: any, response: any) => {
-  set({ opponentNickname: response.nickname });
+const joinedUserHandler = (client: Client, set: any, data: any) => {
+  set({ opponentNickname: data.nickname });
 };
 
-const roomStatusHandler = (client: Client, set: any, response: any) => {
-  console.log(response.data);
+const roomStatusHandler = (client: Client, set: any, data: any) => {
+  console.log(data);
 };
 
-const offerHandler = async (client: Client, set: any, response: any) => {
+const offerHandler = async (client: Client, set: any, data: any) => {
   const peerConnection = new RTCPeerConnection({
     iceServers: [
       {
@@ -272,31 +274,49 @@ const offerHandler = async (client: Client, set: any, response: any) => {
       },
     ],
   });
-  console.log(peerConnection);
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, myStream);
   });
-  peerConnection.setRemoteDescription(response.offer);
-  useMediaStreamStore.getState().setPeerStream(response.offer.stream);
+  peerConnection.setRemoteDescription(data.offer);
+  useMediaStreamStore.getState().setPeerStream(data.offer.stream);
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
   client.publish({
     destination: `/app/answer`,
     body: JSON.stringify({
-      roomId: response.roomId,
+      roomId: data.roomId,
       answer: answer,
     }),
   });
 };
 
-const answerHandler = (client: Client, set: any, response: any) => {
+const answerHandler = (client: Client, set: any, data: any) => {
   const peerConnection = new RTCPeerConnection();
-  peerConnection.setRemoteDescription(response.answer);
-  useMediaStreamStore.getState().setPeerStream(response.answer.stream);
+  peerConnection.setRemoteDescription(data.answer);
+  useMediaStreamStore.getState().setPeerStream(data.answer.stream);
 };
 
-const errorHandler = (client: Client, set: any, response: any) => {
-  console.log(response);
+const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
+  const questions: Question[] = [];
+  data.nextQuestionChoices.forEach((choice: any) => {
+    questions.push({
+      question: choice.questionText,
+      id: choice.questionId,
+      questionType: choice.questionType,
+    });
+  });
+  useInterviewQuestionStore
+    .getState()
+    .setTailQuestion([questions[0], questions[1]]);
+  useInterviewQuestionStore.getState().setDefaultQuestion(questions[2]);
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
+  console.log(useInterviewRoomStore.getState().status);
+};
+
+const errorHandler = (client: Client, set: any, data: any) => {
+  const errorMessage = data.error;
 };
