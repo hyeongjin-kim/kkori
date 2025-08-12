@@ -35,8 +35,8 @@ pipeline {
         // 배포 환경 설정
         SPRING_PROFILES_ACTIVE = "prod"
         DDL_AUTO = "update"  // 첫 배포: create, 이후: update 또는 validate
-        APP_FRONTEND_URL = credential('frontend-url')
-        APP_CORS_ALLOWED_ORIGINS = credential('cors-allowed-origins')
+        APP_FRONTEND_URL = credentials('frontend-url')
+        APP_CORS_ALLOWED_ORIGINS = credentials('cors-allowed-origins')
     }
     
     stages {
