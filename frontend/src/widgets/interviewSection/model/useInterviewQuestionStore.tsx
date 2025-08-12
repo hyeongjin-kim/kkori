@@ -11,16 +11,16 @@ interface InterviewQuestionState {
   currentQuestion: Question;
   tailQuestion: Question[];
   defaultQuestion: Question;
-  customQuestion: Question;
   nextQuestion: Question;
+  customQuestion: string;
 }
 
 interface InterviewQuestionActions {
   setCurrentQuestion: (question: Question) => void;
   setTailQuestion: (questions: Question[]) => void;
   setDefaultQuestion: (question: Question) => void;
-  setCustomQuestion: (question: Question) => void;
   setNextQuestion: (question: Question) => void;
+  setCustomQuestion: (question: string) => void;
 }
 
 type InterviewQuestionStore = InterviewQuestionState & InterviewQuestionActions;
@@ -29,8 +29,8 @@ const initialState: InterviewQuestionState = {
   currentQuestion: mockupQuestion.currentQuestion,
   tailQuestion: [mockupQuestion.tailQuestion, mockupQuestion.tailQuestion],
   defaultQuestion: mockupQuestion.defaultQuestion,
-  customQuestion: mockupQuestion.customQuestion,
   nextQuestion: mockupQuestion.nextQuestion,
+  customQuestion: '직접 질문 만들기',
 };
 
 export const useInterviewQuestionStore = create<InterviewQuestionStore>(
@@ -39,7 +39,7 @@ export const useInterviewQuestionStore = create<InterviewQuestionStore>(
     setCurrentQuestion: question => set({ currentQuestion: question }),
     setTailQuestion: questions => set({ tailQuestion: questions }),
     setDefaultQuestion: question => set({ defaultQuestion: question }),
-    setCustomQuestion: question => set({ customQuestion: question }),
     setNextQuestion: question => set({ nextQuestion: question }),
+    setCustomQuestion: question => set({ customQuestion: question }),
   }),
 );
