@@ -33,7 +33,7 @@ export function startAnswer() {
 
   recorder.onstop = async () => {
     const blob = new Blob(data, { type: 'audio/webm' });
-    downloadBlob(blob, 'answer.webm');
+    //downloadBlob(blob, 'answer.webm');
     useMediaStreamStore.getState().setData([]);
     usePracticeSessionStore.getState().answerSubmit(blob);
   };
@@ -75,8 +75,6 @@ export function endAnswer() {
   if (myRecorder.state === 'recording') {
     myRecorder.stop();
   }
-
-  console.log('답변 종료 까지 올까?');
 }
 
 export function endInterview() {
@@ -93,18 +91,26 @@ export function openNextQuestionModal() {
 
 export function chooseTailQuestion(questionIndex: number) {
   useInterviewRoomStore.getState().setModalOpen(false);
-  useInterviewRoomStore.getState().setStatus('questionPresented');
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(
+      useInterviewQuestionStore.getState().tailQuestion[questionIndex],
+    );
   usePracticeSessionStore.getState().nextQuestionSelect();
 }
 
 export function chooseDefaultQuestion() {
   useInterviewRoomStore.getState().setModalOpen(false);
-  useInterviewRoomStore.getState().setStatus('questionPresented');
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().defaultQuestion);
   usePracticeSessionStore.getState().nextQuestionSelect();
 }
 
 export function chooseCustomQuestion() {
   useInterviewRoomStore.getState().setModalOpen(false);
-  useInterviewRoomStore.getState().setStatus('questionPresented');
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().customQuestion);
   usePracticeSessionStore.getState().nextQuestionSelect();
 }

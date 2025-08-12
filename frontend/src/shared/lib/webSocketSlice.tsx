@@ -13,6 +13,7 @@ import {
   Question,
   useInterviewQuestionStore,
 } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import { mockupQuestion } from '@/__mocks__/questionMocks';
 
 interface RoomCreateRequest {
   mode: string;
@@ -104,7 +105,6 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   interviewStart: () => {
-    useInterviewRoomStore.getState().setStatus('questionPresented');
     get().client?.publish({
       destination: `/app/interview-start`,
       body: JSON.stringify({ roomId: get().roomID }),
@@ -148,30 +148,24 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   answerSubmit: async (blob: Blob) => {
-    useInterviewRoomStore.getState().setStatus('answerEnd');
-    const response = await audioPost({
+    useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_SUBMIT);
+    await audioPost({
       url: '/api/interview/answer-submit',
       roomId: get().roomID || '',
       audioFile: blob,
     });
-    console.log('Response:', response);
-    get().client?.publish({
-      destination: `/app/answer-submit`,
-      body: JSON.stringify({
-        roomId: get().roomID,
-      }),
-    });
-    console.log('답변 제출 이벤트 끝');
+    console.log('answerSubmit');
   },
   nextQuestionSelect: () => {
-    useInterviewRoomStore.getState().setStatus('questionPresented');
+    useInterviewRoomStore.getState().setStatus('nextQuestionSelected');
+    const nextQuestion = useInterviewQuestionStore.getState().nextQuestion;
     get().client?.publish({
       destination: `/app/next-question-select`,
       body: JSON.stringify({
         roomId: get().roomID,
-        questionType: 'DEFAULT',
-        questionId: '1',
-        questionText: 'test',
+        questionType: nextQuestion.questionType,
+        questionId: nextQuestion.id,
+        questionText: nextQuestion.question,
       }),
     });
   },
@@ -280,7 +274,6 @@ const offerHandler = async (client: Client, set: any, data: any) => {
       },
     ],
   });
-  console.log(peerConnection);
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
@@ -306,27 +299,24 @@ const answerHandler = (client: Client, set: any, data: any) => {
 };
 
 const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.NEXT_QUESTION_CHOICE);
   const questions: Question[] = [];
-  console.log(data);
   data.nextQuestionChoices.forEach((choice: any) => {
     questions.push({
       question: choice.questionText,
       id: choice.questionId,
+      questionType: choice.questionType,
     });
   });
-  console.log(questions);
   useInterviewQuestionStore
     .getState()
     .setTailQuestion([questions[0], questions[1]]);
   useInterviewQuestionStore.getState().setDefaultQuestion(questions[2]);
-  console.log(useInterviewQuestionStore.getState().tailQuestion[0].question);
-  console.log(useInterviewQuestionStore.getState().tailQuestion[1].question);
-  console.log(useInterviewQuestionStore.getState().defaultQuestion.question);
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
+  console.log(useInterviewRoomStore.getState().status);
 };
 
 const errorHandler = (client: Client, set: any, data: any) => {
-  console.log(data);
+  const errorMessage = data.error;
 };
