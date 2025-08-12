@@ -36,6 +36,8 @@ spring:
     init:
       mode: never
       data-locations: []
+      schema-locations: []
+      continue-on-error: true
 
   # 배포 환경에서는 환경변수로 설정 주입
 
