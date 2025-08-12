@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.component.interview.InterviewRoom;
 import com.kkori.component.interview.QuestionForm;
 import com.kkori.component.interview.QuestionType;
+import com.kkori.config.validator.WebSocketSecurityValidator;
 import com.kkori.dto.interview.QuestionDto;
 import com.kkori.dto.interview.request.AnswerSubmitRequest;
 import com.kkori.dto.interview.request.CommonRoomRequest;
@@ -57,6 +58,9 @@ class InterviewWebSocketTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private WebSocketSecurityValidator webSocketSecurityValidator;
+
     @Autowired
     private TokenProvider tokenProvider;
 
@@ -83,6 +87,9 @@ class InterviewWebSocketTest {
                 .nickname("테스트사용자")
                 .deleted(false)
                 .build();
+
+        // WebSocketSecurityValidator 모킹 - 모든 구독을 허용
+        given(webSocketSecurityValidator.isUserInRoom(any(), any())).willReturn(true);
 
         // User 객체로 JWT 토큰 생성
         Token tokenObject = tokenProvider.generateAccessToken(testUser);
@@ -249,55 +256,6 @@ class InterviewWebSocketTest {
         });
     }
 
-//    @Test
-//    @DisplayName("면접 종료 테스트")
-//    void interviewEndTest() throws Exception {
-//        // given
-//        WebSocketTestHelper.MessageSubscriber roomSubscriber =
-//                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-//        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
-//
-//        try {
-//            // when
-//            stompSession.send("/app/interview-end", request);
-//
-//            // then - 브로드캐스트 메시지 확인
-//            Map<String, Object> response = roomSubscriber.waitForMessage("interview-ended", 10);
-//            assertThat(response).isNotNull();
-//            assertThat(response.get("type")).isEqualTo("interview-ended");
-//
-//            @SuppressWarnings("unchecked")
-//            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-//            assertThat(dataMap.get("message")).isNotNull();
-//        } finally {
-//            unsubscribeSafe(roomSubscriber);
-//        }
-//    }
-
-//    @Test
-//    @DisplayName("답변 시작 테스트")
-//    void answerStartTest() throws Exception {
-//        // given
-//        WebSocketTestHelper.MessageSubscriber roomSubscriber =
-//                testHelper.subscribeToRealRoomTopic(stompSession, TEST_ROOM_ID);
-//        CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
-//
-//        try {
-//            // when
-//            stompSession.send("/app/answer-start", request);
-//
-//            // then - 브로드캐스트 메시지 확인
-//            Map<String, Object> response = roomSubscriber.waitForMessage("answer-recording-started", 10);
-//            assertThat(response).isNotNull();
-//            assertThat(response.get("type")).isEqualTo("answer-recording-started");
-//
-//            @SuppressWarnings("unchecked")
-//            Map<String, Object> dataMap = (Map<String, Object>) response.get("data");
-//            assertThat(dataMap.get("message")).isNotNull();
-//        } finally {
-//            unsubscribeSafe(roomSubscriber);
-//        }
-//    }
 
     @Test
     @DisplayName("답변 제출 테스트")
