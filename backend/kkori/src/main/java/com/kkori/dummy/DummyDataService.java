@@ -33,18 +33,28 @@ public class DummyDataService {
         // 2. 더미 질문들 생성 (기본 질문 + 꼬리 질문)
         List<Question> questions = new ArrayList<>();
 
-        // DEFAULT 타입 질문들 (기본 면접 질문)
+        // DEFAULT 타입 질문들 (기본 면접 질문) - 10개
         Question defaultQ1 = Question.createDefault("자바의 특징에 대해 설명해주세요.", "객체지향, 플랫폼 독립성, 가비지 컬렉션 등");
         Question defaultQ2 = Question.createDefault("스프링 프레임워크의 핵심 개념은 무엇인가요?", "IoC, DI, AOP, PSA");
         Question defaultQ3 = Question.createDefault("본인의 강점과 약점을 말씀해주세요.", "상황에 맞는 개인적 답변");
         Question defaultQ4 = Question.createDefault("이 회사에 지원한 동기는 무엇인가요?", "회사 비전과 개인 목표의 일치");
         Question defaultQ5 = Question.createDefault("팀워크에서 중요하게 생각하는 것은?", "소통, 협력, 상호 존중");
+        Question defaultQ6 = Question.createDefault("객체지향 프로그래밍의 4가지 특성을 설명해주세요.", "캡슐화, 상속, 다형성, 추상화");
+        Question defaultQ7 = Question.createDefault("데이터베이스의 정규화가 무엇인지 설명해주세요.", "데이터 중복을 최소화하고 일관성을 유지하는 과정");
+        Question defaultQ8 = Question.createDefault("HTTP와 HTTPS의 차이점은 무엇인가요?", "HTTPS는 SSL/TLS를 통한 암호화된 HTTP");
+        Question defaultQ9 = Question.createDefault("본인이 가장 자신있는 기술 스택은 무엇인가요?", "개인의 경험과 전문성에 따른 답변");
+        Question defaultQ10 = Question.createDefault("향후 5년간의 커리어 계획을 말씀해주세요.", "개인의 성장 목표와 비전");
         
         questions.add(defaultQ1);
         questions.add(defaultQ2);
         questions.add(defaultQ3);
         questions.add(defaultQ4);
         questions.add(defaultQ5);
+        questions.add(defaultQ6);
+        questions.add(defaultQ7);
+        questions.add(defaultQ8);
+        questions.add(defaultQ9);
+        questions.add(defaultQ10);
 
         // CUSTOM 타입 질문들 (면접관이 생성한 질문)
         questions.add(Question.createCustom("JPA와 Hibernate의 차이점은?"));
@@ -128,12 +138,12 @@ public class DummyDataService {
             logicalQuestions.add(Question.createTail("실제 프로젝트에서 DI를 어떻게 활용해보셨나요?", questions.get(1)));
             
             // 5-6번: JPA 질문 + 꼬리질문
-            logicalQuestions.add(questions.get(5));  // CUSTOM: JPA와 Hibernate
-            logicalQuestions.add(Question.createTail("JPA를 실제 프로젝트에서 사용하면서 어려웠던 점은 무엇인가요?", questions.get(5)));
+            logicalQuestions.add(questions.get(10));  // CUSTOM: JPA와 Hibernate
+            logicalQuestions.add(Question.createTail("JPA를 실제 프로젝트에서 사용하면서 어려웠던 점은 무엇인가요?", questions.get(10)));
             
             // 7-8번: REST API 질문 + 꼬리질문
-            logicalQuestions.add(questions.get(6));  // CUSTOM: REST API 설계
-            logicalQuestions.add(Question.createTail("RESTful API 설계 시 가장 중요하게 고려하는 점은 무엇인가요?", questions.get(6)));
+            logicalQuestions.add(questions.get(11));  // CUSTOM: REST API 설계
+            logicalQuestions.add(Question.createTail("RESTful API 설계 시 가장 중요하게 고려하는 점은 무엇인가요?", questions.get(11)));
             
             // 9-10번: 개인 질문들
             logicalQuestions.add(questions.get(2));  // DEFAULT: 강점과 약점
@@ -165,12 +175,12 @@ public class DummyDataService {
         ongoingQuestions.add(Question.createTail("실제 프로젝트에서 DI를 어떻게 활용해보셨나요?", questions.get(1)));
         
         // 3-4번: REST API 질문 + 꼬리질문
-        ongoingQuestions.add(questions.get(6));  // CUSTOM: REST API 설계
-        ongoingQuestions.add(Question.createTail("RESTful API에서 상태코드는 어떻게 선택하시나요?", questions.get(6)));
+        ongoingQuestions.add(questions.get(11));  // CUSTOM: REST API 설계
+        ongoingQuestions.add(Question.createTail("RESTful API에서 상태코드는 어떻게 선택하시나요?", questions.get(11)));
         
         // 5-6번: 트랜잭션 질문 + 꼬리질문
-        ongoingQuestions.add(questions.get(7));  // CUSTOM: ACID 특성
-        ongoingQuestions.add(Question.createTail("트랜잭션 격리 수준에 대해 설명해주세요.", questions.get(7)));
+        ongoingQuestions.add(questions.get(12));  // CUSTOM: ACID 특성
+        ongoingQuestions.add(Question.createTail("트랜잭션 격리 수준에 대해 설명해주세요.", questions.get(12)));
         
         // 7번: 개인 질문
         ongoingQuestions.add(questions.get(4));  // DEFAULT: 팀워크
@@ -218,12 +228,17 @@ public class DummyDataService {
     private List<Question> createBasicQuestions() {
         List<Question> questions = new ArrayList<>();
 
-        // DEFAULT 타입 질문들
+        // DEFAULT 타입 질문들 (10개)
         questions.add(Question.createDefault("자바의 특징에 대해 설명해주세요.", "객체지향, 플랫폼 독립성, 가비지 컬렉션 등"));
         questions.add(Question.createDefault("스프링 프레임워크의 핵심 개념은 무엇인가요?", "IoC, DI, AOP, PSA"));
         questions.add(Question.createDefault("본인의 강점과 약점을 말씀해주세요.", "상황에 맞는 개인적 답변"));
         questions.add(Question.createDefault("이 회사에 지원한 동기는 무엇인가요?", "회사 비전과 개인 목표의 일치"));
         questions.add(Question.createDefault("팀워크에서 중요하게 생각하는 것은?", "소통, 협력, 상호 존중"));
+        questions.add(Question.createDefault("객체지향 프로그래밍의 4가지 특성을 설명해주세요.", "캡슐화, 상속, 다형성, 추상화"));
+        questions.add(Question.createDefault("데이터베이스의 정규화가 무엇인지 설명해주세요.", "데이터 중복을 최소화하고 일관성을 유지하는 과정"));
+        questions.add(Question.createDefault("HTTP와 HTTPS의 차이점은 무엇인가요?", "HTTPS는 SSL/TLS를 통한 암호화된 HTTP"));
+        questions.add(Question.createDefault("본인이 가장 자신있는 기술 스택은 무엇인가요?", "개인의 경험과 전문성에 따른 답변"));
+        questions.add(Question.createDefault("향후 5년간의 커리어 계획을 말씀해주세요.", "개인의 성장 목표와 비전"));
 
         // CUSTOM 타입 질문들
         questions.add(Question.createCustom("JPA와 Hibernate의 차이점은?"));
@@ -278,12 +293,12 @@ public class DummyDataService {
         logicalQuestions.add(Question.createTail("실제 프로젝트에서 DI를 어떻게 활용해보셨나요?", questions.get(1)));
         
         // 5-6번: JPA 질문 + 꼬리질문
-        logicalQuestions.add(questions.get(5));
-        logicalQuestions.add(Question.createTail("JPA를 실제 프로젝트에서 사용하면서 어려웠던 점은 무엇인가요?", questions.get(5)));
+        logicalQuestions.add(questions.get(10));
+        logicalQuestions.add(Question.createTail("JPA를 실제 프로젝트에서 사용하면서 어려웠던 점은 무엇인가요?", questions.get(10)));
         
         // 7-8번: REST API 질문 + 꼬리질문
-        logicalQuestions.add(questions.get(6));
-        logicalQuestions.add(Question.createTail("RESTful API 설계 시 가장 중요하게 고려하는 점은 무엇인가요?", questions.get(6)));
+        logicalQuestions.add(questions.get(11));
+        logicalQuestions.add(Question.createTail("RESTful API 설계 시 가장 중요하게 고려하는 점은 무엇인가요?", questions.get(11)));
         
         // 9-10번: 개인 질문들
         logicalQuestions.add(questions.get(2));
@@ -306,12 +321,12 @@ public class DummyDataService {
         ongoingQuestions.add(Question.createTail("실제 프로젝트에서 DI를 어떻게 활용해보셨나요?", questions.get(1)));
         
         // 3-4번: REST API 질문 + 꼬리질문
-        ongoingQuestions.add(questions.get(6));
-        ongoingQuestions.add(Question.createTail("RESTful API에서 상태코드는 어떻게 선택하시나요?", questions.get(6)));
+        ongoingQuestions.add(questions.get(11));
+        ongoingQuestions.add(Question.createTail("RESTful API에서 상태코드는 어떻게 선택하시나요?", questions.get(11)));
         
         // 5-6번: 트랜잭션 질문 + 꼬리질문
-        ongoingQuestions.add(questions.get(7));
-        ongoingQuestions.add(Question.createTail("트랜잭션 격리 수준에 대해 설명해주세요.", questions.get(7)));
+        ongoingQuestions.add(questions.get(12));
+        ongoingQuestions.add(Question.createTail("트랜잭션 격리 수준에 대해 설명해주세요.", questions.get(12)));
         
         // 7번: 개인 질문
         ongoingQuestions.add(questions.get(4));
