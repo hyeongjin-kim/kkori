@@ -258,7 +258,7 @@ pipeline {
                             docker run -d \\
                                 --name kkori-backend \\
                                 --restart unless-stopped \\
-                                -p 8080:8080 \\
+                                --expose 8080 \\
                                 -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} \\
                                 -e DB_HOST=${DB_HOST} \\
                                 -e DB_PORT=${DB_PORT} \\
