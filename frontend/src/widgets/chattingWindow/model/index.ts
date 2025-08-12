@@ -1,6 +1,7 @@
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { FormEvent } from 'react';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
+import useUserStore from '@/entities/user/model/useUserStore';
 
 export const submitChatting = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
@@ -12,10 +13,12 @@ export const submitChatting = (e: FormEvent<HTMLFormElement>) => {
   usePracticeSessionStore.getState().addMessage({
     type: CHAT_TYPES.chat,
     content: text,
-    sender: 'me', // TODO: 유저 이름 받아오기
+    sender: useUserStore.getState().nickname,
     timestamp,
     isMyMessage: true,
     confirmed: false,
   });
-  usePracticeSessionStore.getState().sendMessage('me', text, timestamp);
+  usePracticeSessionStore
+    .getState()
+    .sendMessage(useUserStore.getState().nickname, text, timestamp);
 };

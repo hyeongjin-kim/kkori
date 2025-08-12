@@ -8,6 +8,7 @@ import {
   Question,
   useInterviewQuestionStore,
 } from './useInterviewQuestionStore';
+import useUserStore from '@/entities/user/model/useUserStore';
 
 interface InterviewState {}
 
@@ -135,10 +136,10 @@ const chatHandler = (client: Client, get: any, data: any) => {
   const message = {
     type: 'chat',
     content: data.message,
-    sender: data.sender,
+    sender: data.senderNickname,
     timestamp: data.timestamp,
   };
-  if (data.senderNickname === 'me') {
+  if (data.senderNickname === useUserStore.getState().nickname) {
     get().confirmMessage(message);
     return;
   }
