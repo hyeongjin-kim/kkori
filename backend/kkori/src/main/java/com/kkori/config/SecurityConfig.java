@@ -3,8 +3,10 @@ package com.kkori.config;
 import com.kkori.jwt.JwtAuthenticationFilter;
 import com.kkori.jwt.TokenProvider;
 import com.kkori.service.KakaoOAuth2Service;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -27,11 +29,8 @@ public class SecurityConfig {
     private final TokenProvider tokenProvider;
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
-    private static final List<String> ALLOWED_ORIGINS = List.of(
-            "http://localhost:5173",
-            "http://localhost:8080",
-            "https://kkori.site"
-    );
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOriginsString;
 
     private static final List<String> ALLOWED_METHODS = List.of(
             "GET", "POST", "PUT", "DELETE", "OPTIONS"
@@ -89,7 +88,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(ALLOWED_ORIGINS);
+        List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(ALLOWED_METHODS);
         configuration.setAllowedHeaders(ALLOWED_HEADERS);
         configuration.setAllowCredentials(true);
