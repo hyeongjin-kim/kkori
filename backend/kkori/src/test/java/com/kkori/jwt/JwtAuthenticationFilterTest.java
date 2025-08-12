@@ -1,20 +1,18 @@
 package com.kkori.jwt;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
+import com.kkori.service.KakaoOAuth2Service;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -45,7 +43,8 @@ class JwtAuthenticationFilterTest {
         SecurityContextHolder.clearContext();
 
         tokenProvider = mock(TokenProvider.class);
-        filter = new JwtAuthenticationFilter(tokenProvider);
+        KakaoOAuth2Service kakaoOAuth2Service = mock(KakaoOAuth2Service.class);
+        filter = new JwtAuthenticationFilter(tokenProvider, kakaoOAuth2Service);
 
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
@@ -64,14 +63,14 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void givenInvalidTokenInHeader_whenDoFilter_thenUnauthorizedResponse() throws ServletException, IOException {
+    void givenInvalidTokenInHeader_whenDoFilter_thenProceedWithoutAuthentication() throws ServletException, IOException {
         addAuthorizationHeader(INVALID_HEADER_TOKEN);
         mockInvalidToken(INVALID_HEADER_TOKEN);
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertUnauthorizedResponse();
-        verifyFilterChainNeverCalled();
+        assertNull(getContext().getAuthentication());
+        verifyFilterChainCalled();
     }
 
     @Test
@@ -96,14 +95,14 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void givenInvalidTokenInCookie_whenDoFilter_thenUnauthorizedResponse() throws ServletException, IOException {
+    void givenInvalidTokenInCookie_whenDoFilter_thenProceedWithoutAuthentication() throws ServletException, IOException {
         addCookieToken(INVALID_COOKIE_TOKEN);
         mockInvalidToken(INVALID_COOKIE_TOKEN);
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertUnauthorizedResponse();
-        verifyFilterChainNeverCalled();
+        assertNull(getContext().getAuthentication());
+        verifyFilterChainCalled();
     }
 
     @Test
@@ -139,17 +138,8 @@ class JwtAuthenticationFilterTest {
         assertEquals(expectedUserId, getContext().getAuthentication().getPrincipal());
     }
 
-    private void assertUnauthorizedResponse() throws UnsupportedEncodingException {
-        assertEquals(401, response.getStatus());
-        assertTrue(response.getContentAsString().contains("Unauthorized"));
-    }
-
     private void verifyFilterChainCalled() throws ServletException, IOException {
         verify(filterChain).doFilter(request, response);
-    }
-
-    private void verifyFilterChainNeverCalled() throws ServletException, IOException {
-        verify(filterChain, never()).doFilter(request, response);
     }
 
 }
