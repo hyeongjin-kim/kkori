@@ -1,18 +1,18 @@
-import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+import { useInterviewQuestionStore } from './useInterviewQuestionStore';
+
+const MAX_RECORD_TIME = 600000;
 
 export function switchScreen() {
-  useMediaStreamStore
-    .getState()
-    .setMainStreamType(
-      useMediaStreamStore.getState().mainStreamType === 'my' ? 'peer' : 'my',
-    );
-  useMediaStreamStore
-    .getState()
-    .setSubStreamType(
-      useMediaStreamStore.getState().subStreamType === 'my' ? 'peer' : 'my',
-    );
+  const { mainStreamType, subStreamType, setMainStreamType, setSubStreamType } =
+    useMediaStreamStore.getState();
+  const switchStreamType = (streamType: 'my' | 'peer') =>
+    streamType === 'my' ? 'peer' : 'my';
+
+  setMainStreamType(switchStreamType(mainStreamType));
+  setSubStreamType(switchStreamType(subStreamType));
 }
 
 export function startAnswer() {
@@ -21,36 +21,60 @@ export function startAnswer() {
     useMediaStreamStore.getState().myRecorder?.state !== 'inactive'
   )
     return;
-
+  usePracticeSessionStore.getState().answerStart();
   const myMediaStream = useMediaStreamStore.getState().myStream;
   if (!myMediaStream) return;
-  const recorder = new MediaRecorder(myMediaStream);
-  useMediaStreamStore.getState().setMyRecorder(recorder);
+  const recorder = useMediaStreamStore.getState().myRecorder;
+  if (!recorder) return;
   let data: BlobPart[] = [];
   recorder.ondataavailable = event => {
     data.push(event.data);
   };
-  recorder.onstop = () => {
+
+  recorder.onstop = async () => {
     const blob = new Blob(data, { type: 'audio/webm' });
+    //downloadBlob(blob, 'answer.webm');
     useMediaStreamStore.getState().setData([]);
     usePracticeSessionStore.getState().answerSubmit(blob);
   };
+
   recorder.start();
-  setTimeout(() => {
+  const timerId = setTimeout(() => {
     if (recorder.state === 'recording') {
       recorder.stop();
     }
-  }, 10000);
-  usePracticeSessionStore.getState().answerStart();
+  }, MAX_RECORD_TIME);
+  useMediaStreamStore.getState().setTimerId(timerId);
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
 }
 
 export function endAnswer() {
-  if (
-    useMediaStreamStore.getState().myRecorder === null ||
-    useMediaStreamStore.getState().myRecorder?.state !== 'recording'
-  )
-    return;
-  useMediaStreamStore.getState().myRecorder?.stop();
+  const { myRecorder, timerId } = useMediaStreamStore.getState();
+
+  if (!myRecorder) return;
+
+  if (timerId) {
+    clearTimeout(timerId);
+    useMediaStreamStore.getState().setTimerId(null);
+  }
+
+  if (myRecorder.state === 'recording') {
+    myRecorder.stop();
+  }
 }
 
 export function endInterview() {
@@ -59,4 +83,34 @@ export function endInterview() {
 
 export function startInterview() {
   usePracticeSessionStore.getState().interviewStart();
+}
+
+export function openNextQuestionModal() {
+  useInterviewRoomStore.getState().setModalOpen(true);
+}
+
+export function chooseTailQuestion(questionIndex: number) {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(
+      useInterviewQuestionStore.getState().tailQuestion[questionIndex],
+    );
+  usePracticeSessionStore.getState().nextQuestionSelect();
+}
+
+export function chooseDefaultQuestion() {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().defaultQuestion);
+  usePracticeSessionStore.getState().nextQuestionSelect();
+}
+
+export function chooseCustomQuestion() {
+  useInterviewRoomStore.getState().setModalOpen(false);
+  useInterviewQuestionStore
+    .getState()
+    .setNextQuestion(useInterviewQuestionStore.getState().customQuestion);
+  usePracticeSessionStore.getState().nextQuestionSelect();
 }

@@ -42,4 +42,20 @@ public class InterviewSessionException extends CustomRuntimeException {
     public static InterviewSessionException parentQuestionNotFound() {
         return new InterviewSessionException(ExceptionCode.PARENT_QUESTION_NOT_FOUND);
     }
+
+    public static InterviewSessionException noPermission() {
+        return new InterviewSessionException(ExceptionCode.INTERVIEW_ACCESS_DENIED);
+    }
+    
+    public static InterviewSessionException alreadyCompleted() {
+        return new InterviewSessionException(ExceptionCode.INTERVIEW_ALREADY_COMPLETED);
+    }
+    
+    public static InterviewSessionException concurrencyError() {
+        return new InterviewSessionException(ExceptionCode.INTERVIEW_CONCURRENCY_ERROR);
+    }
+
+    public static InterviewSessionException roomIdNotFoundForUser() {
+        return new InterviewSessionException(ExceptionCode.ROOM_ID_NOT_FOUND_FOR_USER);
+    }
 }

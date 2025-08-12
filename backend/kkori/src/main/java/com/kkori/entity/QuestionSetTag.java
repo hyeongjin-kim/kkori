@@ -9,11 +9,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "question_set_tag")
+@Getter
+@Table(name = "question_set_tag",
+    indexes = {
+        @Index(name = "idx_questionset_tag_questionset", columnList = "question_set_id"),
+        @Index(name = "idx_questionset_tag_tag", columnList = "tag_id"),
+        @Index(name = "idx_questionset_tag_composite", columnList = "question_set_id, tag_id")
+    })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuestionSetTag extends BaseEntity {
 
@@ -28,5 +37,18 @@ public class QuestionSetTag extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
     private Tag tag;
+
+    @Builder
+    public QuestionSetTag(QuestionSet questionSet, Tag tag) {
+        this.questionSet = questionSet;
+        this.tag = tag;
+    }
+
+    public static QuestionSetTag of(QuestionSet questionSet, Tag tag) {
+        QuestionSetTag questionSetTag = new QuestionSetTag();
+        questionSetTag.questionSet = questionSet;
+        questionSetTag.tag = tag;
+        return questionSetTag;
+    }
 
 }

@@ -1,7 +1,5 @@
-import { Tag } from '@/entities/questionSet/model/response';
-
 interface TagFilterProps {
-  tag: Tag;
+  tag: string;
   selected?: boolean;
   onClick?: (tag: string) => void;
 }
@@ -15,15 +13,15 @@ export const tagFilterStyle = {
 
 function TagFilter({ tag, selected = false, onClick }: TagFilterProps) {
   return (
-    <li key={tag.id}>
+    <li key={tag}>
       <button
-        aria-label={`tag-filter-${tag.tag}`}
-        onClick={() => onClick?.(tag.tag)}
+        aria-label={`tag-filter-${tag}`}
+        onClick={() => onClick?.(tag)}
         className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
           selected ? tagFilterStyle.selected : tagFilterStyle.unselected
         }`}
       >
-        {tag.tag}
+        {tag}
       </button>
     </li>
   );

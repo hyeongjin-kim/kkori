@@ -30,9 +30,18 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) throws Exception {
 
+        LoginUser loginUserAnnotation = parameter.getParameterAnnotation(LoginUser.class);
+        boolean required = loginUserAnnotation.required();
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        // 인증 정보가 없는 경우
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+            if (required) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+            } else {
+                return null; // 선택적 로그인인 경우 null 반환
+            }
         }
 
         Object principal = authentication.getPrincipal();
@@ -45,7 +54,12 @@ public class LoginUserArgumentResolver implements HandlerMethodArgumentResolver 
             return userId;
         }
 
-        throw new IllegalStateException("인증 정보에 userId(Long)가 없습니다.");
+        // 인증 정보는 있지만 userId를 추출할 수 없는 경우
+        if (required) {
+            throw new IllegalStateException("인증 정보에 userId(Long)가 없습니다.");
+        } else {
+            return null; // 선택적 로그인인 경우 null 반환
+        }
     }
 
 }

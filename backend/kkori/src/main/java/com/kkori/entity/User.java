@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Index;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "sub"))
+@Table(name = "users", 
+    uniqueConstraints = @UniqueConstraint(columnNames = "sub"),
+    indexes = {
+        @Index(name = "idx_user_sub", columnList = "sub"),
+        @Index(name = "idx_user_deleted", columnList = "deleted"),
+        @Index(name = "idx_user_sub_deleted", columnList = "sub, deleted")
+    })
 public class User extends BaseEntity {
 
     @Id

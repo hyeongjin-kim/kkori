@@ -69,10 +69,10 @@ public class KakaoOAuth2Controller {
         log.info("로그인 응답: accessToken={}, refreshToken={}, nickname={}", accessToken, loginResponse.getRefreshToken(),
                 loginResponse.getNickname());
 
-        CookieUtil.addSecureJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken.getToken(),
+        CookieUtil.addAccessTokenJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken.getToken(),
                 ACCESS_TOKEN_EXPIRE_SECONDS);
 
-        CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
+        CookieUtil.addRefreshTokenJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);
 
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -82,12 +82,18 @@ public class KakaoOAuth2Controller {
 
     @PostMapping("/token/refresh")
     public ResponseEntity<Token> refreshAccessToken(
-            @CookieValue(value = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshTokenValue) {
+            @CookieValue(value = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshTokenValue,
+            HttpServletResponse response) {
 
         Token newAccessToken = kakaoOAuth2Service.issueAccessTokenByValidRefreshToken(refreshTokenValue);
         if (newAccessToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
+        // 새로운 액세스 토큰을 쿠키에도 설정
+        CookieUtil.addAccessTokenJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, 
+            newAccessToken.getToken(), ACCESS_TOKEN_EXPIRE_SECONDS);
+        
         return ResponseEntity.ok(newAccessToken);
     }
 

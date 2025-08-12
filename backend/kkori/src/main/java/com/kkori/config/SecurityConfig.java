@@ -2,6 +2,7 @@ package com.kkori.config;
 
 import com.kkori.jwt.JwtAuthenticationFilter;
 import com.kkori.jwt.TokenProvider;
+import com.kkori.service.KakaoOAuth2Service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,10 +25,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
+    private final KakaoOAuth2Service kakaoOAuth2Service;
 
     private static final List<String> ALLOWED_ORIGINS = List.of(
             "http://localhost:5173",
-            "http://localhost:8080"
+            "http://localhost:8080",
+            "https://kkori.site"
     );
 
     private static final List<String> ALLOWED_METHODS = List.of(
@@ -43,8 +46,10 @@ public class SecurityConfig {
             "/oauth2/authorization/kakao",
             "/oauth2/authorization/kakao/callback",
             "/ws/**",
-            "/actuator/health",
-            "/actuator/info"
+            "/actuator/**",
+            "/api/login/guest",
+            "/api/questionsets",
+            "/api/questionsets/*"
     };
 
     private static final long HSTS_MAX_AGE_IN_SECONDS = 31536000L;
@@ -75,7 +80,7 @@ public class SecurityConfig {
                                         org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                 )
 
-                .addFilterBefore(new JwtAuthenticationFilter(tokenProvider),
+                .addFilterBefore(new JwtAuthenticationFilter(tokenProvider, kakaoOAuth2Service),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

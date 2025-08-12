@@ -28,9 +28,13 @@ public class TailQuestionGeneratorTest {
     @BeforeEach
     void setUp() {
         QuestionForm q1 = new QuestionForm(QuestionType.DEFAULT, 1, "추상 클래스와 인터페이스에 대해 설명해주세요");
-        QuestionForm q2 = new QuestionForm(QuestionType.CUSTOM, 2, "가비지 컬렉션에 대해 설명해주세요", QuestionType.DEFAULT, 1);
-        QuestionForm q3 = new QuestionForm(QuestionType.TAIL, 3, "GC의 청소 방식은 어떻게 되나요?", QuestionType.CUSTOM, 2);
-//        QuestionForm q3 = new QuestionForm(QuestionType.TAIL, 3, "오늘 싸피 간식 뭐야?", QuestionType.CUSTOM, 2);
+        
+        QuestionForm q2 = new QuestionForm(QuestionType.CUSTOM, 2, "가비지 컬렉션에 대해 설명해주세요");
+        
+        QuestionForm q3 = new QuestionForm(QuestionType.TAIL, 3, "GC의 청소 방식은 어떻게 되나요?");
+        q3.setParentQuestion(q2);
+//        QuestionForm q3 = new QuestionForm(QuestionType.TAIL, 3, "오늘 싸피 간식 뭐야?");
+//        q3.setParentQuestion(q2);
 
         questionAnswer.put(q1,
                 "추상 클래스틑 공통된 상태(필드)와 기본 동작(메서드 구현)을 가질 수 있는 클래스이고, 인터페이스는 기능 명세만 정의하고 구현은 전혀 하지 않는 구조입니다. 자바 8 이후 인터페이스도 default 메서드로 일부 구현이 가능해졌지만, 여전히 다중 상속이 필요한 경우나 유연한 설계엔 인터페이스가 더 적합합니다.");

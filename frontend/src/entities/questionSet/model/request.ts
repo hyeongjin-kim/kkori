@@ -1,12 +1,33 @@
-import { Question, Tag } from '@/entities/questionSet/model/response';
-
-export interface QuestionSetBase {
-  nickname: string;
+export interface QuestionSetRequest {
   title: string;
-  description: string;
-  isShared: boolean;
-  tags: Tag[];
-  questions: Question[];
+  description?: string;
+  tags?: string[];
+  questions: QuestionRequest[];
 }
 
-export interface CreateQuestionSetRequest extends QuestionSetBase {}
+export interface QuestionRequest {
+  content: string;
+  questionType: number;
+  expectedAnswer: string;
+  tailQuestions?: TailQuestionRequest[];
+}
+
+export interface TailQuestionRequest {
+  content: string;
+}
+
+export interface CreateQuestionSetRequest {
+  title: string;
+  description?: string;
+  tags?: string[];
+  questions: QuestionRequest[];
+}
+
+export type GetQuestionSetsParams = {
+  page?: number;
+  size?: number;
+  sort?: string;
+  createdBy?: string;
+  isPublic?: boolean;
+  tags?: string[];
+};
