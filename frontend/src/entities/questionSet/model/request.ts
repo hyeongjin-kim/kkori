@@ -31,3 +31,15 @@ export type GetQuestionSetsParams = {
   isPublic?: boolean;
   tags?: string[];
 };
+
+export type GetMyQuestionSetsParams = {
+  page?: number;
+  size?: number;
+};
+
+export interface CopyQuestionSetRequest {
+  originalQuestionSetId: number;
+  title: string;
+  description: string;
+  copyTags?: boolean;
+}

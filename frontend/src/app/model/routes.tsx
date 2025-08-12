@@ -6,7 +6,7 @@ import InterviewQuestionsPage from '@/pages/interviewQuestionsPage/page/index';
 import HomePage from '@/pages/homePage/page/index';
 import QuestionSetCreatePage from '@/pages/questionSetCreatePage/page/index';
 import QuestionSetDetailPage from '@/pages/questionSetDetailPage/page/index';
-
+import MyQuestionSetPage from '@/pages/myQuestionSetPage/page/index';
 interface Route {
   path: string; // TODO: 타입 정의 필요
   element: React.ReactNode;
@@ -45,6 +45,11 @@ const mainLayoutRoutes: readonly Route[] = [
     path: '/question-set-detail/:id',
     element: <QuestionSetDetailPage />,
     label: 'question-set-detail-page',
+  },
+  {
+    path: '/my-question-set',
+    element: <MyQuestionSetPage />,
+    label: 'my-question-set-page',
   },
 ];
 

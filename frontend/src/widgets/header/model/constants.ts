@@ -1,6 +1,6 @@
 export const NAVIGATION_BAR_LINKS = Object.freeze({
   home: { path: '/', text: '홈' },
-  myPage: { path: '/my-page', text: '마이페이지' },
+  myQuestionSet: { path: '/my-question-set', text: '내 질문 세트' },
   interviewQuestions: {
     path: '/interview-questions',
     text: '면접 질문',

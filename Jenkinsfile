@@ -10,7 +10,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         
         // RDS 연결 정보 - Jenkins Credentials에서 보안 관리
-        DB_HOST = "kkori-mysql-db.cbgecwou8vyh.ap-northeast-2.rds.amazonaws.com"
+        DB_HOST = credentials('mysql-host')  // Jenkins Secret 사용
         DB_PORT = "3306"
         DB_NAME = "kkori"
         DB_USERNAME = credentials('mysql-username')
