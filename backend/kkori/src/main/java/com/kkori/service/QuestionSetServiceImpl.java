@@ -407,8 +407,16 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         QuestionSet questionSet = questionSetRepository.findByIdAndNotDeleted(questionSetId)
                 .orElseThrow(QuestionSetException::questionSetNotFound);
         
-        if (!questionSet.canBeAccessedBy(userId)) {
-            throw QuestionSetException.noPermission();
+        // 비로그인 사용자는 공개 질문세트만 접근 가능
+        if (userId == null) {
+            if (!questionSet.getIsPublic()) {
+                throw QuestionSetException.noPermission();
+            }
+        } else {
+            // 로그인 사용자는 기존 로직 사용
+            if (!questionSet.canBeAccessedBy(userId)) {
+                throw QuestionSetException.noPermission();
+            }
         }
         
         // 질문 매핑들 조회
@@ -661,23 +669,36 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         log.info("질문 세트 목록 조회 - userId: {}, page: {}, size: {}, createdBy: {}, isPublic: {}, tags: {}", 
                 userId, page, size, createdBy, isPublic, tags);
         
-        findUserById(userId);
+        // 로그인한 사용자인 경우에만 사용자 검증
+        if (userId != null) {
+            findUserById(userId);
+        }
+        
         Pageable pageable = PageRequest.of(page, size);
         
         Page<QuestionSet> questionSets;
         
         if ("me".equals(createdBy)) {
-            // 내가 생성한 질문 세트만 조회
+            // 내가 생성한 질문 세트만 조회 (로그인 필수)
+            if (userId == null) {
+                throw new IllegalArgumentException("내 질문세트 조회는 로그인이 필요합니다.");
+            }
             questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
         } else if (isPublic != null && isPublic) {
-            // 공개된 질문 세트 조회 (본인 제외)
+            // 공개된 질문 세트 조회
             questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);
         } else if (tags != null && !tags.isEmpty()) {
             // 태그로 필터링된 질문 세트 조회
             questionSets = questionSetRepository.findByTagNames(tags, userId, pageable);
         } else {
-            // 전체 질문 세트 조회 (접근 가능한 것만)
-            questionSets = questionSetRepository.findAccessibleQuestionSets(userId, pageable);
+            // 전체 질문 세트 조회
+            if (userId != null) {
+                // 로그인 사용자: 접근 가능한 모든 질문세트 (본인 + 공개)
+                questionSets = questionSetRepository.findAccessibleQuestionSets(userId, pageable);
+            } else {
+                // 비로그인 사용자: 공개 질문세트만
+                questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(null, pageable);
+            }
         }
         
         return questionSets.map(this::convertToQuestionSetListResponse);
