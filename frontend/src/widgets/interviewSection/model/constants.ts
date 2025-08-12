@@ -5,6 +5,8 @@ import {
   startInterview,
   endInterview,
   openNextQuestionModal,
+  startCustomQuestion,
+  endCustomQuestion,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -30,20 +32,32 @@ export const soloIntervieweeControlButtonProps = [
   {
     onClick: startAnswer,
     label: 'answer-start',
-    text: '답변 시작',
+    text: '답변 녹음 시작',
     status: interviewStatus.QUESTION_PRESENTED,
   },
   {
     onClick: endAnswer,
     label: 'answer-end',
-    text: '답변 종료',
+    text: '답변 녹음 종료',
     status: interviewStatus.ANSWER_START,
   },
   {
     onClick: endInterview,
     label: 'interview-end',
-    text: '면접 종료',
+    text: '면접  종료',
     status: interviewStatus.ALWAYS,
+  },
+  {
+    onClick: startCustomQuestion,
+    label: 'custom-question-start',
+    text: '커스텀 질문 녹음 시작',
+    status: interviewStatus.CUSTOM_QUESTION_SELECTED,
+  },
+  {
+    onClick: endCustomQuestion,
+    label: 'custom-question-end',
+    text: '커스텀 질문 녹음 종료',
+    status: interviewStatus.CUSTOM_QUESTION_START,
   },
 ];
 
