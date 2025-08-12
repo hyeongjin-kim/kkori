@@ -4,6 +4,7 @@ import { create } from 'zustand';
 export interface Question {
   id: number;
   question: string;
+  questionType: string;
 }
 
 interface InterviewQuestionState {
@@ -11,6 +12,7 @@ interface InterviewQuestionState {
   tailQuestion: Question[];
   defaultQuestion: Question;
   customQuestion: Question;
+  nextQuestion: Question;
 }
 
 interface InterviewQuestionActions {
@@ -18,6 +20,7 @@ interface InterviewQuestionActions {
   setTailQuestion: (questions: Question[]) => void;
   setDefaultQuestion: (question: Question) => void;
   setCustomQuestion: (question: Question) => void;
+  setNextQuestion: (question: Question) => void;
 }
 
 type InterviewQuestionStore = InterviewQuestionState & InterviewQuestionActions;
@@ -27,6 +30,7 @@ const initialState: InterviewQuestionState = {
   tailQuestion: [mockupQuestion.tailQuestion, mockupQuestion.tailQuestion],
   defaultQuestion: mockupQuestion.defaultQuestion,
   customQuestion: mockupQuestion.customQuestion,
+  nextQuestion: mockupQuestion.nextQuestion,
 };
 
 export const useInterviewQuestionStore = create<InterviewQuestionStore>(
@@ -36,5 +40,6 @@ export const useInterviewQuestionStore = create<InterviewQuestionStore>(
     setTailQuestion: questions => set({ tailQuestion: questions }),
     setDefaultQuestion: question => set({ defaultQuestion: question }),
     setCustomQuestion: question => set({ customQuestion: question }),
+    setNextQuestion: question => set({ nextQuestion: question }),
   }),
 );
