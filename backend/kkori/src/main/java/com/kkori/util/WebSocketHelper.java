@@ -22,7 +22,14 @@ public class WebSocketHelper {
 
     private static final String ROOM_TOPIC_PREFIX = "/topic/interview/";
     private static final String USER_QUEUE = "/queue/interview";
-    private final Set<String> updateIgnoreTypes = Set.of("chat", "room-status", "roles-swapped");
+    private final Set<String> updateIgnoreTypes = Set.of(
+            "chat",
+            "room-status",
+            "roles-swapped",
+            "interview-ended",
+            "answer-recording-started",
+            "custom-question-recording-started"
+    );
 
     // ==================== 메시지 전송 관련 ====================
 
@@ -80,8 +87,7 @@ public class WebSocketHelper {
         if (userId != null) {
             ErrorResponse errorResponse = new ErrorResponse(
                     error,
-                    message,
-                    String.valueOf(System.currentTimeMillis())
+                    message
             );
             sendPersonalMessage(userId, "error", errorResponse);
         }
