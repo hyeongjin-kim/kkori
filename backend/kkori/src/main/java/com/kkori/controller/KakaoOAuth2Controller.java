@@ -69,10 +69,10 @@ public class KakaoOAuth2Controller {
         log.info("로그인 응답: accessToken={}, refreshToken={}, nickname={}", accessToken, loginResponse.getRefreshToken(),
                 loginResponse.getNickname());
 
-        CookieUtil.addSecureJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken.getToken(),
+        CookieUtil.addAccessTokenJwtCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken.getToken(),
                 ACCESS_TOKEN_EXPIRE_SECONDS);
 
-        CookieUtil.addJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
+        CookieUtil.addRefreshTokenJwtCookie(response, REFRESH_TOKEN_COOKIE_NAME, loginResponse.getRefreshToken().getToken(),
                 REFRESH_TOKEN_EXPIRE_SECONDS);
 
         return ResponseEntity.status(HttpStatus.FOUND)
