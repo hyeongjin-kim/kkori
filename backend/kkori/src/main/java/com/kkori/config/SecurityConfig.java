@@ -44,7 +44,8 @@ public class SecurityConfig {
             "/oauth2/authorization/kakao/callback",
             "/ws/**",
             "/actuator/health",
-            "/actuator/info"
+            "/actuator/info",
+            "/api/login/guest"
     };
 
     private static final long HSTS_MAX_AGE_IN_SECONDS = 31536000L;
