@@ -7,6 +7,7 @@ import useInterviewRoomStore, {
   interviewStatus,
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
@@ -26,6 +27,7 @@ function PairPracticePage() {
       aria-label={`pair-practice-page`}
       className="flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
     >
+      <NextQuestionModal />
       <InterviewSection />
       <ChattingWindowContainer />
     </main>
