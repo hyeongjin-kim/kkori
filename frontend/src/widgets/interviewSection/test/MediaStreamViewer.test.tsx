@@ -25,8 +25,8 @@ describe('MediaStreamViewer 스트림 없을 경우', () => {
     expect(screen.getByLabelText('video-placeholder')).toBeInTheDocument();
   });
 
-  test('AudioOffDisplay가 렌더링된다', () => {
-    expect(screen.getByLabelText('audio-off-display')).toBeInTheDocument();
+  test('AudioStateDisplay가 렌더링된다', () => {
+    expect(screen.getByLabelText('audio-state-display')).toBeInTheDocument();
   });
 });
 
