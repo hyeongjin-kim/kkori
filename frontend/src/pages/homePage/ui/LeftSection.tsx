@@ -1,6 +1,7 @@
 import SoloPracticeButton from '@/pages/homePage/ui/SoloPracticeButton';
 import PairPracticeButton from '@/pages/homePage/ui/PairPracticeButton';
 import HeroText from '@/pages/homePage/ui/HeroText';
+import { interviewRole } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 function LeftSection() {
   return (
@@ -8,7 +9,8 @@ function LeftSection() {
       <HeroText />
       <div className="z-10 flex flex-col gap-8">
         <SoloPracticeButton />
-        <PairPracticeButton />
+        <PairPracticeButton role={interviewRole.INTERVIEWER} />
+        <PairPracticeButton role={interviewRole.INTERVIEWEE} />
       </div>
     </section>
   );
