@@ -12,5 +12,5 @@ import lombok.Setter;
 public class IceCandidate {
     private String roomId;
     private String candidate;
-    private Long userId;
+    private String userId;
 }
