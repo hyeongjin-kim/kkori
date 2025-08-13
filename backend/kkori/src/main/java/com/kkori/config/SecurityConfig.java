@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -76,7 +77,7 @@ public class SecurityConfig {
                         .frameOptions(FrameOptionsConfig::sameOrigin)
                         .referrerPolicy(referrer ->
                                 referrer.policy(
-                                        org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                                        ReferrerPolicy.ORIGIN_WHEN_CROSS_ORIGIN))
                 )
 
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider, kakaoOAuth2Service),
@@ -90,6 +91,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
         configuration.setAllowedOrigins(allowedOrigins);
+        configuration.addAllowedOrigin("https://kauth.kakao.com");
         configuration.setAllowedMethods(ALLOWED_METHODS);
         configuration.setAllowedHeaders(ALLOWED_HEADERS);
         configuration.setAllowCredentials(true);
