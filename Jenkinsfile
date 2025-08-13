@@ -34,7 +34,7 @@ pipeline {
         
         // 배포 환경 설정
         SPRING_PROFILES_ACTIVE = "prod"
-        DDL_AUTO = "update"  // 첫 배포: create, 이후: update 또는 validate
+        DDL_AUTO = "create"  // 첫 배포: create, 이후: update 또는 validate
     }
     
     stages {
