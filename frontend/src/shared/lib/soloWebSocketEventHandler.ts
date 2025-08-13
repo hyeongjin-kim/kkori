@@ -35,7 +35,7 @@ const roomCreatedHandler = (
   set: any,
   response: any,
 ) => {
-  set({ roomID: response.roomId });
+  get().setRoomId(response.roomId);
   client.subscribe(`/topic/interview/${response.roomId}`, message => {
     const response = JSON.parse(message.body);
     console.log(response);

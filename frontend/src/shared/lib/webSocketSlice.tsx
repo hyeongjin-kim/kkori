@@ -60,6 +60,7 @@ interface WebSocketAction {
   setJoinRoomMode: (
     joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
   ) => void;
+  setOpponentNickname: (opponentNickname: string) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -131,6 +132,7 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   setRoomId: (roomId: string) => {
+    console.log('setRoomId', roomId);
     set({ roomId });
   },
   interviewStart: () => {
@@ -232,5 +234,8 @@ export const createWebSocketSlice: StateCreator<
     joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
   ) => {
     set({ joinRoomMode });
+  },
+  setOpponentNickname: (opponentNickname: string) => {
+    set({ opponentNickname });
   },
 });

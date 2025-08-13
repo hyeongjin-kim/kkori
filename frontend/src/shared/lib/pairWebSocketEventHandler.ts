@@ -48,7 +48,7 @@ const roomCreatedHandler = (
   set: any,
   response: any,
 ) => {
-  set({ roomID: response.roomId });
+  get().setRoomId(response.roomId);
   subscribeInterview(client, get, response.roomId);
 };
 
@@ -67,25 +67,35 @@ const existingUserHandler = async (
   data: any,
 ) => {
   subscribeInterview(client, get, get().roomId || '');
-  set({ opponentNickname: data.nickName });
+  get().setOpponentNickname(data.nickName);
   console.log(data.nickName);
-  get().setPeerConnection(new RTCPeerConnection());
+  const peerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: process.env.TURN_URL || '',
+        username: process.env.TURN_USERNAME || '',
+        credential: process.env.TURN_CREDENTIAL || '',
+      },
+    ],
+  });
   const myStream = useMediaStreamStore.getState().myStream;
-  console.log(myStream);
+  console.log('myStream', myStream);
   if (!myStream) return;
 
   myStream.getTracks().forEach(track => {
-    get().peerConnection.addTrack(track, myStream);
+    peerConnection.addTrack(track, myStream);
   });
 
-  const offer = await get().peerConnection.createOffer();
-  await get().peerConnection.setLocalDescription(offer);
-  console.log(offer);
-  console.log(get().roomId);
+  const offer = await peerConnection.createOffer();
+  await peerConnection.setLocalDescription(offer);
+  const roomId = get().roomId;
+  console.log('OFFER : ', offer);
+  console.log('ROOM ID : ', roomId);
+  get().setPeerConnection(peerConnection);
   client.publish({
     destination: `/app/create-offer`,
     body: JSON.stringify({
-      roomId: get().roomId,
+      roomId,
       sdp: JSON.stringify(offer),
     }),
   });
@@ -100,29 +110,29 @@ const roomStatusHandler = (client: Client, set: any, data: any) => {
 };
 
 const offerHandler = async (client: Client, get: any, set: any, data: any) => {
-  get().setPeerConnection(
-    new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: process.env.TURN_URL || '',
-          username: process.env.TURN_USERNAME || '',
-          credential: process.env.TURN_CREDENTIAL || '',
-        },
-      ],
-    }),
-  );
+  const roomId = get().roomId;
+  const peerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: process.env.TURN_URL || '',
+        username: process.env.TURN_USERNAME || '',
+        credential: process.env.TURN_CREDENTIAL || '',
+      },
+    ],
+  });
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
-    get().peerConnection.addTrack(track, myStream);
+    peerConnection.addTrack(track, myStream);
   });
   const offer = JSON.parse(data);
-  get().peerConnection.setRemoteDescription(offer);
-  useMediaStreamStore.getState().setPeerStream(offer.stream);
-  const answer = await get().peerConnection.createAnswer();
-  await get().peerConnection.setLocalDescription(answer);
-  console.log(answer);
-  console.log(get().roomId);
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+
+  console.log('PEER CONNECTION : ', peerConnection);
+
+  get().setPeerConnection(peerConnection);
   client.publish({
     destination: `/app/create-answer`,
     body: JSON.stringify({
