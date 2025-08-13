@@ -7,6 +7,7 @@ import {
   Question,
   useInterviewQuestionStore,
 } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import usePeerConnectionStore from '@/entities/interviewRoom/model/usePeerConnectionStore';
 
 export const pairWebSocketEventHandler = (
   client: Client,
@@ -36,6 +37,10 @@ export const pairWebSocketEventHandler = (
     case 'next-question-choices':
       nextQuestionChoiceHandler(client, set, response.data);
       break;
+    case 'received-ice-candidate':
+      console.log('!!!!RECEIVED ICE CANDIDATE 이벤트 발생이라고!!!!: ');
+      receivedIceCandidateHandler(client, get, set, response.data);
+      break;
     default:
       errorHandler(client, set, response.data);
       break;
@@ -60,6 +65,9 @@ const subscribeInterview = (client: Client, get: any, roomId: string) => {
   });
 };
 
+const createPeerConnection =
+  usePeerConnectionStore.getState().createPeerConnection;
+
 const existingUserHandler = async (
   client: Client,
   get: any,
@@ -68,18 +76,20 @@ const existingUserHandler = async (
 ) => {
   subscribeInterview(client, get, get().roomId || '');
   get().setOpponentNickname(data.nickName);
-  console.log(data.nickName);
-  const peerConnection = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: process.env.TURN_URL || '',
-        username: process.env.TURN_USERNAME || '',
-        credential: process.env.TURN_CREDENTIAL || '',
-      },
-    ],
-  });
+  console.log('OPPONENT NICKNAME : ', data.nickName);
+  const roomId = get().roomId;
+  const userId = get().userId;
+  const onIceCandidate = (candidate: RTCIceCandidate) => {
+    client.publish({
+      destination: '/app/new-ice-candidate',
+      body: JSON.stringify({ roomId, candidate, userId }),
+    });
+    console.log('new-ice-candidate 이벤트 발생: ', candidate);
+  };
+  const peerConnection = createPeerConnection(onIceCandidate);
+
   const myStream = useMediaStreamStore.getState().myStream;
-  console.log('myStream', myStream);
+  console.log('MY STREAM : ', myStream);
   if (!myStream) return;
 
   myStream.getTracks().forEach(track => {
@@ -88,10 +98,9 @@ const existingUserHandler = async (
 
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
-  const roomId = get().roomId;
   console.log('OFFER : ', offer);
   console.log('ROOM ID : ', roomId);
-  get().setPeerConnection(peerConnection);
+  usePeerConnectionStore.getState().setPeerConnection(peerConnection);
   client.publish({
     destination: `/app/create-offer`,
     body: JSON.stringify({
@@ -111,15 +120,14 @@ const roomStatusHandler = (client: Client, set: any, data: any) => {
 
 const offerHandler = async (client: Client, get: any, set: any, data: any) => {
   const roomId = get().roomId;
-  const peerConnection = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: process.env.TURN_URL || '',
-        username: process.env.TURN_USERNAME || '',
-        credential: process.env.TURN_CREDENTIAL || '',
-      },
-    ],
-  });
+  const userId = get().userId;
+  const onIceCandidate = (candidate: RTCIceCandidate) => {
+    client.publish({
+      destination: '/app/new-ice-candidate',
+      body: JSON.stringify({ roomId, candidate, userId }),
+    });
+  };
+  const peerConnection = createPeerConnection(onIceCandidate);
   const myStream = useMediaStreamStore.getState().myStream;
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
@@ -129,24 +137,24 @@ const offerHandler = async (client: Client, get: any, set: any, data: any) => {
   await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
-
-  console.log('PEER CONNECTION : ', peerConnection);
-
-  get().setPeerConnection(peerConnection);
+  usePeerConnectionStore.getState().setPeerConnection(peerConnection);
   client.publish({
     destination: `/app/create-answer`,
     body: JSON.stringify({
-      roomId: get().roomId,
+      roomId: roomId,
       sdp: JSON.stringify(answer),
     }),
   });
 };
 
-const answerHandler = (client: Client, get: any, set: any, data: any) => {
+const answerHandler = async (client: Client, get: any, set: any, data: any) => {
   const answer = JSON.parse(data);
-  console.log(answer);
-  get().peerConnection.setRemoteDescription(answer);
-  useMediaStreamStore.getState().setPeerStream(answer.sdp);
+  const peerConnection = usePeerConnectionStore.getState().peerConnection;
+  console.log('ANSWER HANDLER : ', answer);
+  if (!peerConnection) return;
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+  console.log('ANSWER PEER CONNECTION : ', peerConnection);
+  usePeerConnectionStore.getState().setPeerConnection(peerConnection);
 };
 
 const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
@@ -166,6 +174,19 @@ const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
     .getState()
     .setStatus(interviewStatus.NEXT_QUESTION_PRESENTED);
   console.log(useInterviewRoomStore.getState().status);
+};
+
+const receivedIceCandidateHandler = (
+  client: Client,
+  get: any,
+  set: any,
+  data: any,
+) => {
+  const response = JSON.parse(data);
+  const peerConnection = usePeerConnectionStore.getState().peerConnection;
+  console.log('!!!!RECEIVED ICE CANDIDATE : ', response);
+  if (!peerConnection) return;
+  peerConnection.addIceCandidate(new RTCIceCandidate(response.candidate));
 };
 
 const errorHandler = (client: Client, set: any, data: any) => {
