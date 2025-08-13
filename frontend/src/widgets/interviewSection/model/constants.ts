@@ -61,18 +61,18 @@ export const soloIntervieweeControlButtonProps = [
   },
 ];
 
-export const peerIntervieweeControlButtonProps = [
+export const pairIntervieweeControlButtonProps = [
+  {
+    onClick: switchScreen,
+    label: 'screen-change',
+    text: '화면 전환',
+    status: 'always',
+  },
   {
     onClick: startInterview,
     label: 'interview-start',
     text: '면접 시작',
     status: interviewStatus.BEFORE_INTERVIEW,
-  },
-  {
-    onClick: openNextQuestionModal,
-    label: 'next-question-select',
-    text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
   {
     onClick: startAnswer,
@@ -94,18 +94,12 @@ export const peerIntervieweeControlButtonProps = [
   },
 ];
 
-export const peerInterviewerControlButtonProps = [
+export const pairInterviewerControlButtonProps = [
   {
     onClick: switchScreen,
     label: 'screen-change',
     text: '화면 전환',
     status: interviewStatus.ALWAYS,
-  },
-  {
-    onClick: startInterview,
-    label: 'interview-start',
-    text: '면접 시작',
-    status: interviewStatus.BEFORE_INTERVIEW,
   },
   {
     onClick: endInterview,
