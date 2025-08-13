@@ -6,6 +6,7 @@ export type QuestionSetOverviewVM = {
   description?: string;
   version: string;
   isPublic: boolean;
+  ownerId: number;
   owner?: string;
   tags: { tag: string }[];
   createdAt: string;
@@ -16,6 +17,7 @@ const defaultVM: QuestionSetOverviewVM = {
   title: '',
   version: '',
   isPublic: false,
+  ownerId: 0,
   tags: [],
   createdAt: '',
   updatedAt: '',
@@ -28,6 +30,7 @@ export function toOverviewVM(qs: QuestionSetResponse): QuestionSetOverviewVM {
     (qs.parentVersionId ? ` (forked from ${qs.parentVersionId})` : '');
   const tags = (qs.tags ?? []).map(t => t);
   return {
+    ownerId: qs.ownerId,
     title: qs.title,
     description: qs.description || '',
     version,

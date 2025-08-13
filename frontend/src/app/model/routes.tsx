@@ -7,6 +7,8 @@ import HomePage from '@/pages/homePage/page/index';
 import QuestionSetCreatePage from '@/pages/questionSetCreatePage/page/index';
 import QuestionSetDetailPage from '@/pages/questionSetDetailPage/page/index';
 import MyQuestionSetPage from '@/pages/myQuestionSetPage/page/index';
+import QuestionSetUpdatePage from '@/pages/questionSetUpdatePage/page';
+
 interface Route {
   path: string; // TODO: 타입 정의 필요
   element: React.ReactNode;
@@ -50,6 +52,11 @@ const mainLayoutRoutes: readonly Route[] = [
     path: '/my-question-set',
     element: <MyQuestionSetPage />,
     label: 'my-question-set-page',
+  },
+  {
+    path: '/question-set-update/:id',
+    element: <QuestionSetUpdatePage />,
+    label: 'question-set-update-page',
   },
 ];
 

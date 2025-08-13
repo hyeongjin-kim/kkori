@@ -3,6 +3,7 @@ import { QuestionSetResponse } from '@/entities/questionSet/model/response';
 export const questionSetList: QuestionSetResponse[] = [
   {
     questionSetId: 1,
+    ownerId: 1,
     ownerNickname: '이찬',
     title: 'HTTP 기본',
     description: 'HTTP의 동작 원리와 특징에 대한 질문입니다.',

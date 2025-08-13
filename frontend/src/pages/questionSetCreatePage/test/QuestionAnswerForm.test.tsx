@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import QuestionAnswerForm from '@/pages/questionSetCreatePage/ui/QuestionAnswerForm';
 import userEvent from '@testing-library/user-event';
+import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/constants';
 
 describe('QuestionAnswerForm', () => {
   const setQuestionAnswerList = jest.fn();
@@ -14,6 +15,7 @@ describe('QuestionAnswerForm', () => {
         questionAnswerList={questionAnswerList}
         setQuestionAnswerList={setQuestionAnswerList}
         onSubmit={onSubmit}
+        type={QUESTION_ANSWER_FORMAT_TYPE.create}
       />,
     );
   });
