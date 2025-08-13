@@ -79,6 +79,15 @@ public class DummyDataService {
         // 4. 질문과 면접 데이터 생성
         createQuestionsAndInterviews(dummyUser, questionSet);
 
+        // 5. data.sql 실행 (추가 데이터)
+        try {
+            executeSqlFile("data.sql");
+            System.out.println("data.sql 실행 완료 - 추가 데이터 생성됨");
+        } catch (Exception e) {
+            System.err.println("data.sql 실행 실패: " + e.getMessage());
+            // data.sql 실행 실패해도 기본 더미 데이터는 생성되었으므로 계속 진행
+        }
+
         System.out.println("더미 데이터 생성 완료!");
         System.out.println("생성된 유저 ID: " + dummyUser.getUserId());
         System.out.println("생성된 질문 세트 ID: " + questionSet.getId());
