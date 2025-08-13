@@ -1,8 +1,3 @@
-export const PRACTICE_MODE = Object.freeze({
-  SOLO_PRACTICE: 'SOLO_PRACTICE',
-  PAIR_PRACTICE: 'PAIR_PRACTICE',
-});
-
 interface PracticeButtonProps {
   text: string;
   onClick: () => void;
