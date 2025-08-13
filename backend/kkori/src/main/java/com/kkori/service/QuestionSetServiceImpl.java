@@ -745,38 +745,9 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             throw QuestionSetException.noPermission();
         }
         
-        // 메타데이터 수정
-        if (request.getTitle() != null) {
-            // 새로운 QuestionSet으로 업데이트 (불변성 원칙에 따라)
-            QuestionSet updatedQuestionSet = QuestionSet.builder()
-                    .ownerUserId(questionSet.getOwnerUserId())
-                    .title(request.getTitle())
-                    .description(request.getDescription() != null ? request.getDescription() : questionSet.getDescription())
-                    .versionNumber(questionSet.getVersionNumber())
-                    .parentVersionId(questionSet.getParentVersionId())
-                    .isPublic(request.getIsPublic() != null ? request.getIsPublic() : questionSet.getIsPublic())
-                    .build();
-            
-            questionSet = questionSetRepository.save(updatedQuestionSet);
-        } else {
-            // 기존 객체 필드만 업데이트
-            if (request.getDescription() != null) {
-                questionSet = QuestionSet.builder()
-                        .ownerUserId(questionSet.getOwnerUserId())
-                        .title(questionSet.getTitle())
-                        .description(request.getDescription())
-                        .versionNumber(questionSet.getVersionNumber())
-                        .parentVersionId(questionSet.getParentVersionId())
-                        .isPublic(questionSet.getIsPublic())
-                        .build();
-                questionSet = questionSetRepository.save(questionSet);
-            }
-            
-            if (request.getIsPublic() != null) {
-                questionSet.updatePublicStatus(request.getIsPublic());
-                questionSet = questionSetRepository.save(questionSet);
-            }
-        }
+        // 메타데이터 직접 수정 (기존 질문 세트 업데이트)
+        questionSet.updateMetadata(request.getTitle(), request.getDescription(), request.getIsPublic());
+        questionSetRepository.save(questionSet);
         
         log.info("메타데이터 수정 완료 - questionSetId: {}", questionSet.getId());
         
