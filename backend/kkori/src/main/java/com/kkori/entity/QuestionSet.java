@@ -110,6 +110,18 @@ public class QuestionSet extends BaseEntity {
         this.isPublic = isPublic != null ? isPublic : false;
     }
 
+    public void updateMetadata(String title, String description, Boolean isPublic) {
+        if (title != null) {
+            this.title = title;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (isPublic != null) {
+            this.isPublic = isPublic;
+        }
+    }
+
     public void softDelete() {
         this.isDeleted = true;
     }
