@@ -31,28 +31,57 @@ public class DummyDataService {
     private final JdbcTemplate jdbcTemplate;
 
     public void createDummyData() {
-       try {
-            // 1. data.sql 실행 (30명 유저, 30개 질문세트 생성)
-            executeSqlFile("data.sql");
-            System.out.println("data.sql 실행 완료 - 기본 유저 및 질문세트 생성됨");
+        // 기존 data.sql 기반 로직 (주석처리)
+//       try {
+//            // 1. data.sql 실행 (30명 유저, 30개 질문세트 생성)
+//            executeSqlFile("data.sql");
+//            System.out.println("data.sql 실행 완료 - 기본 유저 및 질문세트 생성됨");
+//
+//            // 2. 첫 번째 유저와 질문세트를 사용해서 추가 데이터 생성
+//            User firstUser = userRepository.findById(1L)
+//                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 userId=1인 사용자가 존재하지 않습니다."));
+//            QuestionSet firstQuestionSet = questionSetRepository.findById(1L)
+//                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 questionSetId=1인 질문세트가 존재하지 않습니다."));
+//
+//            // 3. 기존 로직으로 질문과 면접 데이터 생성
+//            createQuestionsAndInterviews(firstUser, firstQuestionSet);
+//
+//            System.out.println("하이브리드 더미 데이터 생성 완료!");
+//            System.out.println("- data.sql: 30명 유저, 30개 질문세트");
+//            System.out.println("- 추가 생성: 18개 질문, 4개 면접(완료 3개, 진행중 1개)");
+//
+//        } catch (Exception e) {
+//            System.err.println("더미 데이터 생성 중 오류 발생: " + e.getMessage());
+//            throw new RuntimeException("더미 데이터 생성 실패", e);
+//        }
 
-            // 2. 첫 번째 유저와 질문세트를 사용해서 추가 데이터 생성
-            User firstUser = userRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 userId=1인 사용자가 존재하지 않습니다."));
-            QuestionSet firstQuestionSet = questionSetRepository.findById(1L)
-                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 questionSetId=1인 질문세트가 존재하지 않습니다."));
+        // 원래 로직으로 복원
+        // 1. 더미 유저 생성
+        User dummyUser = User.builder()
+                .sub("dummy_user_" + System.currentTimeMillis())
+                .nickname("테스트유저")
+                .build();
+        userRepository.save(dummyUser);
 
-            // 3. 기존 로직으로 질문과 면접 데이터 생성
-            createQuestionsAndInterviews(firstUser, firstQuestionSet);
+        // 2. 태그를 먼저 생성
+        createBasicTags();
 
-            System.out.println("하이브리드 더미 데이터 생성 완료!");
-            System.out.println("- data.sql: 30명 유저, 30개 질문세트");
-            System.out.println("- 추가 생성: 18개 질문, 4개 면접(완료 3개, 진행중 1개)");
+        // 3. 질문 세트 생성
+        QuestionSet questionSet = QuestionSet.builder()
+                .ownerUserId(dummyUser)
+                .title("백엔드 개발자 면접 질문 세트")
+                .description("Java/Spring 백엔드 개발자를 위한 기본 면접 질문 모음입니다.")
+                .versionNumber(1)
+                .isPublic(true)
+                .build();
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
 
-        } catch (Exception e) {
-            System.err.println("더미 데이터 생성 중 오류 발생: " + e.getMessage());
-            throw new RuntimeException("더미 데이터 생성 실패", e);
-        }
+        // 4. 질문과 면접 데이터 생성
+        createQuestionsAndInterviews(dummyUser, questionSet);
+
+        System.out.println("더미 데이터 생성 완료!");
+        System.out.println("생성된 유저 ID: " + dummyUser.getUserId());
+        System.out.println("생성된 질문 세트 ID: " + questionSet.getId());
     }
 
     private void createQuestionsAndInterviews(User user, QuestionSet questionSet) {
@@ -104,8 +133,11 @@ public class DummyDataService {
         // 전체 질문 목록에 꼬리 질문들 추가
         questions.addAll(tailQuestions);
 
-        // 태그 생성 및 질문 세트와 매핑
-        createTagsAndLinkToQuestionSet(questionSet);
+        // 태그를 먼저 생성
+        createBasicTags();
+        
+        // 질문 세트와 기존 태그들 매핑
+        linkQuestionSetToExistingTags(questionSet);
 
         // 질문 세트와 질문들 매핑
         List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
@@ -386,11 +418,21 @@ public class DummyDataService {
         }
     }
 
-    private void createTagsAndLinkToQuestionSet(QuestionSet questionSet) {
-        // 기본 태그들 생성
-        Tag javaTag = createOrGetTag("Java");
-        Tag springTag = createOrGetTag("Spring");
-        Tag backendTag = createOrGetTag("Backend");
+    private void createBasicTags() {
+        // 기본 태그들을 먼저 생성하고 저장
+        createOrGetTag("Java");
+        createOrGetTag("Spring");
+        createOrGetTag("Backend");
+    }
+    
+    private void linkQuestionSetToExistingTags(QuestionSet questionSet) {
+        // 이미 생성된 태그들을 조회해서 연결
+        Tag javaTag = tagRepository.findByTag("Java")
+                .orElseThrow(() -> new RuntimeException("Java 태그가 존재하지 않습니다."));
+        Tag springTag = tagRepository.findByTag("Spring")
+                .orElseThrow(() -> new RuntimeException("Spring 태그가 존재하지 않습니다."));
+        Tag backendTag = tagRepository.findByTag("Backend")
+                .orElseThrow(() -> new RuntimeException("Backend 태그가 존재하지 않습니다."));
         
         // 질문 세트와 태그 연결
         linkQuestionSetToTag(questionSet, javaTag);
@@ -402,7 +444,7 @@ public class DummyDataService {
         return tagRepository.findByTag(tagName)
                 .orElseGet(() -> {
                     Tag tag = Tag.builder().name(tagName).build();
-                    return tagRepository.save(tag);
+                    return tagRepository.saveAndFlush(tag);
                 });
     }
     
