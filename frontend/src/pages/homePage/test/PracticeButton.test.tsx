@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
-import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import {
+  interviewRole,
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 test('버튼을 누르면 어떤 페이지로 이동한다', () => {
   render(
@@ -11,6 +14,7 @@ test('버튼을 누르면 어떤 페이지로 이동한다', () => {
           text="연습하기"
           path="/solo-practice"
           mode={interviewType.SOLO}
+          role={interviewRole.INTERVIEWEE}
         />
       }
     />,
@@ -26,7 +30,12 @@ test('버튼에 내가 원하는 텍스트를 넣을 수 있다.', () => {
   render(
     <MemoryRouterWrapped
       component={
-        <PracticeButton text={text} path="/test" mode={interviewType.SOLO} />
+        <PracticeButton
+          text={text}
+          path="/test"
+          mode={interviewType.SOLO}
+          role={interviewRole.INTERVIEWEE}
+        />
       }
     />,
   );

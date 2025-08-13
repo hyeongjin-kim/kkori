@@ -1,5 +1,8 @@
 import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
-import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import {
+  interviewRole,
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 function SoloPracticeButton() {
   return (
@@ -8,6 +11,7 @@ function SoloPracticeButton() {
       path="/solo-practice"
       className="bg-point-500 text-text-black"
       mode={interviewType.SOLO}
+      role={interviewRole.INTERVIEWEE}
     />
   );
 }

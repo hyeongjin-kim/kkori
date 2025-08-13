@@ -1,10 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import PairPracticeButton from '@/pages/homePage/ui/PairPracticeButton';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
+import { interviewRole } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 describe('PairPracticeButton', () => {
   beforeEach(() => {
-    render(<MemoryRouterWrapped component={<PairPracticeButton />} />);
+    render(
+      <MemoryRouterWrapped
+        component={<PairPracticeButton role={interviewRole.INTERVIEWER} />}
+      />,
+    );
   });
   test('같이 연습하기 버튼이 렌더링 된다', () => {
     expect(

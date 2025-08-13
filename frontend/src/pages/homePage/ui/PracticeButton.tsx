@@ -1,11 +1,16 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewRole,
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 interface PracticeButtonProps {
   text: string;
   path: string;
   className?: string;
   mode: (typeof interviewType)[keyof typeof interviewType];
+  role: (typeof interviewRole)[keyof typeof interviewRole];
 }
 
 export function PracticeButton({
@@ -13,8 +18,14 @@ export function PracticeButton({
   path,
   className,
   mode,
+  role,
 }: PracticeButtonProps) {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    useInterviewRoomStore.getState().setRole(role);
+  }, [role]);
+
   return (
     <button
       onClick={() => {
