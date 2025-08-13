@@ -5,8 +5,6 @@ import MyQuestionSetListContainer from '@/pages/myQuestionSetPage/ui/MyQuestionS
 describe('MyQuestionSetListContainer', () => {
   test('MyQuestionSetListContainer 컴포넌트가 렌더링 된다.', () => {
     render(<MemoryRouterWrapped component={<MyQuestionSetListContainer />} />);
-    expect(
-      screen.getByRole('list', { name: 'question-set-list' }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('question-set-list')).toBeInTheDocument();
   });
 });

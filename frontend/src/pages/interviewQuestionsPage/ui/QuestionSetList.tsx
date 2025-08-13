@@ -5,9 +5,14 @@ import QuestionSetSkeleton from '@/pages/interviewQuestionsPage/ui/QuestionSetLi
 interface QuestionSetListProps {
   questionSets: QuestionSetResponse[];
   isLoading: boolean;
+  onClick: (questionSetId: number) => void;
 }
 
-function QuestionSetList({ questionSets, isLoading }: QuestionSetListProps) {
+function QuestionSetList({
+  questionSets,
+  isLoading,
+  onClick,
+}: QuestionSetListProps) {
   return (
     <ul
       aria-label="question-set-list"
@@ -20,6 +25,7 @@ function QuestionSetList({ questionSets, isLoading }: QuestionSetListProps) {
           <QuestionSet
             key={questionSet.questionSetId}
             questionSet={questionSet}
+            onClick={() => onClick(questionSet.questionSetId)}
           />
         ))
       )}

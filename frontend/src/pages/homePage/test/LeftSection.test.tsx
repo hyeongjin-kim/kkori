@@ -4,7 +4,16 @@ import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('LeftSection', () => {
   test('LeftSection이 렌더링 된다', () => {
-    render(<MemoryRouterWrapped component={<LeftSection />} />);
+    render(
+      <MemoryRouterWrapped
+        component={
+          <LeftSection
+            onQuestionSetModalOpen={() => {}}
+            onJoinInterviewRoomModalOpen={() => {}}
+          />
+        }
+      />,
+    );
     expect(screen.getByLabelText('left-section')).toBeInTheDocument();
   });
 });

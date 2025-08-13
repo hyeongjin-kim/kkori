@@ -1,15 +1,15 @@
-import {
-  PRACTICE_MODE,
-  PracticeButton,
-} from '@/pages/homePage/ui/PracticeButton';
+import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
 
-function PairPracticeButton() {
+interface PairPracticeButtonProps {
+  onClick: () => void;
+}
+
+function PairPracticeButton({ onClick }: PairPracticeButtonProps) {
   return (
     <PracticeButton
       text="같이 연습하기"
-      path="/pair-practice"
+      onClick={onClick}
       className="border-point-300 text-point-300 border"
-      mode={PRACTICE_MODE.PAIR_PRACTICE}
     />
   );
 }

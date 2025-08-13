@@ -32,7 +32,7 @@ describe('QuestionSetListContainer', () => {
       isError: true,
     });
 
-    render(<QuestionSetListContainer />);
+    render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(screen.getByText('불러오기 실패')).toBeInTheDocument();
   });
@@ -44,7 +44,7 @@ describe('QuestionSetListContainer', () => {
       isError: false,
     });
 
-    render(<QuestionSetListContainer />);
+    render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(
       screen.getByRole('list', { name: 'question-set-list' }),
@@ -74,7 +74,7 @@ describe('QuestionSetListContainer', () => {
       data: { data: { content: [] } },
     });
 
-    render(<QuestionSetListContainer />);
+    render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(useQuestionSetsMock).toHaveBeenCalledTimes(1);
     expect(useQuestionSetsMock).toHaveBeenCalledWith({ tags: undefined });
@@ -88,7 +88,7 @@ describe('QuestionSetListContainer', () => {
       data: { data: { content: [] } },
     });
 
-    render(<QuestionSetListContainer />);
+    render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(useQuestionSetsMock).toHaveBeenCalledTimes(1);
     expect(useQuestionSetsMock).toHaveBeenCalledWith({ tags: ['백엔드'] });
