@@ -52,7 +52,6 @@ interface WebSocketAction {
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
   customQuestionCreate: () => void;
-  setPeerConnection: (peerConnection: RTCPeerConnection) => void;
   setQuestionSetId: (questionSetId: number) => void;
   setRoomId: (roomId: string) => void;
   setJoinRoomMode: (
@@ -219,9 +218,6 @@ export const createWebSocketSlice: StateCreator<
       roomId: get().roomId || '',
       audioFile: blob,
     });
-  },
-  setPeerConnection: (peerConnection: RTCPeerConnection) => {
-    set({ peerConnection });
   },
   setQuestionSetId: (questionSetId: number) => {
     set({ questionSetId });
