@@ -7,6 +7,7 @@ export const mockQuestionSet: QuestionSetResponse = {
   versionNumber: 1,
   parentVersionId: null,
   isPublic: false,
+  ownerId: 1,
   ownerNickname: '사용자명',
   questionMaps: [
     {
