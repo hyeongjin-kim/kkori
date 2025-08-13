@@ -123,6 +123,18 @@ export const pairInterviewerControlButtonProps = [
     status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
   {
+    onClick: startCustomQuestion,
+    label: 'custom-question-start',
+    text: '커스텀 질문 녹음 시작',
+    status: interviewStatus.CUSTOM_QUESTION_SELECTED,
+  },
+  {
+    onClick: endCustomQuestion,
+    label: 'custom-question-end',
+    text: '커스텀 질문 녹음 종료',
+    status: interviewStatus.CUSTOM_QUESTION_START,
+  },
+  {
     onClick: endInterview,
     label: 'interview-end',
     text: '면접 종료',
