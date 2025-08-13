@@ -7,12 +7,13 @@ import useInterviewRoomStore, {
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 function PairPracticePage() {
-  const { error } = useInitMediaStream();
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
     //TODO: 1은 질문 넘버로 대체
+    useInterviewRoomStore.getState().setStatus('beforeInterview');
     useInterviewRoomStore.getState().setType(interviewType.PAIR);
+
     connect(1);
     return () => {
       disconnect();
