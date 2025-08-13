@@ -228,7 +228,7 @@ public class DummyDataService {
                 .versionNumber(1)
                 .isPublic(false)
                 .build();
-        questionSetRepository.save(questionSet);
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
 
         createInterviewRecordsForSpecificUser(loginUser, questionSet, questions);
 
