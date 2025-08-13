@@ -1,9 +1,10 @@
+import useUserStore from '@/entities/user/model/useUserStore';
 import { NameTaggedChatMessageProps } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { CHAT_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
 
 function NameTaggedChatMessage({ message }: NameTaggedChatMessageProps) {
-  const { sender, content, isMyMessage = false } = message;
-
+  const { sender, content } = message;
+  const isMyMessage = sender === useUserStore.getState().nickname;
   return (
     <div
       className={`flex flex-col ${isMyMessage ? 'items-end' : 'items-start'} mb-3`}
