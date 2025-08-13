@@ -24,6 +24,7 @@ interface WebSocketState {
   roomId: string | null;
   questionSetId: number;
   opponentNickname: string;
+  peerConnection: RTCPeerConnection | null;
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
 
@@ -42,6 +43,7 @@ interface WebSocketAction {
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
   customQuestionCreate: () => void;
+  setPeerConnection: (peerConnection: RTCPeerConnection) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -52,6 +54,7 @@ const initialState: WebSocketState = {
   roomId: null,
   questionSetId: 0,
   opponentNickname: '',
+  peerConnection: null,
 };
 
 export const createWebSocketSlice: StateCreator<
@@ -84,8 +87,9 @@ export const createWebSocketSlice: StateCreator<
             pairWebSocketEventHandler(client, get, set, response);
           }
         });
+        console.log(useInterviewRoomStore.getState().role);
         if (
-          useInterviewRoomStore.getState().role === interviewRole.INTERVIEWER
+          useInterviewRoomStore.getState().role === interviewRole.INTERVIEWEE
         ) {
           get().roomCreate({ mode: type, questionSetId: questionSetId });
         } else {
@@ -196,5 +200,8 @@ export const createWebSocketSlice: StateCreator<
       roomId: get().roomId || '',
       audioFile: blob,
     });
+  },
+  setPeerConnection: (peerConnection: RTCPeerConnection) => {
+    set({ peerConnection });
   },
 });
