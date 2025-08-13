@@ -7,6 +7,7 @@ import {
   openNextQuestionModal,
   startCustomQuestion,
   endCustomQuestion,
+  exitInterview,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -59,6 +60,13 @@ export const soloIntervieweeControlButtonProps = [
     text: '커스텀 질문 녹음 종료',
     status: interviewStatus.CUSTOM_QUESTION_START,
   },
+  {
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
+  },
 ];
 
 export const pairIntervieweeControlButtonProps = [
@@ -92,6 +100,13 @@ export const pairIntervieweeControlButtonProps = [
     text: '면접 종료',
     status: interviewStatus.ALWAYS,
   },
+  {
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
+  },
 ];
 
 export const pairInterviewerControlButtonProps = [
@@ -102,16 +117,23 @@ export const pairInterviewerControlButtonProps = [
     status: interviewStatus.ALWAYS,
   },
   {
+    onClick: openNextQuestionModal,
+    label: 'next-question-select',
+    text: '다음 질문 선택',
+    status: interviewStatus.NEXT_QUESTION_PRESENTED,
+  },
+  {
     onClick: endInterview,
     label: 'interview-end',
     text: '면접 종료',
     status: interviewStatus.ALWAYS,
   },
   {
-    onClick: openNextQuestionModal,
-    label: 'next-question-select',
-    text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_PRESENTED,
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
   },
 ];
 
