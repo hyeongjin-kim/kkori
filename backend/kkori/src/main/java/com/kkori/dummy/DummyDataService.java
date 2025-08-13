@@ -4,7 +4,9 @@ import com.kkori.entity.*;
 import com.kkori.component.interview.RoomStatus;
 import com.kkori.repository.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,14 +81,8 @@ public class DummyDataService {
         // 4. 질문과 면접 데이터 생성
         createQuestionsAndInterviews(dummyUser, questionSet);
 
-        // 5. data.sql 실행 (추가 데이터)
-        try {
-            executeSqlFile("data.sql");
-            System.out.println("data.sql 실행 완료 - 추가 데이터 생성됨");
-        } catch (Exception e) {
-            System.err.println("data.sql 실행 실패: " + e.getMessage());
-            // data.sql 실행 실패해도 기본 더미 데이터는 생성되었으므로 계속 진행
-        }
+        // 5. 추가 유저 30명과 질문 세트 30개 생성
+        createAdditionalUsersAndQuestionSets();
 
         System.out.println("더미 데이터 생성 완료!");
         System.out.println("생성된 유저 ID: " + dummyUser.getUserId());
@@ -142,10 +138,7 @@ public class DummyDataService {
         // 전체 질문 목록에 꼬리 질문들 추가
         questions.addAll(tailQuestions);
 
-        // 태그를 먼저 생성
-        createBasicTags();
-        
-        // 질문 세트와 기존 태그들 매핑
+        // 질문 세트와 기존 태그들 매핑 (태그는 이미 생성됨)
         linkQuestionSetToExistingTags(questionSet);
 
         // 질문 세트와 질문들 매핑
@@ -517,6 +510,322 @@ public class DummyDataService {
             System.err.println("SQL 실행 실패: " + sql);
             System.err.println("에러: " + e.getMessage());
             // 개별 SQL 실행 실패는 로그만 남기고 계속 진행
+        }
+    }
+
+    private void createAdditionalUsersAndQuestionSets() {
+        // 1. 30명의 추가 유저 생성 (독립적)
+        List<User> additionalUsers = createAdditionalUsers();
+        
+        // 2. 추가 태그들 생성 (독립적)
+        List<Tag> additionalTags = createAdditionalTags();
+        
+        // 3. 분야별 질문들 생성 (독립적)
+        Map<String, List<Question>> categorizedQuestions = createCategorizedQuestions();
+        
+        // 4. 30개의 추가 질문 세트 생성 (User 필요)
+        List<QuestionSet> questionSets = createAdditionalQuestionSets(additionalUsers);
+        
+        // 5. QuestionSet에 Tag 연결 (QuestionSet + Tag 필요)
+        linkTagsToQuestionSets(questionSets, additionalTags);
+        
+        // 6. QuestionSet에 Question 연결 (QuestionSet + Question 필요)
+        linkQuestionsToQuestionSetsLogically(questionSets, categorizedQuestions);
+        
+        System.out.println("추가 데이터 생성 완료 - 유저 30명, 질문세트 30개, 태그 8개, 기본질문 추가");
+    }
+    
+    private List<User> createAdditionalUsers() {
+        String[] userNames = {
+            "김개발자", "이프론트", "박백엔드", "최데브옵스", "정풀스택",
+            "한모바일", "강웹개발", "조게임개발", "윤데이터", "신머신러닝",
+            "문AI개발", "송클라우드", "배보안전문", "임QA엔지니어", "UI/UX디자이너",
+            "프로덕트매니저", "테크리드", "시니어개발자", "주니어개발자", "인턴개발자",
+            "아키텍트", "스크럼마스터", "데이터엔지니어", "플랫폼엔지니어", "인프라엔지니어",
+            "네트워크엔지니어", "시스템관리자", "DBA전문가", "성능튜닝전문", "코드리뷰어"
+        };
+        
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < userNames.length; i++) {
+            User user = User.builder()
+                    .sub("kakao_dev" + String.format("%03d", i + 1))
+                    .nickname(userNames[i])
+                    .build();
+            users.add(userRepository.save(user));
+        }
+        
+        return users;
+    }
+    
+    private List<Tag> createAdditionalTags() {
+        List<String> additionalTagNames = List.of(
+            "백엔드", "프론트엔드", "데이터베이스", "네트워크", 
+            "운영체제", "알고리즘", "자료구조", "JavaScript"
+        );
+        
+        List<Tag> additionalTags = new ArrayList<>();
+        for (String tagName : additionalTagNames) {
+            Tag tag = createOrGetTag(tagName);
+            additionalTags.add(tag);
+        }
+        return additionalTags;
+    }
+    
+    private Map<String, List<Question>> createCategorizedQuestions() {
+        Map<String, List<Question>> categorizedQuestions = new HashMap<>();
+        
+        // Java 관련 질문 10개
+        List<Question> javaQuestions = createQuestionsForCategory("Java", new String[][]{
+            {"Java의 특징에 대해 설명해주세요.", "객체지향, 플랫폼 독립성, 가비지 컬렉션"},
+            {"JVM의 동작 원리는?", "바이트코드 실행, 메모리 관리, 최적화"},
+            {"String과 StringBuffer의 차이는?", "불변성, 성능, 메모리 사용"},
+            {"추상클래스와 인터페이스의 차이?", "구현 여부, 다중 상속, 용도"},
+            {"Exception과 Error의 차이는?", "복구 가능성, 처리 방법, 발생 시점"},
+            {"컬렉션 프레임워크의 종류는?", "List, Set, Map, Queue의 특징"},
+            {"람다 표현식이란?", "함수형 프로그래밍, 익명 함수, 코드 간소화"},
+            {"Stream API의 장점은?", "선언적 프로그래밍, 병렬 처리, 가독성"},
+            {"멀티스레딩 동기화 방법은?", "synchronized, Lock, Atomic 클래스"},
+            {"가비지 컬렉션의 종류는?", "Serial, Parallel, G1, ZGC"}
+        });
+        categorizedQuestions.put("Java", javaQuestions);
+
+        // Spring 관련 질문 10개
+        List<Question> springQuestions = createQuestionsForCategory("Spring", new String[][]{
+            {"Spring Framework의 핵심 개념은?", "IoC, DI, AOP, PSA"},
+            {"Spring Boot의 장점은?", "자동 설정, 내장 서버, 스타터 의존성"},
+            {"Bean의 생명주기는?", "생성, 초기화, 사용, 소멸 단계"},
+            {"AOP란 무엇인가요?", "관점 지향 프로그래밍, 횡단 관심사 분리"},
+            {"Spring MVC 패턴은?", "Model-View-Controller 아키텍처"},
+            {"Spring Security의 역할은?", "인증, 인가, 보안 설정"},
+            {"JPA와 Hibernate의 관계는?", "표준 명세와 구현체의 관계"},
+            {"트랜잭션 관리 방법은?", "@Transactional, 선언적 트랜잭션"},
+            {"Spring Profile이란?", "환경별 설정 분리, 조건부 Bean 등록"},
+            {"RESTful 웹 서비스 구현 방법은?", "@RestController, HTTP 메서드 매핑"}
+        });
+        categorizedQuestions.put("Spring", springQuestions);
+
+        // React 관련 질문 10개
+        List<Question> reactQuestions = createQuestionsForCategory("React", new String[][]{
+            {"React의 장점은 무엇인가요?", "가상 DOM, 컴포넌트 기반, 재사용성"},
+            {"JSX란 무엇인가요?", "JavaScript XML, 컴포넌트 작성 문법"},
+            {"State와 Props의 차이는?", "내부 상태 vs 외부에서 전달받는 데이터"},
+            {"생명주기 메서드의 종류는?", "Mount, Update, Unmount 단계"},
+            {"Hook이란 무엇인가요?", "함수형 컴포넌트에서 상태 관리"},
+            {"useEffect의 용도는?", "사이드 이펙트 처리, 생명주기 대체"},
+            {"Context API란?", "전역 상태 관리, Props drilling 해결"},
+            {"Redux와 useState의 차이?", "전역 vs 지역 상태 관리"},
+            {"Virtual DOM의 동작 원리는?", "메모리 상 DOM 표현, 효율적 업데이트"},
+            {"React Router의 역할은?", "SPA에서 라우팅, 페이지 네비게이션"}
+        });
+        categorizedQuestions.put("React", reactQuestions);
+
+        // 데이터베이스 관련 질문 10개
+        List<Question> dbQuestions = createQuestionsForCategory("Database", new String[][]{
+            {"데이터베이스 정규화란?", "중복 제거, 일관성 유지, 이상현상 방지"},
+            {"인덱스의 장단점은?", "조회 성능 향상 vs 저장공간 증가"},
+            {"트랜잭션의 ACID 속성은?", "원자성, 일관성, 고립성, 지속성"},
+            {"JOIN의 종류는?", "INNER, LEFT, RIGHT, FULL OUTER JOIN"},
+            {"NoSQL과 RDBMS의 차이?", "스키마 유연성, 확장성, 일관성"},
+            {"데이터베이스 락의 종류는?", "공유락, 배타락, 데드락"},
+            {"파티셔닝과 샤딩의 차이?", "수직 분할 vs 수평 분할"},
+            {"쿼리 최적화 방법은?", "인덱스 활용, 실행계획 분석"},
+            {"백업과 복구 전략은?", "풀백업, 증분백업, 로그백업"},
+            {"데이터 무결성이란?", "개체, 참조, 도메인 무결성"}
+        });
+        categorizedQuestions.put("Database", dbQuestions);
+
+        // 네트워크 관련 질문 10개
+        List<Question> networkQuestions = createQuestionsForCategory("Network", new String[][]{
+            {"TCP와 UDP의 차이점은?", "신뢰성 vs 속도, 연결지향 vs 비연결"},
+            {"HTTP와 HTTPS의 차이?", "평문 전송 vs 암호화 전송"},
+            {"OSI 7계층 모델은?", "물리, 데이터링크, 네트워크, 전송, 세션, 표현, 응용"},
+            {"DNS의 동작 원리는?", "도메인 이름을 IP 주소로 변환"},
+            {"CDN이란 무엇인가요?", "콘텐츠 배포 네트워크, 지리적 분산"},
+            {"로드 밸런싱이란?", "트래픽 분산, 가용성 향상"},
+            {"방화벽의 역할은?", "네트워크 보안, 트래픽 제어"},
+            {"VPN의 원리는?", "가상 사설망, 보안 터널링"},
+            {"HTTP 상태 코드의 의미는?", "2xx 성공, 4xx 클라이언트 오류, 5xx 서버 오류"},
+            {"REST API 설계 원칙은?", "무상태, 캐시 가능, 계층화 시스템"}
+        });
+        categorizedQuestions.put("Network", networkQuestions);
+
+        // 운영체제 관련 질문 10개
+        List<Question> osQuestions = createQuestionsForCategory("OS", new String[][]{
+            {"프로세스와 스레드의 차이?", "독립적 메모리 vs 공유 메모리"},
+            {"CPU 스케줄링 알고리즘은?", "FCFS, SJF, Round Robin, Priority"},
+            {"데드락이란?", "교착상태, 상호배제, 점유대기, 비선점, 순환대기"},
+            {"가상 메모리란?", "물리 메모리 한계 극복, 페이징"},
+            {"시스템 콜이란?", "커널 모드 진입, OS 서비스 요청"},
+            {"뮤텍스와 세마포어의 차이?", "이진 vs 카운팅 동기화"},
+            {"페이지 교체 알고리즘은?", "FIFO, LRU, LFU, Optimal"},
+            {"인터럽트의 종류는?", "하드웨어, 소프트웨어 인터럽트"},
+            {"캐시 메모리의 역할은?", "CPU-메모리 속도 차이 극복"},
+            {"파일 시스템이란?", "파일 저장 및 관리 방법"}
+        });
+        categorizedQuestions.put("OS", osQuestions);
+
+        // 알고리즘 관련 질문 10개
+        List<Question> algorithmQuestions = createQuestionsForCategory("Algorithm", new String[][]{
+            {"시간복잡도 O(n)이란?", "입력 크기에 비례하는 시간"},
+            {"정렬 알고리즘의 종류는?", "버블, 선택, 삽입, 퀵, 머지 정렬"},
+            {"이진 탐색의 조건은?", "정렬된 배열, O(log n) 시간복잡도"},
+            {"그래프 탐색 방법은?", "DFS, BFS의 차이점과 활용"},
+            {"동적 계획법이란?", "중복 부분 문제, 메모이제이션"},
+            {"탐욕 알고리즘이란?", "지역 최적해 선택, 전역 최적해 근사"},
+            {"해시 테이블의 특징은?", "O(1) 평균 접근 시간, 충돌 해결"},
+            {"최단 경로 알고리즘은?", "다익스트라, 벨만-포드, 플로이드"},
+            {"문자열 매칭 알고리즘은?", "KMP, 라빈-카프, 보이어-무어"},
+            {"분할 정복 알고리즘이란?", "문제 분할, 재귀적 해결, 결합"}
+        });
+        categorizedQuestions.put("Algorithm", algorithmQuestions);
+
+        // 자료구조 관련 질문 10개
+        List<Question> dataStructureQuestions = createQuestionsForCategory("DataStructure", new String[][]{
+            {"스택과 큐의 차이점은?", "LIFO vs FIFO 구조"},
+            {"연결리스트의 장단점은?", "동적 크기 vs 메모리 오버헤드"},
+            {"이진트리의 특징은?", "각 노드가 최대 2개의 자식"},
+            {"해시맵의 동작 원리는?", "해시 함수, 버킷, 충돌 처리"},
+            {"힙의 특징은?", "완전 이진트리, 우선순위 큐 구현"},
+            {"B-트리란?", "다진 탐색 트리, 데이터베이스 인덱스"},
+            {"그래프의 표현 방법은?", "인접 리스트 vs 인접 행렬"},
+            {"트라이 자료구조란?", "문자열 검색, 접두사 트리"},
+            {"세그먼트 트리의 용도는?", "구간 쿼리, 범위 업데이트"},
+            {"유니온 파인드란?", "분리 집합, 경로 압축 최적화"}
+        });
+        categorizedQuestions.put("DataStructure", dataStructureQuestions);
+
+        // JavaScript 관련 질문 10개
+        List<Question> jsQuestions = createQuestionsForCategory("JavaScript", new String[][]{
+            {"JavaScript의 특징은?", "동적 타입, 프로토타입 기반, 비동기"},
+            {"var, let, const의 차이?", "스코프, 호이스팅, 재할당"},
+            {"클로저란 무엇인가요?", "함수와 렉시컬 환경의 조합"},
+            {"프로토타입 체인이란?", "객체 상속 메커니즘, __proto__"},
+            {"비동기 처리 방법은?", "콜백, Promise, async/await"},
+            {"이벤트 루프란?", "싱글 스레드, 콜 스택, 태스크 큐"},
+            {"ES6의 주요 기능은?", "화살표 함수, 클래스, 모듈, 구조분해"},
+            {"호이스팅이란?", "변수와 함수 선언의 끌어올림"},
+            {"스코프의 종류는?", "전역, 함수, 블록 스코프"},
+            {"DOM 조작 방법은?", "getElementById, querySelector, 이벤트 리스너"}
+        });
+        categorizedQuestions.put("JavaScript", jsQuestions);
+
+        return categorizedQuestions;
+    }
+    
+    private List<Question> createQuestionsForCategory(String category, String[][] questionData) {
+        List<Question> questions = new ArrayList<>();
+        for (String[] data : questionData) {
+            Question question = Question.createDefault(data[0], data[1]);
+            questions.add(questionRepository.saveAndFlush(question));
+        }
+        return questions;
+    }
+    
+    private List<QuestionSet> createAdditionalQuestionSets(List<User> users) {
+        // 질문 세트 데이터 (제목, 설명, 공개여부, 카테고리)
+        String[][] questionSetData = {
+            {"Java 백엔드 면접 질문", "Spring Boot와 JPA 중심의 백엔드 개발 면접 질문 모음", "true", "Java"},
+            {"React 프론트엔드 면접", "React, TypeScript, Next.js 관련 프론트엔드 면접 준비", "true", "React"},
+            {"알고리즘 코딩테스트 대비", "자주 출제되는 알고리즘 문제와 해결 방법", "true", "Algorithm"},
+            {"Spring Framework 면접", "Spring Boot, DI, AOP 관련 심화 질문", "true", "Spring"},
+            {"데이터베이스 심화 면접", "MySQL, PostgreSQL, 인덱싱, 쿼리 최적화", "true", "Database"},
+            {"JavaScript 심화 면접", "ES6+, 비동기, 클로저 관련 질문", "true", "JavaScript"},
+            {"네트워크 엔지니어 면접", "TCP/IP, 라우팅, 스위칭 네트워크 기초", "true", "Network"},
+            {"운영체제 기초 면접", "프로세스, 스레드, 메모리 관리", "true", "OS"},
+            {"자료구조 기본 면접", "스택, 큐, 트리, 그래프 관련 질문", "true", "DataStructure"},
+            {"Java 고급 면접", "JVM, GC, 멀티스레딩 심화 질문", "false", "Java"},
+            {"React 고급 면접", "Context, Hook, 성능 최적화", "true", "React"},
+            {"알고리즘 고급 면접", "동적계획법, 그래프 알고리즘", "true", "Algorithm"},
+            {"Spring 심화 면접", "Security, JPA, 트랜잭션 관리", "true", "Spring"},
+            {"DB 최적화 면접", "인덱스, 쿼리 튜닝, 샤딩", "true", "Database"},
+            {"JS 비동기 처리 면접", "Promise, async/await, 이벤트 루프", "true", "JavaScript"},
+            {"네트워크 보안 면접", "HTTPS, VPN, 방화벽 설정", "true", "Network"},
+            {"OS 고급 면접", "가상메모리, 데드락, 스케줄링", "true", "OS"},
+            {"고급 자료구조 면접", "B-트리, 세그먼트 트리, Union-Find", "true", "DataStructure"},
+            {"풀스택 Java 면접", "Java + React 통합 개발", "true", "Java"},
+            {"모던 React 면접", "Hooks, Suspense, 최신 기능", "false", "React"},
+            {"코딩테스트 실전 면접", "실제 기업 출제 문제 유형", "true", "Algorithm"},
+            {"Spring Boot 실무 면접", "실제 프로젝트 경험 기반 질문", "true", "Spring"},
+            {"대용량 DB 설계 면접", "분산 데이터베이스, NoSQL", "true", "Database"},
+            {"Node.js vs JavaScript 면접", "서버사이드 JavaScript", "true", "JavaScript"},
+            {"클라우드 네트워킹 면접", "AWS, 로드밸런싱, CDN", "true", "Network"},
+            {"임베디드 OS 면접", "리눅스 커널, 디바이스 드라이버", "false", "OS"},
+            {"게임 자료구조 면접", "공간분할, 충돌감지 알고리즘", "true", "DataStructure"},
+            {"시니어 Java 면접", "아키텍처 설계, 성능 튜닝", "true", "Java"},
+            {"테크리드 면접", "기술 의사결정, 팀 관리", "false", "Algorithm"},
+            {"오픈소스 기여자 면접", "GitHub, 협업, 커뮤니티 활동", "true", "JavaScript"}
+        };
+        
+        List<QuestionSet> questionSets = new ArrayList<>();
+        for (int i = 0; i < questionSetData.length; i++) {
+            User owner = users.get(i % users.size()); // 유저를 순환하며 할당
+            
+            QuestionSet questionSet = QuestionSet.builder()
+                    .ownerUserId(owner)
+                    .title(questionSetData[i][0])
+                    .description(questionSetData[i][1])
+                    .versionNumber(1)
+                    .isPublic(Boolean.parseBoolean(questionSetData[i][2]))
+                    .build();
+            
+            QuestionSet savedQuestionSet = questionSetRepository.saveAndFlush(questionSet);
+            questionSets.add(savedQuestionSet);
+        }
+        
+        return questionSets;
+    }
+    
+    private void linkQuestionsToQuestionSetsLogically(List<QuestionSet> questionSets, Map<String, List<Question>> categorizedQuestions) {
+        // 질문 세트 데이터 (카테고리 매핑용)
+        String[] categories = {
+            "Java", "React", "Algorithm", "Spring", "Database", "JavaScript", "Network", "OS", "DataStructure",
+            "Java", "React", "Algorithm", "Spring", "Database", "JavaScript", "Network", "OS", "DataStructure",
+            "Java", "React", "Algorithm", "Spring", "Database", "JavaScript", "Network", "OS", "DataStructure",
+            "Java", "React", "Algorithm", "Spring", "Database", "JavaScript", "Network", "OS", "DataStructure",
+            "Java", "React", "Algorithm", "Spring", "Database", "JavaScript", "Network", "OS", "DataStructure"
+        };
+        
+        for (int i = 0; i < questionSets.size() && i < categories.length; i++) {
+            QuestionSet questionSet = questionSets.get(i);
+            String category = categories[i];
+            
+            List<Question> questionsForCategory = categorizedQuestions.get(category);
+            if (questionsForCategory != null && !questionsForCategory.isEmpty()) {
+                // 해당 카테고리의 모든 질문을 질문 세트에 추가
+                for (int order = 0; order < questionsForCategory.size(); order++) {
+                    QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.builder()
+                            .questionSet(questionSet)
+                            .question(questionsForCategory.get(order))
+                            .displayOrder(order + 1)
+                            .build();
+                    questionSetQuestionMapRepository.save(questionMap);
+                }
+            }
+        }
+    }
+    
+    private void linkTagsToQuestionSets(List<QuestionSet> questionSets, List<Tag> tags) {
+        for (QuestionSet questionSet : questionSets) {
+            // 각 질문 세트에 랜덤하게 2-3개의 태그 연결
+            linkRandomTagsToQuestionSet(questionSet, tags);
+        }
+    }
+    
+    
+    private void linkRandomTagsToQuestionSet(QuestionSet questionSet, List<Tag> availableTags) {
+        // 2-3개의 랜덤 태그를 선택해서 연결
+        int tagCount = 2 + (int)(Math.random() * 2); // 2 또는 3개
+        List<Tag> selectedTags = new ArrayList<>();
+        
+        for (int i = 0; i < tagCount; i++) {
+            Tag randomTag = availableTags.get((int)(Math.random() * availableTags.size()));
+            if (!selectedTags.contains(randomTag)) {
+                selectedTags.add(randomTag);
+            }
+        }
+        
+        for (Tag tag : selectedTags) {
+            linkQuestionSetToTag(questionSet, tag);
         }
     }
 }
