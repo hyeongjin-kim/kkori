@@ -546,9 +546,10 @@ public class DummyDataService {
         };
         
         List<User> users = new ArrayList<>();
+        long timestamp = System.currentTimeMillis();
         for (int i = 0; i < userNames.length; i++) {
             User user = User.builder()
-                    .sub("kakao_dev" + String.format("%03d", i + 1))
+                    .sub("kakao_dev" + String.format("%03d", i + 1) + "_" + timestamp)
                     .nickname(userNames[i])
                     .build();
             users.add(userRepository.save(user));
