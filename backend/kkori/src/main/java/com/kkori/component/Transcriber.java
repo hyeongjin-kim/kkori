@@ -44,7 +44,7 @@ public class Transcriber {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", audioFile.getName(), fileBody)
                 .addFormDataPart("model", WHISPER_MODEL)
-                .addFormDataPart("language", "kr")
+                .addFormDataPart("language", "ko")
                 .addFormDataPart("prompt", InterviewMessages.STT_PROMPT)
                 .build();
     }
