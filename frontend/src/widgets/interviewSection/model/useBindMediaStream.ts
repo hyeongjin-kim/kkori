@@ -22,7 +22,12 @@ function useBindMediaStream(type: MediaStreamType): BindResult {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.srcObject = type === 'my' ? myStream : peerStream;
+      if (type === 'my') {
+        videoRef.current.srcObject = myStream;
+        videoRef.current.muted = true;
+      } else {
+        videoRef.current.srcObject = peerStream;
+      }
     }
   }, [type, myStream, peerStream]);
 
