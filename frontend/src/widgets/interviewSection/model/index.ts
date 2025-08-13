@@ -161,3 +161,7 @@ export function endCustomQuestion() {
     myRecorder.stop();
   }
 }
+
+export function exitInterview() {
+  usePracticeSessionStore.getState().roomExit();
+}
