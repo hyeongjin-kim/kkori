@@ -30,7 +30,9 @@ public class WebRTCSignalingController {
 
     @MessageMapping("/new-ice-candidate")
     public void handleIceCandidate(@Payload IceCandidate iceCandidate, SimpMessageHeaderAccessor headerAccessor) {
-        webSocketHelper.sendPersonalMessage(iceCandidate.getUserId(), "received-ice-candidate", iceCandidate);
+        Long receiverId = getReceiverId(iceCandidate, headerAccessor);
+        
+        webSocketHelper.sendPersonalMessage(receiverId, "received-ice-candidate", iceCandidate);
     }
     // ==================== 헬퍼 메서드 ====================
 
@@ -51,10 +53,23 @@ public class WebRTCSignalingController {
 
         String roomId = message.getRoomId();
 
+        return getReceiverId(roomId, authenticatedUserId);
+    }
+
+    private Long getReceiverId(IceCandidate iceCandidate, SimpMessageHeaderAccessor headerAccessor) {
+
+        Long userId = iceCandidate.getUserId();
+
+        String roomId = iceCandidate.getRoomId();
+
+        return getReceiverId(roomId, userId);
+    }
+
+    private Long getReceiverId(String roomId, Long userId) {
         try {
-            return interviewSessionService.getOpponentId(roomId, authenticatedUserId);
+            return interviewSessionService.getOpponentId(roomId, userId);
         } catch (InterviewRoomException e) {
-            webSocketHelper.sendErrorToUser(authenticatedUserId, e.getExceptionCode());
+            webSocketHelper.sendErrorToUser(userId, e.getExceptionCode());
             return null;
         }
     }
