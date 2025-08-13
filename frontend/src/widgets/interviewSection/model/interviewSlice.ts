@@ -172,6 +172,11 @@ const customQuestionCreatedHandler = (
     timestamp,
     confirmed: true,
   });
+  useInterviewQuestionStore.getState().setCurrentQuestion({
+    question: data.questionText,
+    id: data.questionId,
+    questionType: data.questionType,
+  });
   useInterviewRoomStore
     .getState()
     .setStatus(interviewStatus.QUESTION_PRESENTED);
