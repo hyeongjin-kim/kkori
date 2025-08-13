@@ -25,8 +25,8 @@ const usePeerConnectionStore = create<
     onIceCandidate: (candidate: RTCIceCandidate) => void,
   ) => {
     const peerConnection = new RTCPeerConnection({
+      iceTransportPolicy: 'all',
       iceServers: [
-        { urls: ['stun:kkori.site:3478'] },
         {
           urls: [
             'turn:kkori.site:3478?transport=udp',
@@ -44,9 +44,29 @@ const usePeerConnectionStore = create<
       onIceCandidate(event.candidate);
     };
     peerConnection.ontrack = event => {
-      console.log('TRACK : ', event.streams[0]);
-      useMediaStreamStore.getState().setPeerStream(event.streams[0]);
+      const incoming = event.streams?.[0] ?? new MediaStream([event.track]);
+      const { peerStream, setPeerStream } = useMediaStreamStore.getState();
+      if (peerStream) {
+        const sameKind = peerStream
+          .getTracks()
+          .find(t => t.kind === event.track.kind);
+        if (sameKind) peerStream.removeTrack(sameKind);
+        peerStream.addTrack(event.track);
+        setPeerStream(peerStream);
+      } else {
+        setPeerStream(incoming);
+      }
     };
+    peerConnection.addEventListener('icecandidateerror', (e: any) => {
+      console.log('icecandidateerror', {
+        url: e.url,
+        errorText: e.errorText,
+        errorCode: e.errorCode,
+        hostCandidate: e.hostCandidate,
+        address: e.address,
+        port: e.port,
+      });
+    });
     return peerConnection;
   },
   setPeerConnection: peerConnection => set({ peerConnection }),

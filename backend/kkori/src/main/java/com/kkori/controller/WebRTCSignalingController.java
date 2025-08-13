@@ -30,9 +30,8 @@ public class WebRTCSignalingController {
 
     @MessageMapping("/new-ice-candidate")
     public void handleIceCandidate(@Payload IceCandidate iceCandidate, SimpMessageHeaderAccessor headerAccessor) {
-        //Long receiverId = getReceiverId(iceCandidate, headerAccessor);
-        webSocketHelper.broadcastToRoom(iceCandidate.getRoomId(), "received-ice-candidate", iceCandidate);
-        //webSocketHelper.sendPersonalMessage(receiverId, "received-ice-candidate", iceCandidate);
+        Long receiverId = getReceiverId(iceCandidate, headerAccessor);
+        webSocketHelper.sendPersonalMessage(receiverId, "received-ice-candidate", iceCandidate);
     }
     // ==================== 헬퍼 메서드 ====================
 

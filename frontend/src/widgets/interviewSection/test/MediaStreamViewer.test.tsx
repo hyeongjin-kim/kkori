@@ -16,11 +16,6 @@ describe('MediaStreamViewer 스트림 없을 경우', () => {
     expect(screen.getByLabelText('my-media-stream-viewer')).toBeInTheDocument();
   });
 
-  test('VideoStream의 opacity가 0이다', () => {
-    const video = screen.getByLabelText('video-stream');
-    expect(video).toHaveClass('opacity-0');
-  });
-
   test('VideoPlaceholder가 렌더링된다', () => {
     expect(screen.getByLabelText('video-placeholder')).toBeInTheDocument();
   });

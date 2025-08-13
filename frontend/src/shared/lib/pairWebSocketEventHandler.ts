@@ -8,6 +8,7 @@ import {
   useInterviewQuestionStore,
 } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 import usePeerConnectionStore from '@/entities/interviewRoom/model/usePeerConnectionStore';
+import useUserStore from '@/entities/user/model/useUserStore';
 
 export const pairWebSocketEventHandler = (
   client: Client,
@@ -78,13 +79,13 @@ const existingUserHandler = async (
   get().setOpponentNickname(data.nickName);
   console.log('OPPONENT NICKNAME : ', data.nickName);
   const roomId = get().roomId;
-  const userId = get().userId;
+  const userId = useUserStore.getState().userId;
   const onIceCandidate = (candidate: RTCIceCandidate) => {
+    const stringifiedCandidate = JSON.stringify(candidate);
     client.publish({
       destination: '/app/new-ice-candidate',
-      body: JSON.stringify({ roomId, candidate, userId }),
+      body: JSON.stringify({ roomId, candidate: stringifiedCandidate, userId }),
     });
-    console.log('new-ice-candidate 이벤트 발생: ', candidate);
   };
   const peerConnection = createPeerConnection(onIceCandidate);
 
@@ -120,11 +121,12 @@ const roomStatusHandler = (client: Client, set: any, data: any) => {
 
 const offerHandler = async (client: Client, get: any, set: any, data: any) => {
   const roomId = get().roomId;
-  const userId = get().userId;
+  const userId = useUserStore.getState().userId;
   const onIceCandidate = (candidate: RTCIceCandidate) => {
+    const stringifiedCandidate = JSON.stringify(candidate);
     client.publish({
       destination: '/app/new-ice-candidate',
-      body: JSON.stringify({ roomId, candidate, userId }),
+      body: JSON.stringify({ roomId, candidate: stringifiedCandidate, userId }),
     });
   };
   const peerConnection = createPeerConnection(onIceCandidate);
@@ -182,11 +184,11 @@ const receivedIceCandidateHandler = (
   set: any,
   data: any,
 ) => {
-  const response = JSON.parse(data);
   const peerConnection = usePeerConnectionStore.getState().peerConnection;
-  console.log('!!!!RECEIVED ICE CANDIDATE : ', response);
   if (!peerConnection) return;
-  peerConnection.addIceCandidate(new RTCIceCandidate(response.candidate));
+  peerConnection.addIceCandidate(
+    new RTCIceCandidate(JSON.parse(data.candidate)),
+  );
 };
 
 const errorHandler = (client: Client, set: any, data: any) => {

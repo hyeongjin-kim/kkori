@@ -1,8 +1,29 @@
-import useBindMediaStream from '@/widgets/interviewSection/model/useBindMediaStream';
 import { MediaStreamType } from '@/widgets/interviewSection/model/types';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+import { useEffect, useRef } from 'react';
 
 function VideoStream({ type }: { type: MediaStreamType }) {
-  const { videoRef, isVideoOn } = useBindMediaStream(type);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  let isVideoOn = false;
+  let stream = null;
+  let isAudioOn = false;
+
+  if (type === 'peer') {
+    stream = useMediaStreamStore(state => state.peerStream);
+    isVideoOn = useMediaStreamStore(state => state.isPeerVideoOn);
+    isAudioOn = useMediaStreamStore(state => state.isPeerAudioOn);
+  } else {
+    stream = useMediaStreamStore(state => state.myStream);
+    isVideoOn = useMediaStreamStore(state => state.isMyVideoOn);
+    isAudioOn = useMediaStreamStore(state => state.isMyAudioOn);
+  }
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.load();
+    }
+  }, [stream, videoRef]);
 
   return (
     <video
@@ -10,7 +31,7 @@ function VideoStream({ type }: { type: MediaStreamType }) {
       autoPlay
       playsInline
       aria-label="video-stream"
-      className={`h-full w-auto object-contain ${!isVideoOn ? 'opacity-0' : ''}`}
+      className={`h-full w-auto object-contain`}
     />
   );
 }
