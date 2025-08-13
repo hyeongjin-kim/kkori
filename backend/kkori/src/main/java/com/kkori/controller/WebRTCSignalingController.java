@@ -1,5 +1,6 @@
 package com.kkori.controller;
 
+import com.kkori.dto.websocket.IceCandidate;
 import com.kkori.dto.websocket.SignalingMessage;
 import com.kkori.exception.interview.InterviewRoomException;
 import com.kkori.service.InterviewSessionService;
@@ -27,6 +28,10 @@ public class WebRTCSignalingController {
         handleSignaling(message, headerAccessor, "received-answer");
     }
 
+    @MessageMapping("/new-ice-candidate")
+    public void handleIceCandidate(@Payload IceCandidate iceCandidate, SimpMessageHeaderAccessor headerAccessor) {
+        webSocketHelper.sendPersonalMessage(iceCandidate.getUserId(), "received-ice-candidate", iceCandidate);
+    }
     // ==================== 헬퍼 메서드 ====================
 
     private void handleSignaling(SignalingMessage message, SimpMessageHeaderAccessor headerAccessor,

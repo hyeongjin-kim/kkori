@@ -80,15 +80,15 @@ class KakaoOAuth2ControllerTest {
 
     @Test
     @WithMockUser
-    @DisplayName("인가 URL 생성 요청 시 200 OK와 인가 URL 반환")
-    void createAuthorizationUrl_ShouldReturnOkWithUrl() throws Exception {
+    @DisplayName("인가 URL 생성 요청 시 302 Found와 Location 헤더로 리다이렉트")
+    void createAuthorizationUrl_ShouldReturnRedirectWithUrl() throws Exception {
         when(kakaoOAuth2Service.buildKakaoAuthorizeUrlAndSaveNonceInSession(any(HttpSession.class))).thenReturn(
                 KAKAO_AUTH_URL);
 
         mockMvc.perform(get("/oauth2/authorization/kakao")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().string(KAKAO_AUTH_URL));
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", KAKAO_AUTH_URL));
     }
 
     @Test
