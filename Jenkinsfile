@@ -106,6 +106,9 @@ pipeline {
                         export KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
                         export KAKAO_REDIRECT_URL=${KAKAO_REDIRECT_URL}
                         export KAKAO_TOKEN_URL=${KAKAO_TOKEN_URL}
+                        # 앱 설정 - 테스트용 로컬 환경
+                        export FRONTEND_URL="http://localhost:3000"
+                        export CORS_ALLOWED_ORIGINS="http://localhost:3000"
                         # Docker 컨테이너에서 테스트 실행시 네트워킹 옵션 설정
                         export JAVA_OPTS="-Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Djava.net.useSystemProxies=false"
                         # 네트워크 인터페이스 정보 확인
