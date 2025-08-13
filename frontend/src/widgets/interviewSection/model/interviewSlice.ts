@@ -135,7 +135,7 @@ const customQuestionCreatedHandler = (client: Client, set: any, data: any) => {
 const chatHandler = (client: Client, get: any, data: any) => {
   const message = {
     type: 'chat',
-    content: data.message,
+    content: data.content,
     sender: data.senderNickname,
     timestamp: data.timestamp,
   };
