@@ -18,7 +18,7 @@ export interface ChattingWindowSlice
     ChattingWindowAction {}
 
 const initialState: ChattingWindowState = {
-  messages: mockMessageExamples,
+  messages: [],
 };
 
 function checkMessage(message: Message, myMessage: Message): boolean {
@@ -36,16 +36,19 @@ export const createChattingWindowSlice: StateCreator<
 > = set => ({
   ...initialState,
   addMessage: (message: Message) => {
+    console.log('addMessage', message);
     set(state => ({ messages: [...state.messages, message] }));
   },
-  confirmMessage: (myMessage: Message) =>
+  confirmMessage: (myMessage: Message) => {
+    console.log('confirmMessage', myMessage);
     set(state => ({
       messages: state.messages.map(message =>
         checkMessage(message, myMessage)
           ? { ...message, confirmed: true }
           : message,
       ),
-    })),
+    }));
+  },
   deleteMessage: (myMessage: Message) =>
     set(state => ({
       messages: state.messages.filter(message =>
