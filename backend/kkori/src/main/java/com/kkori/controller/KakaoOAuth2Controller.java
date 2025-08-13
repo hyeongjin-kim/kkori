@@ -43,9 +43,11 @@ public class KakaoOAuth2Controller {
     private final KakaoOAuth2Service kakaoOAuth2Service;
 
     @GetMapping
-    public ResponseEntity<String> getKakaoAuthorizationUrl(HttpSession session) {
+    public ResponseEntity<Void> getKakaoAuthorizationUrl(HttpSession session) {
         String authorizationUrl = kakaoOAuth2Service.buildKakaoAuthorizeUrlAndSaveNonceInSession(session);
-        return ResponseEntity.ok(authorizationUrl);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", authorizationUrl)
+                .build();
     }
 
     @GetMapping("/callback")
