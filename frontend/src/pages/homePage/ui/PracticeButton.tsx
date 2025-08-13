@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useInterviewRoomStore, {
   interviewRole,
@@ -22,13 +21,10 @@ export function PracticeButton({
 }: PracticeButtonProps) {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    useInterviewRoomStore.getState().setRole(role);
-  }, [role]);
-
   return (
     <button
       onClick={() => {
+        useInterviewRoomStore.getState().setRole(role);
         navigate(path);
       }}
       className={`hover:bg-hover-gray bg-background flex h-[56px] max-w-[320px] min-w-[140px] items-center justify-center rounded-lg px-8 py-6 shadow-sm transition ${className} `}
