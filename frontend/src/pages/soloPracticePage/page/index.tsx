@@ -15,7 +15,6 @@ function SoloPracticePage() {
   useEffect(() => {
     //TODO: 1은 질문 넘버로 대체
     useInterviewRoomStore.getState().setStatus('beforeInterview');
-    useInterviewRoomStore.getState().setRole('interviewee');
     useInterviewRoomStore.getState().setType(interviewType.SOLO);
     connect(1);
     return () => {

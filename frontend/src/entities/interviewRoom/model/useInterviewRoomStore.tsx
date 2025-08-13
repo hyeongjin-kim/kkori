@@ -19,9 +19,14 @@ export const interviewType = Object.freeze({
   PAIR: 'PAIR_INTERVIEW',
 });
 
+export const interviewRole = Object.freeze({
+  INTERVIEWER: 'interviewer',
+  INTERVIEWEE: 'interviewee',
+});
+
 interface InterviewRoomState {
   status: (typeof interviewStatus)[keyof typeof interviewStatus];
-  role: 'interviewee' | 'interviewer';
+  role: (typeof interviewRole)[keyof typeof interviewRole];
   type: (typeof interviewType)[keyof typeof interviewType];
   modalOpen: boolean;
 }
@@ -30,14 +35,14 @@ interface InterviewRoomActions {
   setStatus: (
     status: (typeof interviewStatus)[keyof typeof interviewStatus],
   ) => void;
-  setRole: (role: 'interviewee' | 'interviewer') => void;
+  setRole: (role: (typeof interviewRole)[keyof typeof interviewRole]) => void;
   setType: (type: (typeof interviewType)[keyof typeof interviewType]) => void;
   setModalOpen: (modalOpen: boolean) => void;
 }
 
 const initialState: InterviewRoomState = {
   status: interviewStatus.BEFORE_INTERVIEW,
-  role: 'interviewee',
+  role: interviewRole.INTERVIEWEE,
   type: interviewType.SOLO,
   modalOpen: false,
 };
