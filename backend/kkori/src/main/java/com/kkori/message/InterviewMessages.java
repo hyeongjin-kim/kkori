@@ -29,7 +29,7 @@ public final class InterviewMessages {
     /**
      * STT 품질 개선을 위한 프롬프트
      */
-    public static final String STT_PROMPT = "기업 입사 면접 상황에서 오가는 대화입니다. 대부분 한국어이며, 영어로 된 기술 용어가 사용될 수 있습니다.";
+    public static final String STT_PROMPT = "기업 입사 면접 상황, 시간 복잡도, 알고리즘, 해시, 스택, 큐, 트리, 머지 소트, 그래프, spring, java, c, 웹, 프레임워크, 데이터 베이스, 인덱스, 도메인, 함수, 쿼리, 최적화, 정렬";
 
     // ==================== WebSocket 응답 메시지 ==================== 
 
