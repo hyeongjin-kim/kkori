@@ -103,7 +103,6 @@ const sttResultHandler = (
     sender: '답변',
     content: data.transcribedText,
     timestamp: timestamp,
-    isMyMessage: false,
     confirmed: true,
   };
   get().addMessage(message);
@@ -138,12 +137,13 @@ const chatHandler = (client: Client, get: any, data: any) => {
     content: data.content,
     sender: data.senderNickname,
     timestamp: data.timestamp,
+    confirmed: false,
   };
   if (data.senderNickname === useUserStore.getState().nickname) {
     get().confirmMessage(message);
     return;
   }
-  get().addMessage({ message });
+  get().addMessage(message);
 };
 
 const errorHandler = (client: Client, data: any) => {

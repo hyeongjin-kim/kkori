@@ -3,6 +3,7 @@ import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import { mockMessageExamples } from '@/__mocks__/chatMocks';
 import { CHAT_MESSAGE_STYLE } from '@/widgets/chattingWindow/model/constants';
+import useUserStore from '@/entities/user/model/useUserStore';
 
 describe('NameTaggedMessage', () => {
   test('이름 태그 메시지가 랜더링 되어야 한다.', () => {
@@ -13,7 +14,6 @@ describe('NameTaggedMessage', () => {
           sender: 'tester',
           content: 'test',
           timestamp: new Date().getTime(),
-          isMyMessage: false,
           confirmed: true,
         }}
       />,
@@ -43,7 +43,7 @@ describe('NameTaggedMessage', () => {
 
     items.forEach((item, idx) => {
       expect(item).toHaveClass(
-        mockMessageExamples[idx].isMyMessage
+        mockMessageExamples[idx].sender === useUserStore.getState().nickname
           ? CHAT_MESSAGE_STYLE.me
           : CHAT_MESSAGE_STYLE.opponent,
       );
