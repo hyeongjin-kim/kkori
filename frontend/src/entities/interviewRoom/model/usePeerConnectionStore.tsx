@@ -45,13 +45,16 @@ const usePeerConnectionStore = create<
     };
     peerConnection.ontrack = event => {
       const incoming = event.streams?.[0] ?? new MediaStream([event.track]);
-      const { peerStream, setPeerStream } = useMediaStreamStore.getState();
+      const { peerStream, setPeerStream, setIsPeerVideoOn, setIsPeerAudioOn } =
+        useMediaStreamStore.getState();
       if (peerStream) {
         const sameKind = peerStream
           .getTracks()
           .find(t => t.kind === event.track.kind);
         if (sameKind) peerStream.removeTrack(sameKind);
         peerStream.addTrack(event.track);
+        setIsPeerVideoOn(true);
+        setIsPeerAudioOn(true);
         setPeerStream(peerStream);
       } else {
         setPeerStream(incoming);

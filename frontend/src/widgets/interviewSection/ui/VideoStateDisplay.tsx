@@ -1,26 +1,30 @@
-import { Mic, MicOff } from 'lucide-react';
+import { Video, VideoOff } from 'lucide-react';
 
 type Props = {
-  isAudioOn: boolean;
+  isVideoOn: boolean;
   onClick: () => void;
   className?: string;
 };
 
-export default function AudioStateDisplay({
-  isAudioOn,
+export default function VideoStateDisplay({
+  isVideoOn,
   onClick,
   className,
 }: Props) {
-  const label = isAudioOn ? '마이크 켜짐' : '마이크 꺼짐';
+  const label = isVideoOn ? '카메라 켜짐' : '카메라 꺼짐';
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`audio-state-display`}
+      aria-label={`video-state-display`}
       title={label}
       className={`flex h-11 w-11 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur transition hover:bg-white focus:ring-2 focus:ring-blue-500/60 focus:outline-none active:scale-95 ${className ?? ''}`}
     >
-      {isAudioOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+      {isVideoOn ? (
+        <Video className="h-5 w-5" />
+      ) : (
+        <VideoOff className="h-5 w-5" />
+      )}
     </button>
   );
 }

@@ -21,6 +21,9 @@ function VideoStream({ type }: { type: MediaStreamType }) {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      if (type === 'my') {
+        videoRef.current.muted = true;
+      }
       videoRef.current.load();
     }
   }, [stream, videoRef]);
