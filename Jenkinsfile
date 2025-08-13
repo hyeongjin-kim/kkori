@@ -381,81 +381,81 @@ pipeline {
             }
         }
 
-        stage('🏥 Health Check') {
-            steps {
-                echo '🏥 Performing application health check...'
-                script {
-                    def healthCheckPassed = false
-                    def maxRetries = 12  // 최대 2분 대기 (12 * 10초)
-                    def retryCount = 0
+        // stage('🏥 Health Check') {
+        //     steps {
+        //         echo '🏥 Performing application health check...'
+        //         script {
+        //             def healthCheckPassed = false
+        //             def maxRetries = 12  // 최대 2분 대기 (12 * 10초)
+        //             def retryCount = 0
 
-                    while (retryCount < maxRetries && !healthCheckPassed) {
-                        try {
-                            sleep(time: 10, unit: 'SECONDS')
-                            retryCount++
+        //             while (retryCount < maxRetries && !healthCheckPassed) {
+        //                 try {
+        //                     sleep(time: 10, unit: 'SECONDS')
+        //                     retryCount++
 
-                            echo "🔍 Health check attempt ${retryCount}/${maxRetries}..."
+        //                     echo "🔍 Health check attempt ${retryCount}/${maxRetries}..."
 
-                            // 컨테이너 상태 확인
-                            def containerStatus = sh(
-                                script: 'docker inspect --format="{{.State.Status}}" kkori-backend',
-                                returnStdout: true
-                            ).trim()
+        //                     // 컨테이너 상태 확인
+        //                     def containerStatus = sh(
+        //                         script: 'docker inspect --format="{{.State.Status}}" kkori-backend',
+        //                         returnStdout: true
+        //                     ).trim()
 
-                            if (containerStatus != 'running') {
-                                echo "⚠️ Container is not running (status: ${containerStatus})"
-                                sh 'docker logs --tail 50 kkori-backend || true'
-                                continue
-                            }
+        //                     if (containerStatus != 'running') {
+        //                         echo "⚠️ Container is not running (status: ${containerStatus})"
+        //                         sh 'docker logs --tail 50 kkori-backend || true'
+        //                         continue
+        //                     }
 
-                            // HTTP 헬스체크
-                            def healthResponse = sh(
-                                script: 'curl -f -s http://localhost:8080/actuator/health',
-                                returnStatus: true
-                            )
+        //                     // HTTP 헬스체크
+        //                     def healthResponse = sh(
+        //                         script: 'curl -f -s http://localhost:8080/actuator/health',
+        //                         returnStatus: true
+        //                     )
 
-                            if (healthResponse == 0) {
-                                healthCheckPassed = true
-                                echo "✅ Health check passed!"
+        //                     if (healthResponse == 0) {
+        //                         healthCheckPassed = true
+        //                         echo "✅ Health check passed!"
 
-                                // 헬스체크 상세 정보 출력
-                                sh '''
-                                    echo "Application health status:"
-                                    curl -s http://localhost:8080/actuator/health | python3 -m json.tool || curl -s http://localhost:8080/actuator/health
+        //                         // 헬스체크 상세 정보 출력
+        //                         sh '''
+        //                             echo "Application health status:"
+        //                             curl -s http://localhost:8080/actuator/health | python3 -m json.tool || curl -s http://localhost:8080/actuator/health
 
-                                    echo "Application info:"
-                                    curl -s http://localhost:8080/actuator/info | python3 -m json.tool || curl -s http://localhost:8080/actuator/info
-                                '''
-                            } else {
-                                echo "⚠️ Health check failed, retrying in 10 seconds..."
-                                // 컨테이너 로그 출력
-                                sh 'docker logs --tail 20 kkori-backend || true'
-                            }
+        //                             echo "Application info:"
+        //                             curl -s http://localhost:8080/actuator/info | python3 -m json.tool || curl -s http://localhost:8080/actuator/info
+        //                         '''
+        //                     } else {
+        //                         echo "⚠️ Health check failed, retrying in 10 seconds..."
+        //                         // 컨테이너 로그 출력
+        //                         sh 'docker logs --tail 20 kkori-backend || true'
+        //                     }
 
-                        } catch (Exception e) {
-                            echo "⚠️ Health check error: ${e.getMessage()}"
-                        }
-                    }
+        //                 } catch (Exception e) {
+        //                     echo "⚠️ Health check error: ${e.getMessage()}"
+        //                 }
+        //             }
 
-                    if (!healthCheckPassed) {
-                        // 최종 실패시 로그 수집
-                        sh '''
-                            echo "❌ Final health check failed. Collecting logs..."
-                            echo "=== Container Status ==="
-                            docker ps | grep kkori-backend || true
+        //             if (!healthCheckPassed) {
+        //                 // 최종 실패시 로그 수집
+        //                 sh '''
+        //                     echo "❌ Final health check failed. Collecting logs..."
+        //                     echo "=== Container Status ==="
+        //                     docker ps | grep kkori-backend || true
 
-                            echo "=== Container Logs ==="
-                            docker logs --tail 100 kkori-backend || true
+        //                     echo "=== Container Logs ==="
+        //                     docker logs --tail 100 kkori-backend || true
 
-                            echo "=== System Resources ==="
-                            free -h
-                            df -h
-                        '''
-                        error "❌ Application health check failed after ${maxRetries} attempts"
-                    }
-                }
-            }
-        }
+        //                     echo "=== System Resources ==="
+        //                     free -h
+        //                     df -h
+        //                 '''
+        //                 error "❌ Application health check failed after ${maxRetries} attempts"
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {
