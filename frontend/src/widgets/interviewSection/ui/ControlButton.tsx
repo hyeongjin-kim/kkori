@@ -21,9 +21,7 @@ function ControlButton({
   if (!shouldShow) return null;
   const handleClick = () => {
     onClick();
-    console.log(path);
     if (path) navigate(path);
-    console.log('나가짐');
   };
   return (
     <button
