@@ -3,6 +3,7 @@ import IntervieweeControlButtonContainer from '@/widgets/interviewSection/ui/Int
 import useInterviewRoomStore, {
   interviewStatus,
   interviewType,
+  interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { act } from 'react';
 
@@ -22,7 +23,7 @@ describe('IntervieweeControlButtonContainer', () => {
       useInterviewRoomStore
         .getState()
         .setStatus(interviewStatus.BEFORE_INTERVIEW);
-      useInterviewRoomStore.getState().setRole('interviewee');
+      useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWEE);
     });
     test('화면 전환 버튼은 항상 렌더링 되어야 한다.', () => {
       expect(

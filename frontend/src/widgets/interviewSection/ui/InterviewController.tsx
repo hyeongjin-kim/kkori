@@ -1,16 +1,17 @@
 import useInterviewRoomStore, {
+  interviewRole,
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import IntervieweeControlButtonContainer from './IntervieweeControlButtonContainer';
+import IntervieweeControlButtonContainer from '@/widgets/interviewSection/ui/IntervieweeControlButtonContainer';
 
 const switchStatus = (
-  role: 'interviewee' | 'interviewer',
+  role: (typeof interviewRole)[keyof typeof interviewRole],
   type: (typeof interviewType)[keyof typeof interviewType],
 ) => {
   if (type === interviewType.SOLO) {
     return <IntervieweeControlButtonContainer />;
   }
-  if (role === 'interviewee') {
+  if (role === interviewRole.INTERVIEWEE) {
     return <IntervieweeControlButtonContainer />;
   }
   return <IntervieweeControlButtonContainer />;
