@@ -88,7 +88,7 @@ public class DummyDataService {
                 .versionNumber(1)
                 .isPublic(true)
                 .build();
-        questionSetRepository.save(questionSet);
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
 
         // 3.5. 태그 생성 및 질문 세트와 매핑
         createTagsAndLinkToQuestionSet(questionSet);
@@ -221,7 +221,7 @@ public class DummyDataService {
                 .versionNumber(1)
                 .isPublic(false)
                 .build();
-        questionSetRepository.save(questionSet);
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
 
         createInterviewRecordsForSpecificUser(loginUser, questionSet, questions);
 
