@@ -4,24 +4,20 @@ import QuestionSetTagList from '@/pages/interviewQuestionsPage/ui/QusetionSetTag
 
 interface QuestionSetProps {
   questionSet: QuestionSetResponse;
+  onClick: () => void;
 }
 
-function QuestionSet({ questionSet }: QuestionSetProps) {
-  const navigate = useNavigate();
-
-  const goDetail = () =>
-    navigate(`/question-set-detail/${questionSet.questionSetId}`);
-
+function QuestionSet({ questionSet, onClick }: QuestionSetProps) {
   return (
     <li
       aria-label="question-set"
       role="button"
       tabIndex={0}
-      onClick={goDetail}
+      onClick={onClick}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          goDetail();
+          onClick();
         }
       }}
       className="relative flex w-full cursor-pointer flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:border-gray-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6] focus-visible:ring-offset-2"

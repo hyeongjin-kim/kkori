@@ -3,7 +3,6 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { InterviewSlice } from '@/widgets/interviewSection/model/interviewSlice';
 import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWindowSlice';
-import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import useInterviewRoomStore, {
   interviewStatus,
@@ -13,27 +12,30 @@ import {
   Question,
   useInterviewQuestionStore,
 } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
-import { mockupQuestion } from '@/__mocks__/questionMocks';
 
 interface RoomCreateRequest {
   mode: string;
   questionSetId: number;
 }
+
+export const JOIN_ROOM_MODE = {
+  CREATE_ROOM: 'CREATE_ROOM',
+  JOIN_ROOM: 'JOIN_ROOM',
+} as const;
+
 interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
-  roomID: string | null;
-  practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE];
-  questionSetId: number;
   opponentNickname: string;
+  roomID: string | null;
+  questionSetId: number;
+  practiceMode: string;
+  joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE];
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
 
 interface WebSocketAction {
-  connect: (
-    practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE],
-    questionSetId: number,
-  ) => void;
+  connect: () => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
   interviewStart: () => void;
@@ -46,6 +48,12 @@ interface WebSocketAction {
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
   customQuestionCreate: (base64data: string) => void;
+  setQuestionSetId: (questionSetId: number) => void;
+  setRoomId: (roomId: string) => void;
+  setPracticeMode: (practiceMode: string) => void;
+  setJoinRoomMode: (
+    joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
+  ) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -53,10 +61,11 @@ export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
 const initialState: WebSocketState = {
   client: null,
   isConnected: false,
-  roomID: null,
-  practiceMode: PRACTICE_MODE.SOLO_PRACTICE,
-  questionSetId: 0,
   opponentNickname: '',
+  roomID: null,
+  questionSetId: 0,
+  practiceMode: 'PAIR_INTERVIEW',
+  joinRoomMode: JOIN_ROOM_MODE.CREATE_ROOM,
 };
 
 export const createWebSocketSlice: StateCreator<
@@ -66,10 +75,7 @@ export const createWebSocketSlice: StateCreator<
   WebSocketSlice
 > = (set, get) => ({
   ...initialState,
-  connect: (
-    practiceMode: (typeof PRACTICE_MODE)[keyof typeof PRACTICE_MODE],
-    questionSetId: number,
-  ) => {
+  connect: () => {
     if (get().client || get().isConnected) return;
     const client = new Client({
       webSocketFactory: () => new SockJS(process.env.WEBSOCKET_URL || ''),
@@ -86,7 +92,14 @@ export const createWebSocketSlice: StateCreator<
           console.log(response);
           personalMessageHandler(client, get, set, response);
         });
-        get().roomCreate({ mode: practiceMode, questionSetId: questionSetId });
+        if (get().joinRoomMode === JOIN_ROOM_MODE.CREATE_ROOM) {
+          get().roomCreate({
+            mode: get().practiceMode,
+            questionSetId: get().questionSetId,
+          });
+        } else {
+          get().roomJoin();
+        }
       },
       onDisconnect: () => {
         set({ client: null, isConnected: false });
@@ -183,6 +196,20 @@ export const createWebSocketSlice: StateCreator<
         audioBase64: base64data,
       }),
     });
+  },
+  setQuestionSetId: (questionSetId: number) => {
+    set({ questionSetId });
+  },
+  setRoomId: (roomId: string) => {
+    set({ roomID: roomId });
+  },
+  setPracticeMode: (practiceMode: string) => {
+    set({ practiceMode });
+  },
+  setJoinRoomMode: (
+    joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
+  ) => {
+    set({ joinRoomMode });
   },
 });
 

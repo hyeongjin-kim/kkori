@@ -34,7 +34,7 @@ pipeline {
         
         // 배포 환경 설정
         SPRING_PROFILES_ACTIVE = "prod"
-        DDL_AUTO = "update"  // 첫 배포: create, 이후: update 또는 validate
+        DDL_AUTO = "create"  // 첫 배포: create, 이후: update 또는 validate
     }
     
     stages {
@@ -269,7 +269,7 @@ pipeline {
                             docker run -d \\
                                 --name kkori-backend \\
                                 --restart unless-stopped \\
-                                --expose 8080 \\
+                                -p 8080:8080 \\
                                 -e SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE} \\
                                 -e DB_HOST=${DB_HOST} \\
                                 -e DB_PORT=${DB_PORT} \\

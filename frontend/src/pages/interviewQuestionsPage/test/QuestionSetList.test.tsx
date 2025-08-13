@@ -6,7 +6,11 @@ describe('QuestionSetList', () => {
   test('QuestionSetList 컴포넌트가 렌더링되어야 합니다.', () => {
     render(
       <MemoryRouter>
-        <QuestionSetList questionSets={[]} isLoading={false} />
+        <QuestionSetList
+          questionSets={[]}
+          isLoading={false}
+          onClick={() => {}}
+        />
       </MemoryRouter>,
     );
     screen.getByRole('list', { name: 'question-set-list' });

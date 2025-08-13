@@ -465,6 +465,7 @@ class QuestionSetControllerTest {
                 .isPublic(true)
                 .build();
 
+        // 메타데이터 수정 후 동일한 질문 세트 ID로 응답 (새로운 세트가 아님)
         QuestionSetDetailResponse response = createQuestionSetDetailResponse(questionSetId, "업데이트된 제목", true);
 
         given(questionSetService.updateQuestionSetMetadata(eq(TEST_USER_ID), eq(questionSetId), any(UpdateQuestionSetMetadataRequest.class)))
@@ -479,6 +480,7 @@ class QuestionSetControllerTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.questionSetId").value(questionSetId)) // 동일한 ID 확인
                 .andExpect(jsonPath("$.data.isPublic").value(true))
                 .andExpect(jsonPath("$.message").value("질문세트 메타데이터가 업데이트되었습니다."));
 

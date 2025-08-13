@@ -12,11 +12,10 @@ function SoloPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    //TODO: 1은 질문 넘버로 대체
-    connect(PRACTICE_MODE.SOLO_PRACTICE, 1);
     useInterviewRoomStore.getState().setStatus('beforeInterview');
     useInterviewRoomStore.getState().setRole('interviewee');
     useInterviewRoomStore.getState().setInterviewType('solo');
+    connect();
     return () => {
       disconnect();
     };

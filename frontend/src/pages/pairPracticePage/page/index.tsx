@@ -3,16 +3,15 @@ import InterviewSection from '@/widgets/interviewSection';
 import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
-import { PRACTICE_MODE } from '@/pages/homePage/ui/PracticeButton';
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 function PairPracticePage() {
   const { error } = useInitMediaStream();
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    //TODO: 1은 질문 넘버로 대체
-    connect(PRACTICE_MODE.PAIR_PRACTICE, 1);
     useInterviewRoomStore.getState().setInterviewType('pair');
+    useInterviewRoomStore.getState().setStatus('beforeInterview');
+    connect();
     return () => {
       disconnect();
     };
