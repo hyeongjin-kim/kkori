@@ -21,6 +21,8 @@ public class DummyDataService {
     private final InterviewRepository interviewRepository;
     private final InterviewRecordRepository interviewRecordRepository;
     private final AnswerRepository answerRepository;
+    private final TagRepository tagRepository;
+    private final QuestionSetTagRepository questionSetTagRepository;
 
     public void createDummyData() {
         // 1. 더미 유저 생성
@@ -87,6 +89,9 @@ public class DummyDataService {
                 .isPublic(true)
                 .build();
         questionSetRepository.save(questionSet);
+
+        // 3.5. 태그 생성 및 질문 세트와 매핑
+        createTagsAndLinkToQuestionSet(questionSet);
 
         // 4. 질문 세트와 질문들 매핑
         List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
@@ -372,5 +377,33 @@ public class DummyDataService {
                     .build();
             interviewRecordRepository.save(record);
         }
+    }
+
+    private void createTagsAndLinkToQuestionSet(QuestionSet questionSet) {
+        // 기본 태그들 생성
+        Tag javaTag = createOrGetTag("Java");
+        Tag springTag = createOrGetTag("Spring");
+        Tag backendTag = createOrGetTag("Backend");
+        
+        // 질문 세트와 태그 연결
+        linkQuestionSetToTag(questionSet, javaTag);
+        linkQuestionSetToTag(questionSet, springTag);
+        linkQuestionSetToTag(questionSet, backendTag);
+    }
+    
+    private Tag createOrGetTag(String tagName) {
+        return tagRepository.findByTag(tagName)
+                .orElseGet(() -> {
+                    Tag tag = Tag.builder().name(tagName).build();
+                    return tagRepository.save(tag);
+                });
+    }
+    
+    private void linkQuestionSetToTag(QuestionSet questionSet, Tag tag) {
+        QuestionSetTag questionSetTag = QuestionSetTag.builder()
+                .questionSet(questionSet)
+                .tag(tag)
+                .build();
+        questionSetTagRepository.save(questionSetTag);
     }
 }
