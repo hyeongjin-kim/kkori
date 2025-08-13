@@ -6,6 +6,7 @@ import { ChattingWindowSlice } from '@/widgets/chattingWindow/model/chattingWind
 import useInterviewRoomStore, {
   interviewStatus,
   interviewType,
+  interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { audioPost } from '../api/api';
 import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
@@ -20,7 +21,7 @@ interface RoomCreateRequest {
 interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
-  roomID: string | null;
+  roomId: string | null;
   questionSetId: number;
   opponentNickname: string;
 }
@@ -30,6 +31,7 @@ interface WebSocketAction {
   connect: (questionSetId: number) => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
+  setRoomId: (roomId: string) => void;
   interviewStart: () => void;
   interviewEnd: () => void;
   roomJoin: () => void;
@@ -47,7 +49,7 @@ export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
 const initialState: WebSocketState = {
   client: null,
   isConnected: false,
-  roomID: null,
+  roomId: null,
   questionSetId: 0,
   opponentNickname: '',
 };
@@ -82,7 +84,13 @@ export const createWebSocketSlice: StateCreator<
             pairWebSocketEventHandler(client, get, set, response);
           }
         });
-        get().roomCreate({ mode: type, questionSetId: questionSetId });
+        if (
+          useInterviewRoomStore.getState().role === interviewRole.INTERVIEWER
+        ) {
+          get().roomCreate({ mode: type, questionSetId: questionSetId });
+        } else {
+          get().roomJoin();
+        }
       },
       onDisconnect: () => {
         set({ client: null, isConnected: false });
@@ -100,36 +108,39 @@ export const createWebSocketSlice: StateCreator<
       body: JSON.stringify(request),
     });
   },
+  setRoomId: (roomId: string) => {
+    set({ roomId });
+  },
   interviewStart: () => {
     get().client?.publish({
       destination: `/app/interview-start`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   interviewEnd: () => {
     useInterviewRoomStore.getState().setStatus('endInterview');
     get().client?.publish({
       destination: `/app/interview-end`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   roomJoin: () => {
     get().client?.publish({
       destination: `/app/room-join`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   roomExit: () => {
     get().client?.publish({
       destination: `/app/room-exit`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   sendMessage: (sender: string, content: string, timestamp: number) => {
     get().client?.publish({
       destination: `/app/chat`,
       body: JSON.stringify({
-        roomId: get().roomID,
+        roomId: get().roomId,
         senderNickname: sender,
         content: content,
         timestamp: timestamp,
@@ -140,7 +151,7 @@ export const createWebSocketSlice: StateCreator<
     useInterviewRoomStore.getState().setStatus('answerStart');
     get().client?.publish({
       destination: `/app/answer-start`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   answerSubmit: async () => {
@@ -149,7 +160,7 @@ export const createWebSocketSlice: StateCreator<
     useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_SUBMIT);
     await audioPost({
       url: '/api/interview/answer-submit',
-      roomId: get().roomID || '',
+      roomId: get().roomId || '',
       audioFile: blob,
     });
     console.log('answerSubmit');
@@ -160,7 +171,7 @@ export const createWebSocketSlice: StateCreator<
     get().client?.publish({
       destination: `/app/next-question-select`,
       body: JSON.stringify({
-        roomId: get().roomID,
+        roomId: get().roomId,
         questionType: nextQuestion.questionType,
         questionId: nextQuestion.id,
         questionText: nextQuestion.question,
@@ -171,7 +182,7 @@ export const createWebSocketSlice: StateCreator<
     useInterviewRoomStore.getState().setStatus('customQuestionStart');
     get().client?.publish({
       destination: `/app/custom-question-start`,
-      body: JSON.stringify({ roomId: get().roomID }),
+      body: JSON.stringify({ roomId: get().roomId }),
     });
   },
   customQuestionCreate: async () => {
@@ -182,7 +193,7 @@ export const createWebSocketSlice: StateCreator<
       .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
     await audioPost({
       url: '/api/interview/custom-question-create',
-      roomId: get().roomID || '',
+      roomId: get().roomId || '',
       audioFile: blob,
     });
   },
