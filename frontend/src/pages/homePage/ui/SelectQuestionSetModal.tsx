@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import GoToButton from '@/shared/ui/GoToButton';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { JOIN_ROOM_MODE } from '@/shared/lib/webSocketSlice';
+import useInterviewRoomStore, {
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 interface SelectQuestionSetModalProps {
   onClose: () => void;
@@ -18,7 +21,7 @@ function SelectQuestionSetModal({
 }: SelectQuestionSetModalProps) {
   const { setQuestionSetId } = usePracticeSessionStore();
   const { data, isLoading } = useMyQuestionSets({});
-  const practiceMode = usePracticeSessionStore(state => state.practiceMode);
+  const practiceMode = useInterviewRoomStore(state => state.type);
   const setJoinRoomMode = usePracticeSessionStore(
     state => state.setJoinRoomMode,
   );
@@ -29,7 +32,7 @@ function SelectQuestionSetModal({
     onClose();
     setJoinRoomMode(JOIN_ROOM_MODE.CREATE_ROOM);
     navigate(
-      practiceMode === 'PAIR_INTERVIEW' ? '/pair-practice' : '/solo-practice',
+      practiceMode === interviewType.PAIR ? '/pair-practice' : '/solo-practice',
     );
   };
 

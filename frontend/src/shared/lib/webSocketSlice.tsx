@@ -34,7 +34,6 @@ interface WebSocketState {
   questionSetId: number;
   opponentNickname: string;
   peerConnection: RTCPeerConnection | null;
-  practiceMode: string;
   joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE];
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
@@ -56,7 +55,6 @@ interface WebSocketAction {
   setPeerConnection: (peerConnection: RTCPeerConnection) => void;
   setQuestionSetId: (questionSetId: number) => void;
   setRoomId: (roomId: string) => void;
-  setPracticeMode: (practiceMode: string) => void;
   setJoinRoomMode: (
     joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
   ) => void;
@@ -72,7 +70,6 @@ const initialState: WebSocketState = {
   questionSetId: 0,
   opponentNickname: '',
   peerConnection: null,
-  practiceMode: 'PAIR_INTERVIEW',
   joinRoomMode: JOIN_ROOM_MODE.CREATE_ROOM,
 };
 
@@ -107,11 +104,13 @@ export const createWebSocketSlice: StateCreator<
           }
         });
         if (get().joinRoomMode === JOIN_ROOM_MODE.CREATE_ROOM) {
+          useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWEE);
           get().roomCreate({
-            mode: get().practiceMode,
+            mode: useInterviewRoomStore.getState().type,
             questionSetId: get().questionSetId,
           });
         } else {
+          useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWER);
           get().roomJoin();
         }
       },
@@ -226,9 +225,6 @@ export const createWebSocketSlice: StateCreator<
   },
   setQuestionSetId: (questionSetId: number) => {
     set({ questionSetId });
-  },
-  setPracticeMode: (practiceMode: string) => {
-    set({ practiceMode });
   },
   setJoinRoomMode: (
     joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
