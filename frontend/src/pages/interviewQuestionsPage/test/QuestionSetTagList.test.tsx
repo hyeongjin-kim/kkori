@@ -7,7 +7,9 @@ describe('QuestionSetTagList', () => {
   beforeEach(() => {
     render(
       <MemoryRouterWrapped
-        component={<QuestionSet questionSet={questionSetList[0]} />}
+        component={
+          <QuestionSet questionSet={questionSetList[0]} onClick={() => {}} />
+        }
       />,
     );
   });

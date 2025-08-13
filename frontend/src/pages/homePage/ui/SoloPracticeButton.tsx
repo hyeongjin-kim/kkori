@@ -1,17 +1,15 @@
 import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
-import {
-  interviewRole,
-  interviewType,
-} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
-function SoloPracticeButton() {
+interface SoloPracticeButtonProps {
+  onClick: () => void;
+}
+
+function SoloPracticeButton({ onClick }: SoloPracticeButtonProps) {
   return (
     <PracticeButton
       text="혼자 연습하기"
-      path="/solo-practice"
+      onClick={onClick}
       className="bg-point-500 text-text-black"
-      mode={interviewType.SOLO}
-      role={interviewRole.INTERVIEWEE}
     />
   );
 }

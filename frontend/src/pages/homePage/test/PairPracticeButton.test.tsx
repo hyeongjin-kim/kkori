@@ -4,10 +4,11 @@ import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 import { interviewRole } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 describe('PairPracticeButton', () => {
+  const onClick = jest.fn();
   beforeEach(() => {
     render(
       <MemoryRouterWrapped
-        component={<PairPracticeButton role={interviewRole.INTERVIEWER} />}
+        component={<PairPracticeButton onClick={onClick} />}
       />,
     );
   });
@@ -20,8 +21,6 @@ describe('PairPracticeButton', () => {
   test('같이 연습하기 버튼을 클릭하면 같이 연습하기 페이지로 이동한다', () => {
     const button = screen.getByRole('button', { name: /같이 연습하기/i });
     fireEvent.click(button);
-    expect(
-      screen.getByRole('main', { name: 'pair-practice-page' }),
-    ).toBeInTheDocument();
+    expect(onClick).toHaveBeenCalled();
   });
 });

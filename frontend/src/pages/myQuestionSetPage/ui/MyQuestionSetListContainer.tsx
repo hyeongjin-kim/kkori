@@ -1,20 +1,19 @@
-import { useQuestionSets } from '@/entities/questionSet/model/useQuestionSetList';
-import useQuestionSetFilterStore from '@/pages/interviewQuestionsPage/model/useQuestionSetFilterStore';
+import { useMyQuestionSets } from '@/entities/questionSet/model/useQuestionSetList';
 import QuestionSetList from '@/pages/interviewQuestionsPage/ui/QuestionSetList';
-import { TAG_FILTER_LIST } from '@/pages/interviewQuestionsPage/model/constants';
+import { useNavigate } from 'react-router-dom';
 
 export default function MyQuestionSetListContainer() {
-  const selectedTag = useQuestionSetFilterStore(s => s.selectedTag);
-  const { data, isLoading, isError } = useQuestionSets({
-    tags: selectedTag === TAG_FILTER_LIST[0].tag ? undefined : [selectedTag],
-  });
-
+  const { data, isLoading, isError } = useMyQuestionSets({});
+  const questionSets = data?.data.content ?? [];
+  const navigate = useNavigate();
+  const goDetail = (questionSetId: number) => navigate(`/my-question-set`);
   if (isError) return <div className="p-4 text-red-500">불러오기 실패</div>;
 
   return (
     <QuestionSetList
-      questionSets={data?.data.content ?? []}
+      questionSets={questionSets}
       isLoading={isLoading}
+      onClick={goDetail}
     />
   );
 }

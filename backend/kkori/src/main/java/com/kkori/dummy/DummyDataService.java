@@ -8,6 +8,11 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +26,36 @@ public class DummyDataService {
     private final InterviewRepository interviewRepository;
     private final InterviewRecordRepository interviewRecordRepository;
     private final AnswerRepository answerRepository;
+    private final TagRepository tagRepository;
+    private final QuestionSetTagRepository questionSetTagRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public void createDummyData() {
+        // 기존 data.sql 기반 로직 (주석처리)
+//       try {
+//            // 1. data.sql 실행 (30명 유저, 30개 질문세트 생성)
+//            executeSqlFile("data.sql");
+//            System.out.println("data.sql 실행 완료 - 기본 유저 및 질문세트 생성됨");
+//
+//            // 2. 첫 번째 유저와 질문세트를 사용해서 추가 데이터 생성
+//            User firstUser = userRepository.findById(1L)
+//                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 userId=1인 사용자가 존재하지 않습니다."));
+//            QuestionSet firstQuestionSet = questionSetRepository.findById(1L)
+//                    .orElseThrow(() -> new RuntimeException("data.sql 실행 후 questionSetId=1인 질문세트가 존재하지 않습니다."));
+//
+//            // 3. 기존 로직으로 질문과 면접 데이터 생성
+//            createQuestionsAndInterviews(firstUser, firstQuestionSet);
+//
+//            System.out.println("하이브리드 더미 데이터 생성 완료!");
+//            System.out.println("- data.sql: 30명 유저, 30개 질문세트");
+//            System.out.println("- 추가 생성: 18개 질문, 4개 면접(완료 3개, 진행중 1개)");
+//
+//        } catch (Exception e) {
+//            System.err.println("더미 데이터 생성 중 오류 발생: " + e.getMessage());
+//            throw new RuntimeException("더미 데이터 생성 실패", e);
+//        }
+
+        // 원래 로직으로 복원
         // 1. 더미 유저 생성
         User dummyUser = User.builder()
                 .sub("dummy_user_" + System.currentTimeMillis())
@@ -30,7 +63,29 @@ public class DummyDataService {
                 .build();
         userRepository.save(dummyUser);
 
-        // 2. 더미 질문들 생성 (기본 질문 + 꼬리 질문)
+        // 2. 태그를 먼저 생성
+        createBasicTags();
+
+        // 3. 질문 세트 생성
+        QuestionSet questionSet = QuestionSet.builder()
+                .ownerUserId(dummyUser)
+                .title("백엔드 개발자 면접 질문 세트")
+                .description("Java/Spring 백엔드 개발자를 위한 기본 면접 질문 모음입니다.")
+                .versionNumber(1)
+                .isPublic(true)
+                .build();
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
+
+        // 4. 질문과 면접 데이터 생성
+        createQuestionsAndInterviews(dummyUser, questionSet);
+
+        System.out.println("더미 데이터 생성 완료!");
+        System.out.println("생성된 유저 ID: " + dummyUser.getUserId());
+        System.out.println("생성된 질문 세트 ID: " + questionSet.getId());
+    }
+
+    private void createQuestionsAndInterviews(User user, QuestionSet questionSet) {
+        // 질문들 생성 (기본 질문 + 꼬리 질문)
         List<Question> questions = new ArrayList<>();
 
         // DEFAULT 타입 질문들 (기본 면접 질문) - 10개
@@ -44,7 +99,7 @@ public class DummyDataService {
         Question defaultQ8 = Question.createDefault("HTTP와 HTTPS의 차이점은 무엇인가요?", "HTTPS는 SSL/TLS를 통한 암호화된 HTTP");
         Question defaultQ9 = Question.createDefault("본인이 가장 자신있는 기술 스택은 무엇인가요?", "개인의 경험과 전문성에 따른 답변");
         Question defaultQ10 = Question.createDefault("향후 5년간의 커리어 계획을 말씀해주세요.", "개인의 성장 목표와 비전");
-        
+
         questions.add(defaultQ1);
         questions.add(defaultQ2);
         questions.add(defaultQ3);
@@ -74,21 +129,17 @@ public class DummyDataService {
 
         // 꼬리 질문들 저장
         questionRepository.saveAll(tailQuestions);
-        
+
         // 전체 질문 목록에 꼬리 질문들 추가
         questions.addAll(tailQuestions);
 
-        // 3. 질문 세트 생성
-        QuestionSet questionSet = QuestionSet.builder()
-                .ownerUserId(dummyUser)
-                .title("백엔드 개발자 면접 질문 세트")
-                .description("Java/Spring 백엔드 개발자를 위한 기본 면접 질문 모음입니다.")
-                .versionNumber(1)
-                .isPublic(true)
-                .build();
-        questionSetRepository.save(questionSet);
+        // 태그를 먼저 생성
+        createBasicTags();
+        
+        // 질문 세트와 기존 태그들 매핑
+        linkQuestionSetToExistingTags(questionSet);
 
-        // 4. 질문 세트와 질문들 매핑
+        // 질문 세트와 질문들 매핑
         List<QuestionSetQuestionMap> questionMaps = new ArrayList<>();
         for (int i = 0; i < questions.size(); i++) {
             QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.builder()
@@ -100,19 +151,12 @@ public class DummyDataService {
         }
         questionSetQuestionMapRepository.saveAll(questionMaps);
 
-        // 5. InterviewRecord 더미 데이터 생성
-        createInterviewRecords(dummyUser, questionSet, questions);
-
-        System.out.println("더미 데이터 생성 완료!");
-        System.out.println("생성된 유저 ID: " + dummyUser.getUserId());
-        System.out.println("생성된 질문 세트 ID: " + questionSet.getId());
-        System.out.println("생성된 질문 개수: " + questions.size());
+        // InterviewRecord 더미 데이터 생성
+        createInterviewRecords(user, questionSet, questions);
     }
 
-    private void createInterviewRecords(User dummyUser, QuestionSet questionSet, List<Question> questions) {
-        // userId=1인 기존 사용자 조회 (이미 존재한다고 가정)
-        User mainUser = userRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("userId=1인 사용자가 존재하지 않습니다."));
+    private void createInterviewRecords(User mainUser, QuestionSet questionSet, List<Question> questions) {
+        // 전달받은 사용자 사용
 
         // 완료된 면접 데이터 생성 (3개) - userId=1이 면접관이자 면접자
         for (int interviewNum = 1; interviewNum <= 3; interviewNum++) {
@@ -216,7 +260,7 @@ public class DummyDataService {
                 .versionNumber(1)
                 .isPublic(false)
                 .build();
-        questionSetRepository.save(questionSet);
+        questionSet = questionSetRepository.saveAndFlush(questionSet);
 
         createInterviewRecordsForSpecificUser(loginUser, questionSet, questions);
 
@@ -371,6 +415,99 @@ public class DummyDataService {
                     .orderNum(i + 1)
                     .build();
             interviewRecordRepository.save(record);
+        }
+    }
+
+    private void createBasicTags() {
+        // 기본 태그들을 먼저 생성하고 저장
+        createOrGetTag("Java");
+        createOrGetTag("Spring");
+        createOrGetTag("Backend");
+    }
+    
+    private void linkQuestionSetToExistingTags(QuestionSet questionSet) {
+        // 이미 생성된 태그들을 조회해서 연결
+        Tag javaTag = tagRepository.findByTag("Java")
+                .orElseThrow(() -> new RuntimeException("Java 태그가 존재하지 않습니다."));
+        Tag springTag = tagRepository.findByTag("Spring")
+                .orElseThrow(() -> new RuntimeException("Spring 태그가 존재하지 않습니다."));
+        Tag backendTag = tagRepository.findByTag("Backend")
+                .orElseThrow(() -> new RuntimeException("Backend 태그가 존재하지 않습니다."));
+        
+        // 질문 세트와 태그 연결
+        linkQuestionSetToTag(questionSet, javaTag);
+        linkQuestionSetToTag(questionSet, springTag);
+        linkQuestionSetToTag(questionSet, backendTag);
+    }
+    
+    private Tag createOrGetTag(String tagName) {
+        return tagRepository.findByTag(tagName)
+                .orElseGet(() -> {
+                    Tag tag = Tag.builder().name(tagName).build();
+                    return tagRepository.saveAndFlush(tag);
+                });
+    }
+    
+    private void linkQuestionSetToTag(QuestionSet questionSet, Tag tag) {
+        QuestionSetTag questionSetTag = QuestionSetTag.builder()
+                .questionSet(questionSet)
+                .tag(tag)
+                .build();
+        questionSetTagRepository.save(questionSetTag);
+    }
+
+    // SQL 파일 실행 메서드들
+    private void executeSqlFile(String fileName) throws Exception {
+        ClassPathResource resource = new ClassPathResource(fileName);
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+            
+            StringBuilder sqlBuilder = new StringBuilder();
+            String line;
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                // 주석 및 빈 줄 무시
+                if (line.isEmpty() || line.startsWith("--")) {
+                    continue;
+                }
+                
+                sqlBuilder.append(line).append(" ");
+                
+                // 세미콜론으로 끝나는 경우 SQL 실행
+                if (line.endsWith(";")) {
+                    String sql = sqlBuilder.toString().trim();
+                    if (!sql.isEmpty()) {
+                        executeStatement(sql);
+                    }
+                    sqlBuilder.setLength(0);
+                }
+            }
+            
+            // 마지막 SQL문이 세미콜론으로 끝나지 않는 경우
+            String remainingSql = sqlBuilder.toString().trim();
+            if (!remainingSql.isEmpty()) {
+                executeStatement(remainingSql);
+            }
+        }
+    }
+    
+    private void executeStatement(String sql) {
+        try {
+            // INSERT, UPDATE, DELETE 문 실행
+            if (sql.toUpperCase().startsWith("INSERT") || 
+                sql.toUpperCase().startsWith("UPDATE") || 
+                sql.toUpperCase().startsWith("DELETE")) {
+                jdbcTemplate.update(sql);
+            } else {
+                // 기타 SQL문 (CREATE, ALTER 등)
+                jdbcTemplate.execute(sql);
+            }
+        } catch (Exception e) {
+            System.err.println("SQL 실행 실패: " + sql);
+            System.err.println("에러: " + e.getMessage());
+            // 개별 SQL 실행 실패는 로그만 남기고 계속 진행
         }
     }
 }

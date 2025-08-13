@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import LabeledTextAreaField from '@/shared/ui/LabeledTextAreaField';
+import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/constants';
 
 interface QuestionAnswer {
   question: string;
@@ -17,12 +18,14 @@ interface QuestionAnswerFormProps {
   questionAnswerList: QuestionAnswer[];
   setQuestionAnswerList: (questionAnswerList: QuestionAnswer[]) => void;
   onSubmit: () => void;
+  type: (typeof QUESTION_ANSWER_FORMAT_TYPE)[keyof typeof QUESTION_ANSWER_FORMAT_TYPE];
 }
 
 function QuestionAnswerForm({
   questionAnswerList,
   setQuestionAnswerList,
   onSubmit,
+  type,
 }: QuestionAnswerFormProps) {
   const handleQuestionChange = (index: number, value: string) => {
     const newList = [...questionAnswerList];
@@ -48,7 +51,9 @@ function QuestionAnswerForm({
       aria-label="question-answer-form"
       className="w-2/3 min-w-[500px] rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
     >
-      <h3 className="mb-6 text-xl font-bold text-gray-900">질문 답변 생성</h3>
+      <h3 className="mb-6 text-xl font-bold text-gray-900">
+        {`질문 답변 ${type}하기`}
+      </h3>
       {questionAnswerList.map((qa, index) => (
         <div
           key={index}
@@ -89,10 +94,10 @@ function QuestionAnswerForm({
       <button
         type="button"
         aria-label="submit-button"
-        className="m-auto mt-8 block rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.99]"
+        className="m-auto mt-4 block gap-1.5 rounded-xl border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:outline-none active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         onClick={onSubmit}
       >
-        질문 세트 생성하기
+        {`질문 세트 ${type}하기`}
       </button>
     </section>
   );

@@ -3,13 +3,15 @@ import QuestionAnswerForm from '@/pages/questionSetCreatePage/ui/QuestionAnswerF
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateQuestionSet } from '@/entities/questionSet/model/useQuestionSetList';
+import { toast } from 'sonner';
+import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/constants';
 
-interface QuestionAnswer {
+export interface QuestionAnswer {
   question: string;
   answer: string;
 }
 
-const initialQuestionAnswer: QuestionAnswer = {
+export const initialQuestionAnswer: QuestionAnswer = {
   question: '',
   answer: '',
 };
@@ -35,6 +37,7 @@ function QuestionSetCreatePage() {
         questionType: 1,
       })),
     });
+    toast.success('질문 세트가 생성되었습니다.');
     navigate('/interview-questions');
   };
   return (
@@ -58,6 +61,7 @@ function QuestionSetCreatePage() {
         questionAnswerList={questionAnswerList}
         setQuestionAnswerList={setQuestionAnswerList}
         onSubmit={handleSubmit}
+        type={QUESTION_ANSWER_FORMAT_TYPE.create}
       />
     </main>
   );

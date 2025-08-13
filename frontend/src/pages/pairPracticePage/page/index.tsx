@@ -4,17 +4,18 @@ import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStr
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
 import useInterviewRoomStore, {
+  interviewStatus,
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    //TODO: 1은 질문 넘버로 대체
-    useInterviewRoomStore.getState().setStatus('beforeInterview');
     useInterviewRoomStore.getState().setType(interviewType.PAIR);
-
-    connect(1);
+    useInterviewRoomStore
+      .getState()
+      .setStatus(interviewStatus.BEFORE_INTERVIEW);
+    connect();
     return () => {
       disconnect();
     };

@@ -1,16 +1,22 @@
 import SoloPracticeButton from '@/pages/homePage/ui/SoloPracticeButton';
 import PairPracticeButton from '@/pages/homePage/ui/PairPracticeButton';
 import HeroText from '@/pages/homePage/ui/HeroText';
-import { interviewRole } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
-function LeftSection() {
+interface LeftSectionProps {
+  onQuestionSetModalOpen: () => void;
+  onJoinInterviewRoomModalOpen: () => void;
+}
+
+function LeftSection({
+  onQuestionSetModalOpen,
+  onJoinInterviewRoomModalOpen,
+}: LeftSectionProps) {
   return (
     <section aria-label="left-section" className="flex flex-col gap-20">
       <HeroText />
       <div className="z-10 flex flex-col gap-8">
-        <SoloPracticeButton />
-        <PairPracticeButton role={interviewRole.INTERVIEWER} />
-        <PairPracticeButton role={interviewRole.INTERVIEWEE} />
+        <SoloPracticeButton onClick={onQuestionSetModalOpen} />
+        <PairPracticeButton onClick={onJoinInterviewRoomModalOpen} />
       </div>
     </section>
   );

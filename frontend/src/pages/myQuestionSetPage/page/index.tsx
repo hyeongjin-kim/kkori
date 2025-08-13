@@ -24,7 +24,6 @@ function MyQuestionSetPage() {
             to="/question-set-create"
             label="question-set-create-button"
             text="새 세트 만들기"
-            icon={<FcPlus className="mr-2 text-lg" />}
           />
         </header>
 

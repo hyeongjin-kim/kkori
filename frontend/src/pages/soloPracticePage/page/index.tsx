@@ -2,21 +2,21 @@ import ChattingWindowContainer from '@/widgets/chattingWindow';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
 import InterviewSection from '@/widgets/interviewSection';
-import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 import useInterviewRoomStore, {
+  interviewStatus,
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 
 function SoloPracticePage() {
-  const { error } = useInitMediaStream();
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    //TODO: 1은 질문 넘버로 대체
-    useInterviewRoomStore.getState().setStatus('beforeInterview');
+    connect();
+    useInterviewRoomStore
+      .getState()
+      .setStatus(interviewStatus.BEFORE_INTERVIEW);
     useInterviewRoomStore.getState().setType(interviewType.SOLO);
-    connect(1);
     return () => {
       disconnect();
     };

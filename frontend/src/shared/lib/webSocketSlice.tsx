@@ -9,7 +9,10 @@ import useInterviewRoomStore, {
   interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { audioPost } from '../api/api';
-import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import {
+  Question,
+  useInterviewQuestionStore,
+} from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 import { soloWebSocketEventHandler } from '@/shared/lib/soloWebSocketEventHandler';
 import { pairWebSocketEventHandler } from '@/shared/lib/pairWebSocketEventHandler';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
@@ -18,6 +21,12 @@ interface RoomCreateRequest {
   mode: string;
   questionSetId: number;
 }
+
+export const JOIN_ROOM_MODE = {
+  CREATE_ROOM: 'CREATE_ROOM',
+  JOIN_ROOM: 'JOIN_ROOM',
+} as const;
+
 interface WebSocketState {
   client: Client | null;
   isConnected: boolean;
@@ -25,14 +34,15 @@ interface WebSocketState {
   questionSetId: number;
   opponentNickname: string;
   peerConnection: RTCPeerConnection | null;
+  practiceMode: string;
+  joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE];
 }
 type Store = ChattingWindowSlice & WebSocketSlice & InterviewSlice;
 
 interface WebSocketAction {
-  connect: (questionSetId: number) => void;
+  connect: () => void;
   disconnect: () => void;
   roomCreate: (request: RoomCreateRequest) => void;
-  setRoomId: (roomId: string) => void;
   interviewStart: () => void;
   interviewEnd: () => void;
   roomJoin: () => void;
@@ -44,6 +54,12 @@ interface WebSocketAction {
   customQuestionStart: () => void;
   customQuestionCreate: () => void;
   setPeerConnection: (peerConnection: RTCPeerConnection) => void;
+  setQuestionSetId: (questionSetId: number) => void;
+  setRoomId: (roomId: string) => void;
+  setPracticeMode: (practiceMode: string) => void;
+  setJoinRoomMode: (
+    joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
+  ) => void;
 }
 
 export interface WebSocketSlice extends WebSocketState, WebSocketAction {}
@@ -55,6 +71,8 @@ const initialState: WebSocketState = {
   questionSetId: 0,
   opponentNickname: '',
   peerConnection: null,
+  practiceMode: 'PAIR_INTERVIEW',
+  joinRoomMode: JOIN_ROOM_MODE.CREATE_ROOM,
 };
 
 export const createWebSocketSlice: StateCreator<
@@ -64,7 +82,7 @@ export const createWebSocketSlice: StateCreator<
   WebSocketSlice
 > = (set, get) => ({
   ...initialState,
-  connect: (questionSetId: number) => {
+  connect: () => {
     if (get().client || get().isConnected) return;
     const type = useInterviewRoomStore.getState().type;
     const client = new Client({
@@ -87,11 +105,11 @@ export const createWebSocketSlice: StateCreator<
             pairWebSocketEventHandler(client, get, set, response);
           }
         });
-        console.log(useInterviewRoomStore.getState().role);
-        if (
-          useInterviewRoomStore.getState().role === interviewRole.INTERVIEWEE
-        ) {
-          get().roomCreate({ mode: type, questionSetId: questionSetId });
+        if (get().joinRoomMode === JOIN_ROOM_MODE.CREATE_ROOM) {
+          get().roomCreate({
+            mode: get().practiceMode,
+            questionSetId: get().questionSetId,
+          });
         } else {
           get().roomJoin();
         }
@@ -203,5 +221,16 @@ export const createWebSocketSlice: StateCreator<
   },
   setPeerConnection: (peerConnection: RTCPeerConnection) => {
     set({ peerConnection });
+  },
+  setQuestionSetId: (questionSetId: number) => {
+    set({ questionSetId });
+  },
+  setPracticeMode: (practiceMode: string) => {
+    set({ practiceMode });
+  },
+  setJoinRoomMode: (
+    joinRoomMode: (typeof JOIN_ROOM_MODE)[keyof typeof JOIN_ROOM_MODE],
+  ) => {
+    set({ joinRoomMode });
   },
 });

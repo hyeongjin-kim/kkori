@@ -21,10 +21,7 @@ describe('HomePage', () => {
 
   test('메인 페이지에 같이 연습하기 버튼이 렌더링 된다', () => {
     expect(
-      screen.getByRole('button', { name: /같이 연습하기\(면접관\)/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /같이 연습하기\(면접자\)/i }),
+      screen.getByRole('button', { name: /같이 연습하기/i }),
     ).toBeInTheDocument();
   });
 

@@ -5,6 +5,7 @@ export interface QuestionSetResponse {
   versionNumber: number;
   parentVersionId: number | null;
   isPublic: boolean;
+  ownerId: number;
   ownerNickname: string;
   questionMaps: QuestionMap[];
   tailQuestions: TailQuestionResponse[];
@@ -93,4 +94,18 @@ export interface CreateQuestionSetResponse {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateQuestionSetResponse extends DefaultResponse {
+  data: CreateQuestionSetResponse;
+}
+
+export interface DeleteQuestionSetResponse extends GetQuestionSetsResponse {}
+
+interface DefaultResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  data: any;
+  timestamp: string;
 }

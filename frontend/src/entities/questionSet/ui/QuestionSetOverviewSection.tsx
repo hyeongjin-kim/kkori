@@ -7,12 +7,9 @@ import Alert from '@/shared/ui/Alert';
 import Skeleton from '@/pages/questionSetDetailPage/ui/Skeleton';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { QuestionSetResponse } from '@/entities/questionSet/model/response';
-import { postCopyQuestionSet } from '../model/postQuestionSet';
 import DetailPageActions from './DetailPageActions';
 
 export default function QuestionSetOverviewSection() {
-  const { id = '' } = useParams();
-
   return (
     <QueryBoundary
       pendingFallback={<Skeleton />}
@@ -25,25 +22,17 @@ export default function QuestionSetOverviewSection() {
         </Alert>
       )}
     >
-      <Content id={id} />
+      <Content />
     </QueryBoundary>
   );
 }
 
-function Content({ id }: { id: string }) {
+function Content() {
+  const { id } = useParams();
   const { data } = useQuestionSet(Number(id));
   const vm = toOverviewVM(data?.data as QuestionSetResponse);
 
   return (
-    <QuestionSetOverviewCard
-      vm={vm}
-      actions={
-        <DetailPageActions
-          id={id}
-          title={vm.title}
-          description={vm.description ?? ''}
-        />
-      }
-    />
+    <QuestionSetOverviewCard vm={vm} actions={<DetailPageActions vm={vm} />} />
   );
 }

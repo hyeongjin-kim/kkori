@@ -5,9 +5,6 @@ export const TAG_FILTER_LIST: readonly TagResponse[] = Object.freeze([
     tag: '전체',
   },
   {
-    tag: '면접',
-  },
-  {
     tag: '백엔드',
   },
   {
@@ -32,15 +29,6 @@ export const TAG_FILTER_LIST: readonly TagResponse[] = Object.freeze([
     tag: 'Java',
   },
   {
-    tag: 'Git',
-  },
-  {
-    tag: 'CSS',
-  },
-  {
-    tag: 'React',
-  },
-  {
-    tag: '웹 성능',
+    tag: 'JavaScript',
   },
 ]);
