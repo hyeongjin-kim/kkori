@@ -1,15 +1,15 @@
-import {
-  PRACTICE_MODE,
-  PracticeButton,
-} from '@/pages/homePage/ui/PracticeButton';
+import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
 
-function SoloPracticeButton() {
+interface SoloPracticeButtonProps {
+  onClick: () => void;
+}
+
+function SoloPracticeButton({ onClick }: SoloPracticeButtonProps) {
   return (
     <PracticeButton
       text="혼자 연습하기"
-      path="/solo-practice"
+      onClick={onClick}
       className="bg-point-500 text-text-black"
-      mode={PRACTICE_MODE.SOLO_PRACTICE}
     />
   );
 }
