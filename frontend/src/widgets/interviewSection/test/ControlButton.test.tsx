@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 import userEvent from '@testing-library/user-event';
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('ControlButton', () => {
   const testFunction = jest.fn();
@@ -10,11 +11,15 @@ describe('ControlButton', () => {
     useInterviewRoomStore.getState().setStatus('beforeInterview');
     const status = useInterviewRoomStore.getState().status;
     render(
-      <ControlButton
-        onClick={testFunction}
-        label="test"
-        text="test"
-        status={status}
+      <MemoryRouterWrapped
+        component={
+          <ControlButton
+            onClick={testFunction}
+            label="test"
+            text="test"
+            status={status}
+          />
+        }
       />,
     );
   });

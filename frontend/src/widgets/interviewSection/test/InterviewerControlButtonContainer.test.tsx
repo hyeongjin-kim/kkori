@@ -5,10 +5,13 @@ import useInterviewRoomStore, {
   interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import InterviewerControlButtonContainer from '@/widgets/interviewSection/ui/InterviewerControlButtonContainer';
+import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('InterviewerControlButtonContainer', () => {
   beforeEach(() => {
-    render(<InterviewerControlButtonContainer />);
+    render(
+      <MemoryRouterWrapped component={<InterviewerControlButtonContainer />} />,
+    );
   });
   test('InterviewerControlButtonContainer가 렌더링 되어야 한다.', () => {
     expect(

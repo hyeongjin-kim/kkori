@@ -6,10 +6,13 @@ import useInterviewRoomStore, {
   interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { act } from 'react';
+import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('IntervieweeControlButtonContainer', () => {
   beforeEach(() => {
-    render(<IntervieweeControlButtonContainer />);
+    render(
+      <MemoryRouterWrapped component={<IntervieweeControlButtonContainer />} />,
+    );
   });
   test('IntervieweeControlButtonContainer가 렌더링 되어야 한다.', () => {
     expect(

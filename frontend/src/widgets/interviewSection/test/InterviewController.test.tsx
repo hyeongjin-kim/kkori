@@ -3,6 +3,7 @@ import InterviewController from '@/widgets/interviewSection/ui/InterviewControll
 import useInterviewRoomStore, {
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 
 describe('InterviewController', () => {
   const { setStatus } = useInterviewRoomStore.getState();
@@ -12,13 +13,13 @@ describe('InterviewController', () => {
   });
 
   test('InterviewController가 렌더링 되어야 한다.', () => {
-    render(<InterviewController />);
+    render(<MemoryRouterWrapped component={<InterviewController />} />);
     const interviewController = screen.getByLabelText('interview-controller');
     expect(interviewController).toBeInTheDocument();
   });
 
   test('PreInterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
-    render(<InterviewController />);
+    render(<MemoryRouterWrapped component={<InterviewController />} />);
     const preInterviewControlButtonContainer = screen.getByLabelText(
       'pre-interview-control-button-container',
     );
@@ -27,7 +28,7 @@ describe('InterviewController', () => {
 
   test('InterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
     setStatus(interviewStatus.QUESTION_PRESENTED);
-    render(<InterviewController />);
+    render(<MemoryRouterWrapped component={<InterviewController />} />);
     const interviewController = screen.getByLabelText('interview-controller');
     expect(interviewController).toBeInTheDocument();
   });
