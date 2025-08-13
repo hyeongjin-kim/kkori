@@ -15,13 +15,14 @@ function IntervieweeControlButtonContainer() {
   );
   return (
     <div aria-label="interviewee-control-button-container">
-      {controlButtonProps.map(({ label, onClick, text, status }) => (
+      {controlButtonProps.map(({ label, onClick, text, status, path }) => (
         <ControlButton
           key={label}
           label={label}
           onClick={onClick}
           text={text}
           status={status}
+          path={path}
         />
       ))}
     </div>
