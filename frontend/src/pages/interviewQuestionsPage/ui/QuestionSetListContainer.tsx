@@ -17,7 +17,7 @@ export default function QuestionSetListContainer() {
   const goDetail = (questionSetId: number) =>
     navigate(`/question-set-detail/${questionSetId}`);
   if (isError) return <div className="p-4 text-red-500">불러오기 실패</div>;
-  console.log(data);
+
   return (
     <QuestionSetList
       questionSets={data?.data.content ?? []}
