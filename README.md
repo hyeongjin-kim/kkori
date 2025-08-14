@@ -187,3 +187,4 @@ JWT 토큰 기반 통합 인증으로 카카오/게스트 로그인을 동일하
 | <img src="https://github.com/user-attachments/assets/3bc958ec-4303-4559-b20e-465fe1776e17" width="120"> | <img src="https://avatars.githubusercontent.com/u/49364688?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/64190888?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/128581113?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/105447233?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/205485545?v=4" width="120"> |
 | **Frontend** | **Frontend** | **Backend** | **Backend** | **Backend** | **Backend** |
 | [@today-is-first](https://github.com/today-is-first) | [@hyeongjin-kim](https://github.com/hyeongjin-kim) | [@jin0410](https://github.com/jin0410) | [@SwnBae](https://github.com/SwnBae) | [@llcodingll](https://github.com/llcodingll) | [@SuitGGam](https://github.com/SuitGGam) |
+
