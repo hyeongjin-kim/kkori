@@ -129,4 +129,9 @@ public interface InterviewSessionService {
      * 상대방 id 조회(시그널링용)
      */
     Long getOpponentId(String roomId, Long userId);
+
+    /**
+     * roomId 소유하고 연결 시 재연결 여부 확인(방에 소속 여부 확인)
+     */
+    boolean isReconnection(String roomId, Long userId);
 }

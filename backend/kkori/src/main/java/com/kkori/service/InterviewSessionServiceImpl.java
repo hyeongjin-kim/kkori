@@ -273,6 +273,17 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
         return roomManager.getRoom(roomId).getUserIds();
     }
 
+    @Override
+    public boolean isReconnection(String roomId, Long userId) {
+        InterviewRoom room = roomManager.getRoom(roomId);
+        try {
+            validateUserInRoom(room, userId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     // ==================== Private 헬퍼 메서드들 ====================
 
     /**
