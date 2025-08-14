@@ -9,6 +9,7 @@ import {
   endCustomQuestion,
   exitInterview,
   switchRole,
+  copyRoomId,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -72,6 +73,12 @@ export const soloIntervieweeControlButtonProps = [
 
 export const pairIntervieweeControlButtonProps = [
   {
+    onClick: copyRoomId,
+    label: 'copy-room-id',
+    text: '방 코드 복사',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
+  {
     onClick: switchScreen,
     label: 'screen-change',
     text: '화면 전환',
@@ -117,6 +124,12 @@ export const pairIntervieweeControlButtonProps = [
 ];
 
 export const pairInterviewerControlButtonProps = [
+  {
+    onClick: copyRoomId,
+    label: 'copy-room-id',
+    text: '방 코드 복사',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
   {
     onClick: switchScreen,
     label: 'screen-change',

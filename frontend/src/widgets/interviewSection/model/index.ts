@@ -5,8 +5,19 @@ import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import { useInterviewQuestionStore } from './useInterviewQuestionStore';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { toast } from 'sonner';
 
 const MAX_RECORD_TIME = 600000;
+
+export function copyRoomId() {
+  const roomId = usePracticeSessionStore.getState().roomId;
+  if (!roomId) {
+    toast.error('방 코드를 복사할 수 없습니다.');
+    return;
+  }
+  navigator.clipboard.writeText(roomId);
+  toast.success(`방 코드  가 복사되었습니다. 면접 참가자에게 공유해주세요.`);
+}
 
 export function switchScreen() {
   const { mainStreamType, subStreamType, setMainStreamType, setSubStreamType } =
