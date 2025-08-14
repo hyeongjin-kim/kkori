@@ -147,7 +147,6 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   interviewEnd: () => {
-    useInterviewRoomStore.getState().setStatus('endInterview');
     get().client?.publish({
       destination: `/app/interview-end`,
       body: JSON.stringify({ roomId: get().roomId }),

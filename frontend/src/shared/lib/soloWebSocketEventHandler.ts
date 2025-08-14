@@ -23,6 +23,9 @@ export const soloWebSocketEventHandler = (
     case 'next-question-choices':
       nextQuestionChoiceHandler(client, set, response.data);
       break;
+    case 'interview-ended':
+      interviewEndedHandler(client, set, response.data);
+      break;
     default:
       errorHandler(client, set, response.data);
       break;
@@ -68,4 +71,8 @@ const nextQuestionChoiceHandler = (client: Client, set: any, data: any) => {
 
 const errorHandler = (client: Client, set: any, data: any) => {
   const errorMessage = data.error;
+};
+
+const interviewEndedHandler = (client: Client, set: any, data: any) => {
+  useInterviewRoomStore.getState().setStatus('endInterview');
 };

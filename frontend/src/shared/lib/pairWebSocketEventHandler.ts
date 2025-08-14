@@ -42,6 +42,9 @@ export const pairWebSocketEventHandler = (
       console.log('!!!!RECEIVED ICE CANDIDATE 이벤트 발생이라고!!!!: ');
       receivedIceCandidateHandler(client, get, set, response.data);
       break;
+    case 'interview-ended':
+      interviewEndedHandler(client, set, response.data);
+      break;
     default:
       errorHandler(client, set, response.data);
       break;
@@ -193,4 +196,8 @@ const receivedIceCandidateHandler = (
 
 const errorHandler = (client: Client, set: any, data: any) => {
   const errorMessage = data.error;
+};
+
+const interviewEndedHandler = (client: Client, set: any, data: any) => {
+  useInterviewRoomStore.getState().setStatus('endInterview');
 };
