@@ -16,7 +16,7 @@ export function copyRoomId() {
     return;
   }
   navigator.clipboard.writeText(roomId);
-  toast.success(`방 코드  가 복사되었습니다. 면접 참가자에게 공유해주세요.`);
+  toast.success(`방 코드가 복사되었습니다. 면접 참가자에게 공유해주세요.`);
 }
 
 export function switchScreen() {
