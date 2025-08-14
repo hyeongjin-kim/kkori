@@ -164,7 +164,7 @@ export const pairInterviewerControlButtonProps = [
 
 export const INTERVIEW_MESSAGE_TYPE = {
   USER_EXITED: 'user-exited',
-  ROLES_SWAP: 'roles-swap',
+  ROLES_SWAP: 'roles-swapped',
   INTERVIEW_STARTED: 'interview-started',
   INTERVIEW_ENDED: 'interview-ended',
   ANSWER_RECORDING_START: 'answer-recording-start',

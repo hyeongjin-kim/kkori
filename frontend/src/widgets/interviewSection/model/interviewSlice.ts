@@ -84,6 +84,7 @@ const userExitedHandler = (client: Client, data: any) => {
 };
 
 const rolesSwapHandler = (client: Client, get: any, data: any) => {
+  console.log('rolesSwapHandler');
   useInterviewRoomStore
     .getState()
     .setRole(
