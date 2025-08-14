@@ -7,13 +7,7 @@ describe('GoToButton', () => {
   beforeEach(() => {
     render(
       <MemoryRouterWrapped
-        component={
-          <GoToButton
-            to="/question-set-create"
-            label="go-to-button"
-            text="test"
-          />
-        }
+        component={<GoToButton to="/login" label="go-to-button" text="test" />}
       />,
     );
   });
@@ -27,7 +21,7 @@ describe('GoToButton', () => {
     const button = screen.getByRole('link', { name: 'go-to-button' });
     await userEvent.click(button);
     expect(
-      screen.getByRole('main', { name: 'question-set-create-page' }),
+      screen.getByRole('main', { name: 'login-page' }),
     ).toBeInTheDocument();
   });
 });

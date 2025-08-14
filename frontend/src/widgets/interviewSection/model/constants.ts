@@ -8,6 +8,8 @@ import {
   startCustomQuestion,
   endCustomQuestion,
   exitInterview,
+  switchRole,
+  copyRoomId,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -71,10 +73,22 @@ export const soloIntervieweeControlButtonProps = [
 
 export const pairIntervieweeControlButtonProps = [
   {
+    onClick: copyRoomId,
+    label: 'copy-room-id',
+    text: '방 코드 복사',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
+  {
     onClick: switchScreen,
     label: 'screen-change',
     text: '화면 전환',
     status: 'always',
+  },
+  {
+    onClick: switchRole,
+    label: 'role-change',
+    text: '역할 변경',
+    status: interviewStatus.BEFORE_INTERVIEW,
   },
   {
     onClick: startInterview,
@@ -111,10 +125,22 @@ export const pairIntervieweeControlButtonProps = [
 
 export const pairInterviewerControlButtonProps = [
   {
+    onClick: copyRoomId,
+    label: 'copy-room-id',
+    text: '방 코드 복사',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
+  {
     onClick: switchScreen,
     label: 'screen-change',
     text: '화면 전환',
     status: interviewStatus.ALWAYS,
+  },
+  {
+    onClick: switchRole,
+    label: 'role-change',
+    text: '역할 변경',
+    status: interviewStatus.BEFORE_INTERVIEW,
   },
   {
     onClick: openNextQuestionModal,
@@ -151,6 +177,7 @@ export const pairInterviewerControlButtonProps = [
 
 export const INTERVIEW_MESSAGE_TYPE = {
   USER_EXITED: 'user-exited',
+  ROLES_SWAP: 'roles-swapped',
   INTERVIEW_STARTED: 'interview-started',
   INTERVIEW_ENDED: 'interview-ended',
   ANSWER_RECORDING_START: 'answer-recording-start',
