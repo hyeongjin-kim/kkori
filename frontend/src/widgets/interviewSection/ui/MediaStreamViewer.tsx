@@ -48,7 +48,7 @@ function MediaStreamViewer({ type }: { type: MediaStreamType }) {
       className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-black"
     >
       <VideoStream type={type} />
-      <VideoPlaceholder visible={!isVideoOn} />
+      <VideoPlaceholder visible={!isVideoOn} type={type} />
       {type === 'my' && (
         <div className="absolute right-4 bottom-4 z-10 flex gap-4">
           <AudioStateDisplay

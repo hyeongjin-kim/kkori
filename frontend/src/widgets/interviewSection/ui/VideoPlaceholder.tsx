@@ -2,17 +2,20 @@ import { VideoOff } from 'lucide-react';
 import useInterviewRoomStore, {
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { MediaStreamType } from '@/widgets/interviewSection/model/types';
 
 type Props = {
   visible: boolean;
   className?: string;
   label?: string;
+  type: MediaStreamType;
 };
 
 export default function VideoPlaceholder({
   visible,
   className,
   label = '카메라 꺼짐',
+  type,
 }: Props) {
   if (!visible) return null;
   return (
@@ -20,7 +23,8 @@ export default function VideoPlaceholder({
       aria-label="video-placeholder"
       className={`pointer-events-none absolute inset-0 grid place-items-center ${className ?? ''}`}
     >
-      {useInterviewRoomStore.getState().type === interviewType.SOLO ? (
+      {useInterviewRoomStore.getState().type === interviewType.SOLO &&
+      type === 'peer' ? (
         <img
           src="/interviewer.png"
           alt="interviewer-image"
