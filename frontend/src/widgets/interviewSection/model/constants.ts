@@ -48,7 +48,7 @@ export const soloIntervieweeControlButtonProps = [
     onClick: endInterview,
     label: 'interview-end',
     text: '면접  종료',
-    status: interviewStatus.ALWAYS,
+    status: interviewStatus.DURING_INTERVIEW,
   },
   {
     onClick: startCustomQuestion,
@@ -112,7 +112,7 @@ export const pairIntervieweeControlButtonProps = [
     onClick: endInterview,
     label: 'interview-end',
     text: '면접 종료',
-    status: interviewStatus.ALWAYS,
+    status: interviewStatus.DURING_INTERVIEW,
   },
   {
     onClick: exitInterview,
@@ -164,7 +164,7 @@ export const pairInterviewerControlButtonProps = [
     onClick: endInterview,
     label: 'interview-end',
     text: '면접 종료',
-    status: interviewStatus.ALWAYS,
+    status: interviewStatus.DURING_INTERVIEW,
   },
   {
     onClick: exitInterview,

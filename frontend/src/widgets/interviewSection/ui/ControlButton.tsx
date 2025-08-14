@@ -10,6 +10,24 @@ interface ControlButtonProps {
   path?: string;
 }
 
+function shouldShow(
+  status: (typeof interviewStatus)[keyof typeof interviewStatus],
+) {
+  const currentStatus = useInterviewRoomStore(state => state.status);
+
+  switch (status) {
+    case interviewStatus.ALWAYS:
+      return true;
+    case interviewStatus.DURING_INTERVIEW:
+      return (
+        currentStatus !== interviewStatus.END_INTERVIEW &&
+        currentStatus !== interviewStatus.BEFORE_INTERVIEW
+      );
+    default:
+      return currentStatus === status;
+  }
+}
+
 /**
  * 단일 버튼 스타일 가이드
  * - Glass 카드 위에서 잘 보이는 준그라데이션 + 섬세한 그림자
@@ -22,11 +40,9 @@ function ControlButton({
   status,
   path,
 }: ControlButtonProps) {
-  const currentStatus = useInterviewRoomStore(state => state.status);
-  const shouldShow = status === 'always' ? true : currentStatus === status;
   const navigate = useNavigate();
 
-  if (!shouldShow) return null;
+  if (!shouldShow(status)) return null;
 
   const handleClick = () => {
     onClick();

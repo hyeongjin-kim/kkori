@@ -12,6 +12,7 @@ export const interviewStatus = {
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
   END_INTERVIEW: 'endInterview',
   ALWAYS: 'always',
+  DURING_INTERVIEW: 'duringInterview',
 };
 
 export const interviewType = Object.freeze({
