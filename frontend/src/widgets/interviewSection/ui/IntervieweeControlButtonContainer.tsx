@@ -14,7 +14,10 @@ function IntervieweeControlButtonContainer() {
       : pairIntervieweeControlButtonProps,
   );
   return (
-    <div aria-label="interviewee-control-button-container">
+    <div
+      aria-label="interviewee-control-button-container"
+      className="flex gap-4"
+    >
       {controlButtonProps.map(({ label, onClick, text, status, path }) => (
         <ControlButton
           key={label}

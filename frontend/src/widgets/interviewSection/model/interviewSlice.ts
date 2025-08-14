@@ -2,6 +2,7 @@ import { Client } from '@stomp/stompjs';
 import { StateCreator } from 'zustand';
 import { INTERVIEW_MESSAGE_TYPE } from '@/widgets/interviewSection/model/constants';
 import useInterviewRoomStore, {
+  interviewRole,
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import {
@@ -33,6 +34,9 @@ export const createInterviewSlice: StateCreator<
     switch (response.type) {
       case INTERVIEW_MESSAGE_TYPE.USER_EXITED:
         userExitedHandler(client, response.data);
+        break;
+      case INTERVIEW_MESSAGE_TYPE.ROLES_SWAP:
+        rolesSwapHandler(client, get, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.INTERVIEW_STARTED:
         interviewStartedHandler(client, get, response.data, response.timestamp);
@@ -77,6 +81,17 @@ export const createInterviewSlice: StateCreator<
 
 const userExitedHandler = (client: Client, data: any) => {
   console.log(data);
+};
+
+const rolesSwapHandler = (client: Client, get: any, data: any) => {
+  console.log('rolesSwapHandler');
+  useInterviewRoomStore
+    .getState()
+    .setRole(
+      useInterviewRoomStore.getState().role === interviewRole.INTERVIEWEE
+        ? interviewRole.INTERVIEWER
+        : interviewRole.INTERVIEWEE,
+    );
 };
 
 const interviewStartedHandler = (
