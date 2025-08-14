@@ -33,8 +33,8 @@ const usePeerConnectionStore = create<
             'turn:kkori.store:3478?transport=tcp',
             'turns:kkori.store:5349?transport=tcp',
           ],
-          username: process.env.TURN_USERNAME || '',
-          credential: process.env.TURN_CREDENTIAL || '',
+          username: 'kkori',
+          credential: 'kkori',
         },
       ],
     });
