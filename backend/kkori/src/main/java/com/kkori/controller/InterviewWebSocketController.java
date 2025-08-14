@@ -161,12 +161,13 @@ public class InterviewWebSocketController {
 
         try {
             String roomId = request.getRoomId();
-            interviewSessionService.completeInterview(roomId);
 
             SuccessResponse response = new SuccessResponse(
                     InterviewMessages.INTERVIEW_COMPLETED
             );
             webSocketHelper.broadcastToRoom(roomId, "interview-ended", response);
+
+            interviewSessionService.completeInterview(roomId);
 
         } catch (Exception e) {
             webSocketHelper.sendErrorToUser(authenticatedUserId, ExceptionCode.INTERVIEW_END_FAILED, e.getMessage());
@@ -301,7 +302,7 @@ public class InterviewWebSocketController {
     }
 
     private boolean isReconnection(String roomId, Long userId) {
-        if (roomId != null) {
+        if (roomId != null && !interviewSessionService.isReconnection(roomId, userId)) {
             return false;
         }
         handleReconnection(userId);
