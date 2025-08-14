@@ -5,6 +5,9 @@ import {
   startInterview,
   endInterview,
   openNextQuestionModal,
+  startCustomQuestion,
+  endCustomQuestion,
+  exitInterview,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -30,35 +33,54 @@ export const soloIntervieweeControlButtonProps = [
   {
     onClick: startAnswer,
     label: 'answer-start',
-    text: '답변 시작',
+    text: '답변 녹음 시작',
     status: interviewStatus.QUESTION_PRESENTED,
   },
   {
     onClick: endAnswer,
     label: 'answer-end',
-    text: '답변 종료',
+    text: '답변 녹음 종료',
     status: interviewStatus.ANSWER_START,
   },
   {
     onClick: endInterview,
     label: 'interview-end',
-    text: '면접 종료',
+    text: '면접  종료',
     status: interviewStatus.ALWAYS,
+  },
+  {
+    onClick: startCustomQuestion,
+    label: 'custom-question-start',
+    text: '커스텀 질문 녹음 시작',
+    status: interviewStatus.CUSTOM_QUESTION_SELECTED,
+  },
+  {
+    onClick: endCustomQuestion,
+    label: 'custom-question-end',
+    text: '커스텀 질문 녹음 종료',
+    status: interviewStatus.CUSTOM_QUESTION_START,
+  },
+  {
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
   },
 ];
 
-export const peerIntervieweeControlButtonProps = [
+export const pairIntervieweeControlButtonProps = [
+  {
+    onClick: switchScreen,
+    label: 'screen-change',
+    text: '화면 전환',
+    status: 'always',
+  },
   {
     onClick: startInterview,
     label: 'interview-start',
     text: '면접 시작',
     status: interviewStatus.BEFORE_INTERVIEW,
-  },
-  {
-    onClick: openNextQuestionModal,
-    label: 'next-question-select',
-    text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_PRESENTED,
   },
   {
     onClick: startAnswer,
@@ -78,9 +100,16 @@ export const peerIntervieweeControlButtonProps = [
     text: '면접 종료',
     status: interviewStatus.ALWAYS,
   },
+  {
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
+  },
 ];
 
-export const peerInterviewerControlButtonProps = [
+export const pairInterviewerControlButtonProps = [
   {
     onClick: switchScreen,
     label: 'screen-change',
@@ -88,10 +117,22 @@ export const peerInterviewerControlButtonProps = [
     status: interviewStatus.ALWAYS,
   },
   {
-    onClick: startInterview,
-    label: 'interview-start',
-    text: '면접 시작',
-    status: interviewStatus.BEFORE_INTERVIEW,
+    onClick: openNextQuestionModal,
+    label: 'next-question-select',
+    text: '다음 질문 선택',
+    status: interviewStatus.NEXT_QUESTION_PRESENTED,
+  },
+  {
+    onClick: startCustomQuestion,
+    label: 'custom-question-start',
+    text: '커스텀 질문 녹음 시작',
+    status: interviewStatus.CUSTOM_QUESTION_SELECTED,
+  },
+  {
+    onClick: endCustomQuestion,
+    label: 'custom-question-end',
+    text: '커스텀 질문 녹음 종료',
+    status: interviewStatus.CUSTOM_QUESTION_START,
   },
   {
     onClick: endInterview,
@@ -100,10 +141,11 @@ export const peerInterviewerControlButtonProps = [
     status: interviewStatus.ALWAYS,
   },
   {
-    onClick: openNextQuestionModal,
-    label: 'next-question-select',
-    text: '다음 질문 선택',
-    status: interviewStatus.NEXT_QUESTION_PRESENTED,
+    onClick: exitInterview,
+    label: 'exit-interview',
+    text: '나가기',
+    status: interviewStatus.END_INTERVIEW,
+    path: '/',
   },
 ];
 

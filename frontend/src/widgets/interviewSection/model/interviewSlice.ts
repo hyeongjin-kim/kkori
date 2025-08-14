@@ -35,25 +35,35 @@ export const createInterviewSlice: StateCreator<
         userExitedHandler(client, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.INTERVIEW_STARTED:
-        interviewStartedHandler(client, set, response.data);
+        interviewStartedHandler(client, get, response.data, response.timestamp);
         break;
       case INTERVIEW_MESSAGE_TYPE.INTERVIEW_ENDED:
-        interviewEndedHandler(client, set, response.data);
+        interviewEndedHandler(client, get, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.ANSWER_RECORDING_START:
-        answerRecordingStartHandler(client, set, response.data);
+        answerRecordingStartHandler(client, get, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.STT_RESULT:
         sttResultHandler(client, get, response.data, response.timestamp);
         break;
       case INTERVIEW_MESSAGE_TYPE.NEXT_QUESTION_SELECTED:
-        nextQuestionSelectedHandler(client, set, response.data);
+        nextQuestionSelectedHandler(
+          client,
+          get,
+          response.data,
+          response.timestamp,
+        );
         break;
       case INTERVIEW_MESSAGE_TYPE.CUSTOM_QUESTION_START:
-        customQuestionStartHandler(client, set, response.data);
+        customQuestionStartHandler(client, get, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.CUSTOM_QUESTION_CREATED:
-        customQuestionCreatedHandler(client, set, response.data);
+        customQuestionCreatedHandler(
+          client,
+          get,
+          response.data,
+          response.timestamp,
+        );
         break;
       case INTERVIEW_MESSAGE_TYPE.CHAT:
         chatHandler(client, get, response.data);
@@ -69,7 +79,12 @@ const userExitedHandler = (client: Client, data: any) => {
   console.log(data);
 };
 
-const interviewStartedHandler = (client: Client, set: any, data: any) => {
+const interviewStartedHandler = (
+  client: Client,
+  get: any,
+  data: any,
+  timestamp: number,
+) => {
   console.log(data);
   const firstQuestion = data.firstQuestion;
 
@@ -78,17 +93,24 @@ const interviewStartedHandler = (client: Client, set: any, data: any) => {
     id: firstQuestion.questionId,
     questionType: firstQuestion.questionType,
   });
+  get().addMessage({
+    type: 'question',
+    content: firstQuestion.questionText,
+    sender: '질문',
+    timestamp,
+    confirmed: true,
+  });
   useInterviewRoomStore
     .getState()
     .setStatus(interviewStatus.QUESTION_PRESENTED);
 };
 
-const interviewEndedHandler = (client: Client, set: any, data: any) => {
+const interviewEndedHandler = (client: Client, get: any, data: any) => {
   console.log(data);
   useInterviewRoomStore.getState().setStatus(interviewStatus.END_INTERVIEW);
 };
 
-const answerRecordingStartHandler = (client: Client, set: any, data: any) => {
+const answerRecordingStartHandler = (client: Client, get: any, data: any) => {
   useInterviewRoomStore.getState().setStatus(interviewStatus.ANSWER_START);
 };
 
@@ -103,13 +125,53 @@ const sttResultHandler = (
     sender: '답변',
     content: data.transcribedText,
     timestamp: timestamp,
-    isMyMessage: false,
     confirmed: true,
   };
   get().addMessage(message);
 };
 
-const nextQuestionSelectedHandler = (client: Client, set: any, data: any) => {
+const nextQuestionSelectedHandler = (
+  client: Client,
+  get: any,
+  data: any,
+  timestamp: number,
+) => {
+  useInterviewQuestionStore.getState().setCurrentQuestion({
+    question: data.questionText,
+    id: data.questionId,
+    questionType: data.questionType,
+  });
+  get().addMessage({
+    type: 'question',
+    content: data.questionText,
+    sender: '질문',
+    timestamp,
+    confirmed: true,
+  });
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.QUESTION_PRESENTED);
+};
+
+const customQuestionStartHandler = (client: Client, get: any, data: any) => {
+  useInterviewRoomStore
+    .getState()
+    .setStatus(interviewStatus.CUSTOM_QUESTION_START);
+};
+
+const customQuestionCreatedHandler = (
+  client: Client,
+  get: any,
+  data: any,
+  timestamp: number,
+) => {
+  get().addMessage({
+    type: 'question',
+    content: data.questionText,
+    sender: '질문',
+    timestamp,
+    confirmed: true,
+  });
   useInterviewQuestionStore.getState().setCurrentQuestion({
     question: data.questionText,
     id: data.questionId,
@@ -120,30 +182,19 @@ const nextQuestionSelectedHandler = (client: Client, set: any, data: any) => {
     .setStatus(interviewStatus.QUESTION_PRESENTED);
 };
 
-const customQuestionStartHandler = (client: Client, set: any, data: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.CUSTOM_QUESTION_START);
-};
-
-const customQuestionCreatedHandler = (client: Client, set: any, data: any) => {
-  useInterviewRoomStore
-    .getState()
-    .setStatus(interviewStatus.CUSTOM_QUESTION_CREATED);
-};
-
 const chatHandler = (client: Client, get: any, data: any) => {
   const message = {
     type: 'chat',
-    content: data.message,
+    content: data.content,
     sender: data.senderNickname,
     timestamp: data.timestamp,
+    confirmed: false,
   };
   if (data.senderNickname === useUserStore.getState().nickname) {
     get().confirmMessage(message);
     return;
   }
-  get().addMessage({ message });
+  get().addMessage(message);
 };
 
 const errorHandler = (client: Client, data: any) => {

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import PairPracticeButton from '@/pages/homePage/ui/PairPracticeButton';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
+import { interviewRole } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 describe('PairPracticeButton', () => {
   const onClick = jest.fn();

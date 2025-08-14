@@ -15,7 +15,6 @@ export const submitChatting = (e: FormEvent<HTMLFormElement>) => {
     content: text,
     sender: useUserStore.getState().nickname,
     timestamp,
-    isMyMessage: true,
     confirmed: false,
   });
   usePracticeSessionStore

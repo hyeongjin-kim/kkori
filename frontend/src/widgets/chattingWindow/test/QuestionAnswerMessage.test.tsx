@@ -13,7 +13,6 @@ describe('QuestionAnswerMessage', () => {
             sender: 'tester',
             content: 'test',
             timestamp: new Date().getTime(),
-            isMyMessage: false,
             confirmed: true,
           }}
         />,

@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { PracticeButton } from '@/pages/homePage/ui/PracticeButton';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
+import {
+  interviewRole,
+  interviewType,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 test('버튼을 누르면 이벤트가 발생한다', () => {
   const onClick = jest.fn();
