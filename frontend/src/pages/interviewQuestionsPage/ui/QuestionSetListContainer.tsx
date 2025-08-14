@@ -6,14 +6,18 @@ import { useNavigate } from 'react-router-dom';
 
 export default function QuestionSetListContainer() {
   const selectedTag = useQuestionSetFilterStore(s => s.selectedTag);
-  const { data, isLoading, isError } = useQuestionSets({
-    tags: selectedTag === TAG_FILTER_LIST[0].tag ? undefined : [selectedTag],
-  });
+  const { data, isLoading, isError } = useQuestionSets(
+    selectedTag === TAG_FILTER_LIST[0].tag
+      ? {}
+      : {
+          tags: [selectedTag],
+        },
+  );
   const navigate = useNavigate();
   const goDetail = (questionSetId: number) =>
     navigate(`/question-set-detail/${questionSetId}`);
   if (isError) return <div className="p-4 text-red-500">불러오기 실패</div>;
-
+  console.log(data);
   return (
     <QuestionSetList
       questionSets={data?.data.content ?? []}
