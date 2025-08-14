@@ -25,13 +25,13 @@ const usePeerConnectionStore = create<
     onIceCandidate: (candidate: RTCIceCandidate) => void,
   ) => {
     const peerConnection = new RTCPeerConnection({
-      iceTransportPolicy: 'all',
+      iceTransportPolicy: 'relay',
       iceServers: [
         {
           urls: [
-            'turn:kkori.site:3478?transport=udp',
-            'turn:kkori.site:3478?transport=tcp',
-            'turns:kkori.site:5349?transport=tcp',
+            'turn:kkori.store:3478?transport=udp',
+            'turn:kkori.store:3478?transport=tcp',
+            'turns:kkori.store:5349?transport=tcp',
           ],
           username: process.env.TURN_USERNAME || '',
           credential: process.env.TURN_CREDENTIAL || '',
