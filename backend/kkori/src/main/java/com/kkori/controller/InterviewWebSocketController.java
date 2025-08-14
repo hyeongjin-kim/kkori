@@ -174,6 +174,13 @@ public class InterviewWebSocketController {
         }
     }
 
+    @MessageMapping("/interview-status")
+    public void handleUserStatus(@Payload String newStatus, SimpMessageHeaderAccessor headerAccessor) {
+        Long authenticatedUserId = webSocketHelper.getAuthenticatedUserId(headerAccessor);
+
+        webSocketHelper.
+    }
+
     // ==================== 답변 처리 ====================
 
     @MessageMapping("/answer-start")

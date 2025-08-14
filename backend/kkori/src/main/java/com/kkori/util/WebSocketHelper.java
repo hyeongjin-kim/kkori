@@ -129,6 +129,14 @@ public class WebSocketHelper {
         return userId;
     }
 
+    public void updateLastStatus(Long userId, String newStatus) {
+        userLastEventStore.updateStatus(userId, newStatus);
+    }
+
+    public String getLastStatus(Long userId) {
+        return userLastEventStore.getLastStatus(userId);
+    }
+
     // ==================== 헬퍼 메서드 ====================
     private void updateLastEvent(Set<Long> userIds, String messageType, Object newEvent) {
         if (updateIgnoreTypes.contains(messageType)) {
