@@ -4,7 +4,10 @@ import { pairInterviewerControlButtonProps } from '@/widgets/interviewSection/mo
 function InterviewerControlButtonContainer() {
   const controlButtonProps = pairInterviewerControlButtonProps;
   return (
-    <div aria-label="interviewer-control-button-container">
+    <div
+      aria-label="interviewer-control-button-container"
+      className="flex gap-4"
+    >
       {controlButtonProps.map(({ label, onClick, text, status, path }) => (
         <ControlButton
           key={label}
