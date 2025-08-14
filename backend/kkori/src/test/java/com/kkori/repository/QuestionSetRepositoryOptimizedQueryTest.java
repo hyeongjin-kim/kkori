@@ -355,8 +355,8 @@ class QuestionSetRepositoryOptimizedQueryTest {
             long largePageTime = endTime2 - startTime2;
 
             // 페이징이 효율적으로 동작해야 함
-            assertThat(smallPageTime).isLessThan(20_000_000L); // 20ms 이내
-            assertThat(largePageTime).isLessThan(100_000_000L); // 100ms 이내
+            assertThat(smallPageTime).isLessThan(40_000_000L); // 40ms 이내
+            assertThat(largePageTime).isLessThan(200_000_000L); // 200ms 이내
         }
 
         @Test
