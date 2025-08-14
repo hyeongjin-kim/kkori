@@ -1,4 +1,6 @@
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewRole,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import { useInterviewQuestionStore } from './useInterviewQuestionStore';
@@ -14,6 +16,10 @@ export function switchScreen() {
 
   setMainStreamType(switchStreamType(mainStreamType));
   setSubStreamType(switchStreamType(subStreamType));
+}
+
+export function switchRole() {
+  usePracticeSessionStore.getState().swapRole();
 }
 
 export function startAnswer() {

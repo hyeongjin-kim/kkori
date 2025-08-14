@@ -8,6 +8,7 @@ import {
   startCustomQuestion,
   endCustomQuestion,
   exitInterview,
+  switchRole,
 } from '@/widgets/interviewSection/model';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
@@ -77,6 +78,12 @@ export const pairIntervieweeControlButtonProps = [
     status: 'always',
   },
   {
+    onClick: switchRole,
+    label: 'role-change',
+    text: '역할 변경',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
+  {
     onClick: startInterview,
     label: 'interview-start',
     text: '면접 시작',
@@ -117,6 +124,12 @@ export const pairInterviewerControlButtonProps = [
     status: interviewStatus.ALWAYS,
   },
   {
+    onClick: switchRole,
+    label: 'role-change',
+    text: '역할 변경',
+    status: interviewStatus.BEFORE_INTERVIEW,
+  },
+  {
     onClick: openNextQuestionModal,
     label: 'next-question-select',
     text: '다음 질문 선택',
@@ -151,6 +164,7 @@ export const pairInterviewerControlButtonProps = [
 
 export const INTERVIEW_MESSAGE_TYPE = {
   USER_EXITED: 'user-exited',
+  ROLES_SWAP: 'roles-swap',
   INTERVIEW_STARTED: 'interview-started',
   INTERVIEW_ENDED: 'interview-ended',
   ANSWER_RECORDING_START: 'answer-recording-start',

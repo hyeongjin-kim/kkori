@@ -52,6 +52,7 @@ interface WebSocketAction {
   nextQuestionSelect: () => void;
   customQuestionStart: () => void;
   customQuestionCreate: () => void;
+  swapRole: () => void;
   setQuestionSetId: (questionSetId: number) => void;
   setRoomId: (roomId: string) => void;
   setJoinRoomMode: (
@@ -132,6 +133,12 @@ export const createWebSocketSlice: StateCreator<
   setRoomId: (roomId: string) => {
     console.log('setRoomId', roomId);
     set({ roomId });
+  },
+  swapRole: () => {
+    get().client?.publish({
+      destination: `/app/roles-swap`,
+      body: JSON.stringify({ roomId: get().roomId }),
+    });
   },
   interviewStart: () => {
     get().client?.publish({
