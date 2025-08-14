@@ -25,7 +25,7 @@ const usePeerConnectionStore = create<
     onIceCandidate: (candidate: RTCIceCandidate) => void,
   ) => {
     const peerConnection = new RTCPeerConnection({
-      iceTransportPolicy: 'relay',
+      iceTransportPolicy: 'all',
       iceServers: [
         {
           urls: [
