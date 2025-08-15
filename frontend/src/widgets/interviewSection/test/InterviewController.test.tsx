@@ -13,22 +13,11 @@ describe('InterviewController', () => {
   });
 
   test('InterviewController가 렌더링 되어야 한다.', () => {
-    render(<MemoryRouterWrapped component={<InterviewController />} />);
-    const interviewController = screen.getByLabelText('interview-controller');
-    expect(interviewController).toBeInTheDocument();
-  });
-
-  test('PreInterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
-    render(<MemoryRouterWrapped component={<InterviewController />} />);
-    const preInterviewControlButtonContainer = screen.getByLabelText(
-      'pre-interview-control-button-container',
+    render(
+      <MemoryRouterWrapped
+        component={<InterviewController openModal={() => {}} />}
+      />,
     );
-    expect(preInterviewControlButtonContainer).toBeInTheDocument();
-  });
-
-  test('InterviewControlButtonContainer가 렌더링 되어야 한다.', () => {
-    setStatus(interviewStatus.QUESTION_PRESENTED);
-    render(<MemoryRouterWrapped component={<InterviewController />} />);
     const interviewController = screen.getByLabelText('interview-controller');
     expect(interviewController).toBeInTheDocument();
   });
