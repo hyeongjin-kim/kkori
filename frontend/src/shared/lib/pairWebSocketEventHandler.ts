@@ -27,9 +27,6 @@ export const pairWebSocketEventHandler = (
     case 'joined-user':
       joinedUserHandler(client, get, set, response.data);
       break;
-    case 'user-exited':
-      userExitedHandler(client, get, set, response.data);
-      break;
     case 'room-status':
       roomStatusHandler(client, set, response.data);
       break;
@@ -118,10 +115,6 @@ const existingUserHandler = async (
 const joinedUserHandler = (client: Client, get: any, set: any, data: any) => {
   useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWEE);
   get().setOpponentNickname(data.nickname);
-};
-
-const userExitedHandler = (client: Client, get: any, set: any, data: any) => {
-  usePeerConnectionStore.getState().clearConnections();
 };
 
 const roomStatusHandler = (client: Client, set: any, data: any) => {
