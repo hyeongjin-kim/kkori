@@ -114,10 +114,6 @@ export const createWebSocketSlice: StateCreator<
         }
       },
       onDisconnect: () => {
-        get().client?.publish({
-          destination: '/app/room-exit',
-          body: JSON.stringify({ roomId: get().roomId }),
-        });
         set({ client: null, isConnected: false });
       },
     });
@@ -125,6 +121,10 @@ export const createWebSocketSlice: StateCreator<
   },
   disconnect: () => {
     if (!get().client || !get().isConnected) return;
+    get().client?.publish({
+      destination: '/app/room-exit',
+      body: JSON.stringify({ roomId: get().roomId }),
+    });
     get().client?.deactivate();
     console.log('disconnect');
     usePeerConnectionStore.getState().clearConnections();
