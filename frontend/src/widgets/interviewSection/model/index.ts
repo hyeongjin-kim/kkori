@@ -1,6 +1,4 @@
-import useInterviewRoomStore, {
-  interviewRole,
-} from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import { useInterviewQuestionStore } from './useInterviewQuestionStore';
@@ -103,12 +101,7 @@ export function startInterview() {
   usePracticeSessionStore.getState().interviewStart();
 }
 
-export function openNextQuestionModal() {
-  useInterviewRoomStore.getState().setModalOpen(true);
-}
-
 export function chooseTailQuestion(questionIndex: number) {
-  useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewQuestionStore
     .getState()
     .setNextQuestion(
@@ -118,7 +111,6 @@ export function chooseTailQuestion(questionIndex: number) {
 }
 
 export function chooseDefaultQuestion() {
-  useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewQuestionStore
     .getState()
     .setNextQuestion(useInterviewQuestionStore.getState().defaultQuestion);
@@ -126,7 +118,6 @@ export function chooseDefaultQuestion() {
 }
 
 export function chooseCustomQuestion() {
-  useInterviewRoomStore.getState().setModalOpen(false);
   useInterviewRoomStore
     .getState()
     .setStatus(interviewStatus.CUSTOM_QUESTION_SELECTED);
