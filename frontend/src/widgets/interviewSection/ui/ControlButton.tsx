@@ -1,24 +1,23 @@
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { useNavigate } from 'react-router-dom';
+import { controlStatus } from '../model/types';
 
 interface ControlButtonProps {
   onClick: () => void;
   label: string;
   text: string;
-  status: (typeof interviewStatus)[keyof typeof interviewStatus];
+  status: string;
   path?: string;
 }
 
-function shouldShow(
-  status: (typeof interviewStatus)[keyof typeof interviewStatus],
-) {
+function shouldShow(status: string) {
   const currentStatus = useInterviewRoomStore(state => state.status);
 
   switch (status) {
-    case interviewStatus.ALWAYS:
+    case controlStatus.ALWAYS:
       return true;
-    case interviewStatus.DURING_INTERVIEW:
+    case controlStatus.DURING_INTERVIEW:
       return (
         currentStatus !== interviewStatus.END_INTERVIEW &&
         currentStatus !== interviewStatus.BEFORE_INTERVIEW
@@ -28,11 +27,6 @@ function shouldShow(
   }
 }
 
-/**
- * 단일 버튼 스타일 가이드
- * - Glass 카드 위에서 잘 보이는 준그라데이션 + 섬세한 그림자
- * - 키보드 포커스 링 / 호버 리프트 / 액티브 프레스
- */
 function ControlButton({
   onClick,
   label,
