@@ -15,7 +15,7 @@ function InterviewSection() {
       <CurrentQuestionDisplay />
       <div
         aria-label="media-stream-viewer-container"
-        className="flex h-full max-h-[24rem] w-full gap-4"
+        className="flex h-full max-h-[30rem] w-full gap-4"
       >
         <MediaStreamViewer type={mainStreamType} />
         <MediaStreamViewer type={subStreamType} />
