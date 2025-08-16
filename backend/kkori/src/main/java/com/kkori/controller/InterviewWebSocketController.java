@@ -24,6 +24,7 @@ import com.kkori.message.InterviewMessages;
 import com.kkori.service.InterviewSessionService;
 import com.kkori.service.UserService;
 import com.kkori.util.WebSocketHelper;
+import com.kkori.component.interview.UserLastEventStore;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -41,6 +42,7 @@ public class InterviewWebSocketController {
     private final InterviewSessionService interviewSessionService;
     private final UserService userService;
     private final WebSocketHelper webSocketHelper;
+    private final UserLastEventStore userLastEventStore;
 
     // ==================== 방 관리 ====================
 
@@ -84,13 +86,14 @@ public class InterviewWebSocketController {
 
         try {
             String roomId = request.getRoomId();
-            interviewSessionService.exitRoom(roomId, authenticatedUserId);
 
             SuccessResponse broadcastResponse = new SuccessResponse(
                     InterviewMessages.USER_EXITED
             );
+
             webSocketHelper.broadcastToRoom(roomId, "user-exited", broadcastResponse);
 
+            interviewSessionService.exitRoom(roomId, authenticatedUserId);
         } catch (Exception e) {
             // 방 나가기는 항상 성공으로 처리
         }
@@ -176,9 +179,14 @@ public class InterviewWebSocketController {
 
     @MessageMapping("/interview-status")
     public void handleUserStatus(@Payload String newStatus, SimpMessageHeaderAccessor headerAccessor) {
-        Long authenticatedUserId = webSocketHelper.getAuthenticatedUserId(headerAccessor);
+        Long authenticatedUserId = webSocketHelper.requireAuthenticatedUserId(headerAccessor);
 
-        
+        try {
+            // UserLastEventStore에 상태 저장 (transitional 상태는 자동으로 필터링됨)
+            userLastEventStore.updateUserStatus(authenticatedUserId, newStatus);
+        } catch (Exception e) {
+            // 상태 업데이트 실패는 조용히 처리 (중요하지 않은 기능)
+        }
     }
 
     // ==================== 답변 처리 ====================
@@ -309,11 +317,19 @@ public class InterviewWebSocketController {
     }
 
     private boolean isReconnection(String roomId, Long userId) {
-        if (roomId != null && !interviewSessionService.isReconnection(roomId, userId)) {
-            return false;
+//        if(interviewSessionService.isReconnection(roomId, userId)){
+//            // 중복 탭 접근 시 기존 탭에 알림 전송
+//            webSocketHelper.sendPersonalMessage(userId, "disconnect", "다른 곳에서 접속하여 연결을 해제합니다.");
+//            handleReconnection(userId);
+//            return true;
+//        }
+
+        if (interviewSessionService.isReconnection(roomId, userId) || roomId == null) {
+            handleReconnection(userId);
+            return true;
         }
-        handleReconnection(userId);
-        return true;
+        
+        return false;
     }
 
     private void handleReconnection(Long userId) {
@@ -321,8 +337,9 @@ public class InterviewWebSocketController {
             String roomId = interviewSessionService.getRoomIdByUserId(userId);
 
             RoomReconnectionResponse response = new RoomReconnectionResponse(roomId);
-            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
+//            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
 
+//            webSocketHelper.sendLastStatusToUser(userId);
             webSocketHelper.sendLastEventToUser(userId);
         } catch (InterviewRoomException e) {
             webSocketHelper.sendErrorToUser(userId, e.getExceptionCode());
