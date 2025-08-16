@@ -18,7 +18,7 @@ export default function InterviewRecordList({
     return (
       <ul
         aria-label="interview-record-list-skeleton"
-        className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+        className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2"
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <InterviewRecordListSkeleton key={i} />
@@ -34,7 +34,7 @@ export default function InterviewRecordList({
   return (
     <ul
       aria-label="interview-record-list"
-      className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+      className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2"
     >
       {interviewRecords.map(item => (
         <InterviewRecordCard
