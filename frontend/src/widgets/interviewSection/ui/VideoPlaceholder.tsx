@@ -11,6 +11,18 @@ type Props = {
   type: MediaStreamType;
 };
 
+function ReplacedInterviewerImage() {
+  return (
+    <img
+      src="/interviewer.webp"
+      alt="interviewer-image"
+      className="h-4/5 w-auto"
+      loading="eager"
+      decoding="async"
+    />
+  );
+}
+
 export default function VideoPlaceholder({
   visible,
   className,
@@ -25,11 +37,7 @@ export default function VideoPlaceholder({
     >
       {useInterviewRoomStore.getState().type === interviewType.SOLO &&
       type === 'peer' ? (
-        <img
-          src="/interviewer.png"
-          alt="interviewer-image"
-          className="h-4/5 w-auto"
-        />
+        <ReplacedInterviewerImage />
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-md bg-white/90 p-4 shadow-lg backdrop-blur">
           <VideoOff className="h-7 w-7" />
