@@ -1,18 +1,22 @@
 import ChattingWindowContainer from '@/widgets/chattingWindow';
 import InterviewSection from '@/widgets/interviewSection';
-import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
 import useInterviewRoomStore, {
   interviewStatus,
-  interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 import { useModal } from '@/shared/lib/useModal';
 import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import { usePracticeSessionHydrated } from '@/shared/lib/usePracticeSessionHydrated';
+import { useInterviewRoomHydrated } from '@/entities/interviewRoom/model/useInterviewRoomHydrated';
+import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
-
+  const { error } = useInitMediaStream();
+  const practiceSessionHydrated = usePracticeSessionHydrated();
+  const interviewRoomHydrated = useInterviewRoomHydrated();
+  if (!practiceSessionHydrated || !interviewRoomHydrated) return null;
   useEffect(() => {
     useInterviewRoomStore
       .getState()
