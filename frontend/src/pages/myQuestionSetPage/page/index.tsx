@@ -1,7 +1,5 @@
-import { Link } from 'react-router-dom';
 import MyQuestionSetListContainer from '@/pages/myQuestionSetPage/ui/MyQuestionSetListContainer';
 import GoToButton from '@/shared/ui/GoToButton';
-import { FcPlus } from 'react-icons/fc';
 
 function MyQuestionSetPage() {
   return (
@@ -33,7 +31,6 @@ function MyQuestionSetPage() {
         >
           <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
             <h2 className="text-sm font-medium text-gray-900">전체 세트</h2>
-            <span className="text-xs text-gray-500">최대 100개</span>
           </div>
 
           <div className="scrollbar-thin scrollbar-thumb-gray-300/70 scrollbar-track-transparent h-full overflow-y-auto p-4 md:p-5">
