@@ -48,6 +48,8 @@
 
 JWT 기반 사용자 인증과 userId 매핑을 통해 재연결 시 이전 세션 상태를 정확히 복구할 수 있었고, 연결 상태 모니터링 오버헤드 없이도 빠른 재연결이 가능한 안정적인 면접 환경을 구축했습니다.
 
+[Wiki로 자세히 보기](https://lab.ssafy.com/s13-webmobile1-sub1/S13P11A707/-/wikis/Home/%7B%EC%A7%84%EA%B7%9C,-%EC%88%98%ED%95%9C%EC%9D%98-%EA%B3%A0%EB%AF%BC%EA%B3%BC-%ED%95%B4%EA%B2%B0%7D)
+
 <br/>
 
 ### 🛡️ **백**
