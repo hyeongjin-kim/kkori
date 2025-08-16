@@ -86,13 +86,14 @@ public class InterviewWebSocketController {
 
         try {
             String roomId = request.getRoomId();
-            interviewSessionService.exitRoom(roomId, authenticatedUserId);
 
             SuccessResponse broadcastResponse = new SuccessResponse(
                     InterviewMessages.USER_EXITED
             );
+
             webSocketHelper.broadcastToRoom(roomId, "user-exited", broadcastResponse);
 
+            interviewSessionService.exitRoom(roomId, authenticatedUserId);
         } catch (Exception e) {
             // 방 나가기는 항상 성공으로 처리
         }
@@ -316,14 +317,14 @@ public class InterviewWebSocketController {
     }
 
     private boolean isReconnection(String roomId, Long userId) {
-        if(interviewSessionService.isReconnection(roomId, userId)){
-            // 중복 탭 접근 시 기존 탭에 알림 전송
-            webSocketHelper.sendPersonalMessage(userId, "disconnect", "다른 곳에서 접속하여 연결을 해제합니다.");
-            handleReconnection(userId);
-            return true;
-        }
+//        if(interviewSessionService.isReconnection(roomId, userId)){
+//            // 중복 탭 접근 시 기존 탭에 알림 전송
+//            webSocketHelper.sendPersonalMessage(userId, "disconnect", "다른 곳에서 접속하여 연결을 해제합니다.");
+//            handleReconnection(userId);
+//            return true;
+//        }
 
-        if (roomId == null) {
+        if (interviewSessionService.isReconnection(roomId, userId) || roomId == null) {
             handleReconnection(userId);
             return true;
         }
@@ -336,9 +337,9 @@ public class InterviewWebSocketController {
             String roomId = interviewSessionService.getRoomIdByUserId(userId);
 
             RoomReconnectionResponse response = new RoomReconnectionResponse(roomId);
-            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
+//            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
 
-            webSocketHelper.sendLastStatusToUser(userId);
+//            webSocketHelper.sendLastStatusToUser(userId);
             webSocketHelper.sendLastEventToUser(userId);
         } catch (InterviewRoomException e) {
             webSocketHelper.sendErrorToUser(userId, e.getExceptionCode());

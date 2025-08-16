@@ -14,8 +14,6 @@ import com.kkori.component.interview.InterviewStatus;
 import com.kkori.component.interview.UserLastEventStore;
 import com.kkori.config.validator.WebSocketSecurityValidator;
 import com.kkori.dto.interview.request.CommonRoomRequest;
-import com.kkori.dto.interview.response.LastStatusResponse;
-import com.kkori.dto.interview.response.RoomReconnectionResponse;
 import com.kkori.entity.User;
 import com.kkori.exception.ExceptionCode;
 import com.kkori.exception.interview.InterviewRoomException;
@@ -115,39 +113,27 @@ class InterviewWebSocketReconnectionTest {
     }
 
     @Test
-    @DisplayName("새로운 탭으로 접근 시 중복 접속 처리 테스트")
-    void duplicateTabAccessTest() throws Exception {
+    @DisplayName("재연결 감지 테스트 - roomId가 있는 경우")
+    void reconnectionWithRoomIdTest() throws Exception {
         // given - 사용자가 이미 방에 접속해 있는 상황 시뮬레이션
         given(interviewSessionService.isReconnection(TEST_ROOM_ID, TEST_USER_ID)).willReturn(true);
         given(interviewSessionService.getRoomIdByUserId(TEST_USER_ID)).willReturn(TEST_ROOM_ID);
-        given(userLastEventStore.getLastInterviewStatus(TEST_USER_ID))
-                .willReturn(InterviewStatus.QUESTION_PRESENTED);
+        Object lastEvent = Map.of(
+                "type", "interview-started",
+                "data", Map.of("firstQuestion", Map.of("questionText", "자기소개를 해주세요."))
+        );
+        given(userLastEventStore.getLastEvent(TEST_USER_ID)).willReturn(lastEvent);
 
-        // when - 새 탭에서 방 접속 시도 (roomId가 있는 경우)
+        // when - 방 접속 시도 (재연결 상황)
         CommonRoomRequest request = new CommonRoomRequest(TEST_ROOM_ID);
         stompSession.send("/app/room-join", request);
 
-        // then - 기존 탭에 disconnect 메시지 전송 확인
-        Map<String, Object> disconnectResponse = personalSubscriber.waitForMessage("disconnect", 10);
-        assertThat(disconnectResponse).isNotNull();
-        assertThat(disconnectResponse.get("type")).isEqualTo("disconnect");
-        assertThat(disconnectResponse.get("data")).isEqualTo("다른 곳에서 접속하여 연결을 해제합니다.");
-
-        // and - 재연결 응답 확인
-        Map<String, Object> reconnectResponse = personalSubscriber.waitForMessage("room-reconnected", 10);
-        assertThat(reconnectResponse).isNotNull();
-        assertThat(reconnectResponse.get("type")).isEqualTo("room-reconnected");
-
-        RoomReconnectionResponse roomReconnectionResponse = extractData(reconnectResponse, RoomReconnectionResponse.class);
-        assertThat(roomReconnectionResponse.getRoomId()).isEqualTo(TEST_ROOM_ID);
-
-        // and - 마지막 상태 전송 확인
-        Map<String, Object> lastStatusResponse = personalSubscriber.waitForMessage("last-status", 10);
-        assertThat(lastStatusResponse).isNotNull();
-        assertThat(lastStatusResponse.get("type")).isEqualTo("last-status");
-
-        LastStatusResponse statusResponse = extractData(lastStatusResponse, LastStatusResponse.class);
-        assertThat(statusResponse.getStatus()).isEqualTo("questionPresented");
+        // then - 마지막 이벤트 재전송 확인
+        Map<String, Object> lastEventResponse = personalSubscriber.waitForMessage("interview-started", 10);
+        assertThat(lastEventResponse).isNotNull();
+        assertThat(lastEventResponse.get("type")).isEqualTo("interview-started");
+        
+        verify(userLastEventStore).getLastEvent(TEST_USER_ID);
     }
 
     @Test
@@ -155,28 +141,22 @@ class InterviewWebSocketReconnectionTest {
     void pageRefreshReconnectionTest() throws Exception {
         // given - 새로고침으로 roomId가 없는 상황
         given(interviewSessionService.getRoomIdByUserId(TEST_USER_ID)).willReturn(TEST_ROOM_ID);
-        given(userLastEventStore.getLastInterviewStatus(TEST_USER_ID))
-                .willReturn(InterviewStatus.NEXT_QUESTION_PRESENTED);
+        Object lastEvent = Map.of(
+                "type", "next-question-selected",
+                "data", Map.of("questionText", "개발자가 되고 싶은 이유는?")
+        );
+        given(userLastEventStore.getLastEvent(TEST_USER_ID)).willReturn(lastEvent);
 
         // when - roomId 없이 방 접속 시도 (새로고침 상황)
         CommonRoomRequest request = new CommonRoomRequest(null);
         stompSession.send("/app/room-join", request);
 
-        // then - 재연결 응답 확인
-        Map<String, Object> reconnectResponse = personalSubscriber.waitForMessage("room-reconnected", 10);
-        assertThat(reconnectResponse).isNotNull();
-        assertThat(reconnectResponse.get("type")).isEqualTo("room-reconnected");
-
-        RoomReconnectionResponse roomReconnectionResponse = extractData(reconnectResponse, RoomReconnectionResponse.class);
-        assertThat(roomReconnectionResponse.getRoomId()).isEqualTo(TEST_ROOM_ID);
-
-        // and - 마지막 상태 전송 확인
-        Map<String, Object> lastStatusResponse = personalSubscriber.waitForMessage("last-status", 10);
-        assertThat(lastStatusResponse).isNotNull();
-        assertThat(lastStatusResponse.get("type")).isEqualTo("last-status");
-
-        LastStatusResponse statusResponse = extractData(lastStatusResponse, LastStatusResponse.class);
-        assertThat(statusResponse.getStatus()).isEqualTo("nextQuestionPresented");
+        // then - 마지막 이벤트 재전송 확인
+        Map<String, Object> lastEventResponse = personalSubscriber.waitForMessage("next-question-selected", 10);
+        assertThat(lastEventResponse).isNotNull();
+        assertThat(lastEventResponse.get("type")).isEqualTo("next-question-selected");
+        
+        verify(userLastEventStore).getLastEvent(TEST_USER_ID);
     }
 
     @Test
@@ -197,21 +177,12 @@ class InterviewWebSocketReconnectionTest {
         CommonRoomRequest request = new CommonRoomRequest(null);
         stompSession.send("/app/room-join", request);
 
-        // then - 재연결 응답 확인
-        Map<String, Object> reconnectResponse = personalSubscriber.waitForMessage("room-reconnected", 10);
-        assertThat(reconnectResponse).isNotNull();
-
-        // and - 마지막 이벤트 재전송 확인
+        // then - 마지막 이벤트 재전송 확인
         Map<String, Object> lastEventResponse = personalSubscriber.waitForMessage("interview-started", 10);
         assertThat(lastEventResponse).isNotNull();
         assertThat(lastEventResponse.get("type")).isEqualTo("interview-started");
-
-        // and - 마지막 상태 복구 확인
-        Map<String, Object> lastStatusResponse = personalSubscriber.waitForMessage("last-status", 10);
-        assertThat(lastStatusResponse).isNotNull();
         
         verify(userLastEventStore).getLastEvent(TEST_USER_ID);
-        verify(userLastEventStore).getLastInterviewStatus(TEST_USER_ID);
     }
 
     @Test
@@ -248,11 +219,11 @@ class InterviewWebSocketReconnectionTest {
         // then - 중요한 상태가 저장되었는지 확인
         verify(userLastEventStore).updateUserStatus(TEST_USER_ID, "questionPresented");
 
-        // when - 임시 상태 업데이트 (저장되지 않아야 함)
+        // when - 임시 상태 업데이트 (필터링되어야 함)
         stompSession.send("/app/interview-status", "answerStart");
         Thread.sleep(500);
 
-        // then - 임시 상태는 필터링되어 저장되지 않음을 확인
+        // then - 임시 상태도 호출은 되지만 내부에서 필터링됨
         verify(userLastEventStore).updateUserStatus(TEST_USER_ID, "answerStart");
     }
 
@@ -276,7 +247,8 @@ class InterviewWebSocketReconnectionTest {
         Map<String, Object> anyMessage = personalSubscriber.getMessages().poll();
         if (anyMessage != null) {
             String messageType = (String) anyMessage.get("type");
-            assertThat(messageType).isNotIn("room-reconnected", "disconnect", "last-status");
+            // 재연결 관련 메시지가 아닌지 확인 (현재는 마지막 이벤트만 전송)
+            assertThat(messageType).isNotIn("interview-started", "next-question-selected");
         }
 
         // and - 정상적인 방 입장 로직이 실행되었는지 확인
