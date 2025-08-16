@@ -19,18 +19,24 @@ function PairPracticePage() {
     connect();
     return () => {
       disconnect();
+      nextQuestionModal.close();
     };
   }, []);
   const nextQuestionModal = useModal();
+  const handleNextQuestionModalClose = () => {
+    nextQuestionModal.close();
+  };
   return (
     <main
       aria-label={`pair-practice-page`}
       className="flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
     >
-      <NextQuestionModal
-        onClose={nextQuestionModal.close}
-        contentRef={nextQuestionModal.contentRef}
-      />
+      {nextQuestionModal.isOpen && (
+        <NextQuestionModal
+          onClose={handleNextQuestionModalClose}
+          contentRef={nextQuestionModal.contentRef}
+        />
+      )}
       <InterviewSection openModal={nextQuestionModal.open} />
       <ChattingWindowContainer />
     </main>

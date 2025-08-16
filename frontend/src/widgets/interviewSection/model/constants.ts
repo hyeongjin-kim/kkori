@@ -32,7 +32,7 @@ export function soloIntervieweeControlButtonProps({
       onClick: switchScreen,
       label: 'screen-change',
       text: '화면 전환',
-      status: 'always',
+      status: controlStatus.ALWAYS,
     },
     {
       onClick: startInterview,
