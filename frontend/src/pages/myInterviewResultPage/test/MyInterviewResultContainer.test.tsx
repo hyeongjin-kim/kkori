@@ -5,6 +5,8 @@ import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
 describe('MyInterviewResultContainer', () => {
   test('MyInterviewResultContainer 컴포넌트가 렌더링 된다.', () => {
     render(<MemoryRouterWrapped component={<MyInterviewResultContainer />} />);
-    expect(screen.getByLabelText('interview-record-list')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('my-interview-result-container'),
+    ).toBeInTheDocument();
   });
 });

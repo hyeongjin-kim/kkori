@@ -11,10 +11,12 @@ export default function MyInterviewResultContainer() {
   if (isError) return <div className="p-4 text-red-500">불러오기 실패</div>;
 
   return (
-    <InterviewRecordList
-      interviewRecords={interviewRecords}
-      isLoading={isLoading}
-      onClick={goDetail}
-    />
+    <div aria-label="my-interview-result-container">
+      <InterviewRecordList
+        interviewRecords={interviewRecords}
+        isLoading={isLoading}
+        onClick={goDetail}
+      />
+    </div>
   );
 }

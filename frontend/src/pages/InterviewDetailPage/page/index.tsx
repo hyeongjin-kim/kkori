@@ -4,7 +4,7 @@ import InterviewRecordDetailContainer from '@/pages/InterviewDetailPage/ui/Inter
 export default function MyInterviewRecordDetailPage() {
   return (
     <main
-      aria-label="my-interview-record-detail-page"
+      aria-label="interview-record-detail-page"
       className="relative h-full max-h-screen w-full bg-gray-50"
     >
       <div className="mx-auto flex h-full max-w-5xl flex-col px-4 pt-6 md:px-6 lg:px-8">
