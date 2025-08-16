@@ -2,6 +2,7 @@ package com.kkori.util;
 
 import com.kkori.component.interview.UserLastEventStore;
 import com.kkori.dto.interview.response.ErrorResponse;
+import com.kkori.dto.interview.response.LastStatusResponse;
 import com.kkori.dto.websocket.WebSocketResponse;
 import com.kkori.exception.ExceptionCode;
 import com.kkori.exception.user.UserException;
@@ -77,6 +78,18 @@ public class WebSocketHelper {
             );
         } catch (Exception e) {
 
+        }
+    }
+
+    public void sendLastStatusToUser(Long userId) {
+        try {
+            com.kkori.component.interview.InterviewStatus lastStatus = userLastEventStore.getLastInterviewStatus(userId);
+            if (lastStatus != null) {
+                LastStatusResponse response = new LastStatusResponse(lastStatus.getStatusName());
+                sendPersonalMessage(userId, "last-status", response);
+            }
+        } catch (Exception e) {
+            // 상태 조회 실패는 조용히 처리
         }
     }
 
