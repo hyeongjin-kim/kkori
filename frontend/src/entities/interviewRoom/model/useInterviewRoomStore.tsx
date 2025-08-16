@@ -11,8 +11,10 @@ export const interviewStatus = {
   CUSTOM_QUESTION_START: 'customQuestionStart',
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
   END_INTERVIEW: 'endInterview',
-  ALWAYS: 'always',
 };
+
+export type InterviewStatus =
+  (typeof interviewStatus)[keyof typeof interviewStatus];
 
 export const interviewType = Object.freeze({
   SOLO: 'SOLO_PRACTICE',
@@ -28,7 +30,6 @@ interface InterviewRoomState {
   status: (typeof interviewStatus)[keyof typeof interviewStatus];
   role: (typeof interviewRole)[keyof typeof interviewRole];
   type: (typeof interviewType)[keyof typeof interviewType];
-  modalOpen: boolean;
 }
 
 interface InterviewRoomActions {
@@ -37,14 +38,12 @@ interface InterviewRoomActions {
   ) => void;
   setRole: (role: (typeof interviewRole)[keyof typeof interviewRole]) => void;
   setType: (type: (typeof interviewType)[keyof typeof interviewType]) => void;
-  setModalOpen: (modalOpen: boolean) => void;
 }
 
 const initialState: InterviewRoomState = {
   status: interviewStatus.BEFORE_INTERVIEW,
   role: interviewRole.INTERVIEWEE,
   type: interviewType.SOLO,
-  modalOpen: false,
 };
 
 const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(
@@ -53,7 +52,6 @@ const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(
     setStatus: status => set({ status }),
     setRole: role => set({ role }),
     setType: type => set({ type }),
-    setModalOpen: modalOpen => set({ modalOpen }),
   }),
 );
 

@@ -1,14 +1,15 @@
-import { useState } from 'react';
 import LabeledTextAreaField from '@/shared/ui/LabeledTextAreaField';
 import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/constants';
 
 interface QuestionAnswer {
+  questionId: number | null;
   question: string;
   answer: string;
 }
 
 const createInitialQuestionAnswer = (): QuestionAnswer => {
   return {
+    questionId: null,
     question: '',
     answer: '',
   };

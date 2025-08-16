@@ -2,6 +2,8 @@ import LoginPage from '@/pages/loginPage/page/index';
 import InterviewQuestionsPage from '@/pages/interviewQuestionsPage/page/index';
 import HomePage from '@/pages/homePage/page/index';
 import QuestionSetDetailPage from '@/pages/questionSetDetailPage/page/index';
+import MyInterviewResultPage from '@/pages/myInterviewResultPage/page';
+import InterviewRecordDetailPage from '@/pages/InterviewDetailPage/page';
 
 export interface Route {
   path: string;

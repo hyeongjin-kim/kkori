@@ -19,7 +19,7 @@ const initialState: PeerConnectionState = {
 
 const usePeerConnectionStore = create<
   PeerConnectionState & PeerConnectionActions
->(set => ({
+>((set, get) => ({
   ...initialState,
   createPeerConnection: (
     onIceCandidate: (candidate: RTCIceCandidate) => void,
@@ -74,6 +74,7 @@ const usePeerConnectionStore = create<
   },
   setPeerConnection: peerConnection => set({ peerConnection }),
   clearConnections: () => {
+    get().peerConnection?.close();
     set({ peerConnection: null });
   },
 }));

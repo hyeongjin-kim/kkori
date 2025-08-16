@@ -16,6 +16,7 @@ import {
 import { soloWebSocketEventHandler } from '@/shared/lib/soloWebSocketEventHandler';
 import { pairWebSocketEventHandler } from '@/shared/lib/pairWebSocketEventHandler';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
+import usePeerConnectionStore from '@/entities/interviewRoom/model/usePeerConnectionStore';
 
 interface RoomCreateRequest {
   mode: string;
@@ -104,13 +105,11 @@ export const createWebSocketSlice: StateCreator<
           }
         });
         if (get().joinRoomMode === JOIN_ROOM_MODE.CREATE_ROOM) {
-          useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWEE);
           get().roomCreate({
             mode: useInterviewRoomStore.getState().type,
             questionSetId: get().questionSetId,
           });
         } else {
-          useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWER);
           get().roomJoin();
         }
       },
@@ -122,7 +121,13 @@ export const createWebSocketSlice: StateCreator<
   },
   disconnect: () => {
     if (!get().client || !get().isConnected) return;
+    get().client?.publish({
+      destination: '/app/room-exit',
+      body: JSON.stringify({ roomId: get().roomId }),
+    });
     get().client?.deactivate();
+    console.log('disconnect');
+    usePeerConnectionStore.getState().clearConnections();
   },
   roomCreate: (request: RoomCreateRequest) => {
     get().client?.publish({
@@ -147,7 +152,6 @@ export const createWebSocketSlice: StateCreator<
     });
   },
   interviewEnd: () => {
-    useInterviewRoomStore.getState().setStatus('endInterview');
     get().client?.publish({
       destination: `/app/interview-end`,
       body: JSON.stringify({ roomId: get().roomId }),

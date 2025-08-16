@@ -10,6 +10,7 @@ import {
   useInterviewQuestionStore,
 } from './useInterviewQuestionStore';
 import useUserStore from '@/entities/user/model/useUserStore';
+import usePeerConnectionStore from '@/entities/interviewRoom/model/usePeerConnectionStore';
 
 interface InterviewState {}
 
@@ -80,11 +81,10 @@ export const createInterviewSlice: StateCreator<
 });
 
 const userExitedHandler = (client: Client, data: any) => {
-  console.log(data);
+  usePeerConnectionStore.getState().clearConnections();
 };
 
 const rolesSwapHandler = (client: Client, get: any, data: any) => {
-  console.log('rolesSwapHandler');
   useInterviewRoomStore
     .getState()
     .setRole(
@@ -100,7 +100,6 @@ const interviewStartedHandler = (
   data: any,
   timestamp: number,
 ) => {
-  console.log(data);
   const firstQuestion = data.firstQuestion;
 
   useInterviewQuestionStore.getState().setCurrentQuestion({
@@ -121,7 +120,6 @@ const interviewStartedHandler = (
 };
 
 const interviewEndedHandler = (client: Client, get: any, data: any) => {
-  console.log(data);
   useInterviewRoomStore.getState().setStatus(interviewStatus.END_INTERVIEW);
 };
 

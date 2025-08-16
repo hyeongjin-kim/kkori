@@ -1,4 +1,3 @@
-// pages/interviewQuestionsPage/ui/QuestionSetSkeleton.tsx
 export default function QuestionSetSkeleton() {
   return (
     <li

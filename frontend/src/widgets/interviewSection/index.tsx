@@ -3,7 +3,7 @@ import MediaStreamViewer from '@/widgets/interviewSection/ui/MediaStreamViewer';
 import InterviewController from '@/widgets/interviewSection/ui/InterviewController';
 import useMediaStreamStore from './model/useMediaStreamStore';
 
-function InterviewSection() {
+function InterviewSection({ openModal }: { openModal: () => void }) {
   const mainStreamType = useMediaStreamStore(state => state.mainStreamType);
   const subStreamType = useMediaStreamStore(state => state.subStreamType);
 
@@ -15,12 +15,12 @@ function InterviewSection() {
       <CurrentQuestionDisplay />
       <div
         aria-label="media-stream-viewer-container"
-        className="flex h-full max-h-[24rem] w-full gap-4"
+        className="flex h-full max-h-[30rem] w-full gap-4"
       >
         <MediaStreamViewer type={mainStreamType} />
         <MediaStreamViewer type={subStreamType} />
       </div>
-      <InterviewController />
+      <InterviewController openModal={openModal} />
     </div>
   );
 }

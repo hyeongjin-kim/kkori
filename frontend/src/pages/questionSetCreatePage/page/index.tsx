@@ -9,11 +9,15 @@ import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/consta
 export interface QuestionAnswer {
   question: string;
   answer: string;
+  questionId: number | null;
 }
 
-export const initialQuestionAnswer: QuestionAnswer = {
-  question: '',
-  answer: '',
+export const createInitialQuestionAnswer = (): QuestionAnswer => {
+  return {
+    question: '',
+    answer: '',
+    questionId: null,
+  };
 };
 
 function QuestionSetCreatePage() {
@@ -23,7 +27,7 @@ function QuestionSetCreatePage() {
   const [tagList, setTagList] = useState<Set<string>>(new Set());
   const [questionAnswerList, setQuestionAnswerList] = useState<
     QuestionAnswer[]
-  >([initialQuestionAnswer]);
+  >([createInitialQuestionAnswer()]);
   const navigate = useNavigate();
   const { mutate: createQuestionSet } = useCreateQuestionSet();
   const handleSubmit = () => {
@@ -37,6 +41,7 @@ function QuestionSetCreatePage() {
         questionType: 1,
       })),
     });
+    setQuestionAnswerList([createInitialQuestionAnswer()]);
     toast.success('질문 세트가 생성되었습니다.');
     navigate('/interview-questions');
   };

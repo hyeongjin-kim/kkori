@@ -11,6 +11,7 @@ interface ChattingWindowAction {
   addMessage: (message: Message) => void;
   confirmMessage: (myMessage: Message) => void;
   deleteMessage: (myMessage: Message) => void;
+  clearMessages: () => void;
 }
 
 export interface ChattingWindowSlice
@@ -55,4 +56,5 @@ export const createChattingWindowSlice: StateCreator<
         checkMessage(message, myMessage),
       ),
     })),
+  clearMessages: () => set(state => ({ messages: [] })),
 });
