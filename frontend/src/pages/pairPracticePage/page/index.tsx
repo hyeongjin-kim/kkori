@@ -9,6 +9,7 @@ import useInterviewRoomStore, {
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 import { useModal } from '@/shared/lib/useModal';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
@@ -19,6 +20,7 @@ function PairPracticePage() {
     connect();
     return () => {
       disconnect();
+      useInterviewQuestionStore.getState().clearCurrentQuestion();
       nextQuestionModal.close();
     };
   }, []);

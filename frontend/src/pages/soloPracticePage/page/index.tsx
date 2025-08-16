@@ -8,6 +8,7 @@ import useInterviewRoomStore, {
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 import { useModal } from '@/shared/lib/useModal';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 
 function SoloPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
@@ -23,6 +24,7 @@ function SoloPracticePage() {
       .setStatus(interviewStatus.BEFORE_INTERVIEW);
     return () => {
       disconnect();
+      useInterviewQuestionStore.getState().clearCurrentQuestion();
       nextQuestionModal.close();
     };
   }, []);
