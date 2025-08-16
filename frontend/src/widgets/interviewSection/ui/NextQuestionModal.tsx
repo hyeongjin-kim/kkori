@@ -28,13 +28,11 @@ function NextQuestionModal() {
         label="tail-question-2"
         onClick={() => chooseTailQuestion(1)}
       />
-      {defaultQuestion && (
-        <NextQuestionButton
-          nextQuestion={defaultQuestion.question}
-          label="default-question"
-          onClick={chooseDefaultQuestion}
-        />
-      )}
+      <NextQuestionButton
+        nextQuestion={defaultQuestion.question}
+        label="default-question"
+        onClick={chooseDefaultQuestion}
+      />
       <NextQuestionButton
         nextQuestion={customQuestion}
         label="custom-question"
