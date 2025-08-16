@@ -26,6 +26,7 @@ public class InterviewRoomManager {
         String roomId = generateRoomId();
         InterviewRoom room = InterviewRoom.createSoloRoom(roomId, questionSetId, creatorId, session);
         rooms.put(roomId, room);
+        userRoomMap.put(creatorId, roomId);
 
         return roomId;
     }
@@ -37,6 +38,7 @@ public class InterviewRoomManager {
         String roomId = generateRoomId();
         InterviewRoom room = InterviewRoom.createPairRoom(roomId, questionSetId, creatorId, session);
         rooms.put(roomId, room);
+        userRoomMap.put(creatorId, roomId);
 
         return roomId;
     }
@@ -53,6 +55,7 @@ public class InterviewRoomManager {
         }
 
         room.addUser(userId);
+        userRoomMap.put(userId, roomId);
     }
 
     /**
@@ -67,6 +70,7 @@ public class InterviewRoomManager {
         }
 
         room.removeUser(userId);
+        userRoomMap.remove(userId);
         checkAndCleanupRoom(room, roomId);
     }
 
@@ -99,6 +103,10 @@ public class InterviewRoomManager {
      */
     public void completeInterview(String roomId) {
         InterviewRoom room = getRoom(roomId);
+        
+        // 면접 완료 시 사용자 매핑 정리
+        room.getUserIds().forEach(userRoomMap::remove);
+        
         room.completeInterview();
 
         // 면접 완료 후 방 정리
@@ -135,6 +143,11 @@ public class InterviewRoomManager {
      * 방 삭제
      */
     private void removeRoom(String roomId) {
+        InterviewRoom room = rooms.get(roomId);
+        if (room != null) {
+            // 방의 모든 사용자를 userRoomMap에서 제거
+            room.getUserIds().forEach(userRoomMap::remove);
+        }
         rooms.remove(roomId);
     }
 
