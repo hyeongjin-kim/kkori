@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.core.io.ClassPathResource;
@@ -32,6 +34,7 @@ public class DummyDataService {
     private final QuestionSetTagRepository questionSetTagRepository;
     private final JdbcTemplate jdbcTemplate;
 
+    @EventListener(ApplicationReadyEvent.class)
     public void createDummyData() {
         // 기존 data.sql 기반 로직 (주석처리)
 //       try {
