@@ -1,14 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import ControlButton from '@/widgets/interviewSection/ui/ControlButton';
 import userEvent from '@testing-library/user-event';
-import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import useInterviewRoomStore, {
+  interviewStatus,
+} from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
+import { controlStatus } from '../model/types';
 
 describe('ControlButton', () => {
   const testFunction = jest.fn();
 
   beforeEach(() => {
-    useInterviewRoomStore.getState().setStatus('beforeInterview');
+    useInterviewRoomStore
+      .getState()
+      .setStatus(interviewStatus.BEFORE_INTERVIEW);
     const status = useInterviewRoomStore.getState().status;
     render(
       <MemoryRouterWrapped
@@ -17,7 +22,7 @@ describe('ControlButton', () => {
             onClick={testFunction}
             label="test"
             text="test"
-            status={status}
+            status={controlStatus.BEFORE_INTERVIEW}
           />
         }
       />,

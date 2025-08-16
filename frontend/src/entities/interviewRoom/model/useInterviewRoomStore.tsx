@@ -11,8 +11,10 @@ export const interviewStatus = {
   CUSTOM_QUESTION_START: 'customQuestionStart',
   CUSTOM_QUESTION_CREATED: 'customQuestionCreated',
   END_INTERVIEW: 'endInterview',
-  ALWAYS: 'always',
 };
+
+export type InterviewStatus =
+  (typeof interviewStatus)[keyof typeof interviewStatus];
 
 export const interviewType = Object.freeze({
   SOLO: 'SOLO_PRACTICE',

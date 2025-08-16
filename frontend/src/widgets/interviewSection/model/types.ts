@@ -1,3 +1,5 @@
+import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
+
 export type MediaStreamType = 'my' | 'peer';
 
 export interface NextQuestionButtonProps {
@@ -5,3 +7,10 @@ export interface NextQuestionButtonProps {
   label: string;
   onClick: () => void;
 }
+
+export const controlStatus = {
+  ...interviewStatus,
+  ALWAYS: 'always',
+  DURING_INTERVIEW: 'duringInterview',
+  END_INTERVIEW: 'endInterview',
+};

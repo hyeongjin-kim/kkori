@@ -4,8 +4,15 @@ import NameTaggedMessage from '@/widgets/chattingWindow/ui/NameTaggedChatMessage
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { CHAT_TYPES } from '@/widgets/chattingWindow/model/chattingWindowType';
 import QuestionAnswerMessage from '@/widgets/chattingWindow/ui/QuestionAnswerMessage';
+import { useEffect } from 'react';
 
 function ChattingWindowContainer() {
+  const clearMessages = usePracticeSessionStore(state => state.clearMessages);
+
+  useEffect(() => {
+    return () => clearMessages();
+  }, [clearMessages]);
+
   const messages = usePracticeSessionStore(state => state.messages);
 
   return (

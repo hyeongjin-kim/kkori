@@ -41,7 +41,12 @@ describe('IntervieweeControlButtonContainer', () => {
         screen.getByLabelText('interview-start-control-button'),
       ).toBeInTheDocument();
     });
-    test('면접 종료 버튼은 항상 렌더링 되어야 한다.', () => {
+    test('면접이 시작되면 면접 종료 버튼이 렌더링 되어야 한다.', () => {
+      act(() => {
+        useInterviewRoomStore
+          .getState()
+          .setStatus(interviewStatus.QUESTION_PRESENTED);
+      });
       expect(
         screen.getByLabelText('interview-end-control-button'),
       ).toBeInTheDocument();
@@ -90,7 +95,12 @@ describe('IntervieweeControlButtonContainer', () => {
         screen.getByLabelText('screen-change-control-button'),
       ).toBeInTheDocument();
     });
-    test('면접 종료 버튼은 항상 렌더링 되어야 한다.', () => {
+    test('면접이 시작되면 면접 종료 버튼이 렌더링 되어야 한다.', () => {
+      act(() => {
+        useInterviewRoomStore
+          .getState()
+          .setStatus(interviewStatus.QUESTION_PRESENTED);
+      });
       expect(
         screen.getByLabelText('interview-end-control-button'),
       ).toBeInTheDocument();
