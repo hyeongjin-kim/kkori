@@ -4,6 +4,8 @@ import QuestionSetCreatePage from '@/pages/questionSetCreatePage/page/index';
 import MyQuestionSetPage from '@/pages/myQuestionSetPage/page/index';
 import QuestionSetUpdatePage from '@/pages/questionSetUpdatePage/page';
 import { AppRoutes, Route } from '@/app/model/routes';
+import MyInterviewResultPage from '@/pages/myInterviewResultPage/page';
+import InterviewRecordDetailPage from '@/pages/InterviewDetailPage/page';
 
 const protectedRoutes: readonly Route[] = [
   {
@@ -30,6 +32,16 @@ const protectedRoutes: readonly Route[] = [
     path: '/question-set-update/:id',
     element: <QuestionSetUpdatePage />,
     label: 'question-set-update-page',
+  },
+  {
+    path: '/my-interview-result',
+    element: <MyInterviewResultPage />,
+    label: 'my-interview-result-page',
+  },
+  {
+    path: '/interview-record-detail/:interviewId',
+    element: <InterviewRecordDetailPage />,
+    label: 'interview-record-detail-page',
   },
 ];
 
