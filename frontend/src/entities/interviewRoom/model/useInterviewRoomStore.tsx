@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export const interviewStatus = {
   BEFORE_INTERVIEW: 'beforeInterview',
@@ -46,13 +47,26 @@ const initialState: InterviewRoomState = {
   type: interviewType.SOLO,
 };
 
-const useInterviewRoomStore = create<InterviewRoomState & InterviewRoomActions>(
-  set => ({
-    ...initialState,
-    setStatus: status => set({ status }),
-    setRole: role => set({ role }),
-    setType: type => set({ type }),
-  }),
+const useInterviewRoomStore = create<
+  InterviewRoomState & InterviewRoomActions
+>()(
+  persist(
+    set => ({
+      ...initialState,
+      setStatus: status => set({ status }),
+      setRole: role => set({ role }),
+      setType: type => set({ type }),
+    }),
+    {
+      name: 'interviewRoomStore',
+      storage: createJSONStorage(() => localStorage),
+      partialize: state => {
+        const { status, role, type } = state;
+        return { status, role, type };
+      },
+      version: 1,
+    },
+  ),
 );
 
 export default useInterviewRoomStore;
