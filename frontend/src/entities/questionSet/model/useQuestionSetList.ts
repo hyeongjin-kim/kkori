@@ -10,13 +10,13 @@ import {
   UpdateQuestionSetMetadataRequest,
   UpdateQuestionSetRequest,
 } from '@/entities/questionSet/model/request';
-import { postQuestionSet } from '@/entities/questionSet/model/postQuestionSet';
-import { getMyQuestionSets } from '@/entities/questionSet/model/getQuestionSets';
 import {
-  putQuestionSetMetadata,
-  putQuestionSets,
-} from '@/entities/questionSet/model/putQuestionSets';
-import { deleteQuestionSet } from './deleteQuestionSets';
+  postQuestionSet,
+  postVersionWithAnswerModifications,
+} from '@/entities/questionSet/model/postQuestionSet';
+import { getMyQuestionSets } from '@/entities/questionSet/model/getQuestionSets';
+import { putQuestionSetMetadata } from '@/entities/questionSet/model/putQuestionSets';
+import { deleteQuestionSet } from '@/entities/questionSet/model/deleteQuestionSets';
 
 export const useQuestionSets = (params: GetQuestionSetsParams) => {
   return useQuery({
@@ -56,7 +56,7 @@ export const useUpdateQuestionSet = (questionSetId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (request: UpdateQuestionSetRequest) =>
-      putQuestionSets(questionSetId, request),
+      postVersionWithAnswerModifications(questionSetId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['questionSet', questionSetId],

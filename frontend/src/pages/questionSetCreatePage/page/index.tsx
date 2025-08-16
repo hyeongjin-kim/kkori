@@ -9,11 +9,13 @@ import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/consta
 export interface QuestionAnswer {
   question: string;
   answer: string;
+  questionId: number | null;
 }
 
 export const initialQuestionAnswer: QuestionAnswer = {
   question: '',
   answer: '',
+  questionId: null,
 };
 
 function QuestionSetCreatePage() {

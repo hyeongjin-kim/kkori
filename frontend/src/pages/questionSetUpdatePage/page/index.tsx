@@ -47,16 +47,22 @@ function QuestionSetUpdatePage() {
 
   const handleQuestionAnswerSubmit = async () => {
     try {
-      await updateQuestionSet({
-        questions: questionAnswerList.map((question, index) => ({
-          content: question.question,
-          questionType: 1,
-          expectedAnswer: question.answer,
-          displayOrder: index + 1,
-        })),
-      });
+      const response = await new Promise<UpdateQuestionSetResponse>(
+        (resolve, reject) =>
+          updateQuestionSet(
+            {
+              parentQuestionSetId: questionSetId,
+              questions: questionAnswerList.map((question, index) => ({
+                questionId: question.questionId,
+                newExpectedAnswer: question.answer,
+                displayOrder: index + 1,
+              })),
+            },
+            { onSuccess: resolve, onError: reject },
+          ),
+      );
       toast.success('질문 답변이 수정되었습니다.');
-      navigate('/my-question-set');
+      navigate(`/question-set-detail/${response.data.questionSetId}`);
     } catch (error) {
       toast.error('질문 답변 수정 실패');
     }
@@ -72,6 +78,7 @@ function QuestionSetUpdatePage() {
         qs.questionMaps.map(question => ({
           question: question.question.content,
           answer: question.answer.content,
+          questionId: question.questionId,
         })),
       );
     }
