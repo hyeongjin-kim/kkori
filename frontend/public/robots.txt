@@ -1,0 +1,7 @@
+# public/robots.txt
+User-agent: *
+Allow: /
+
+# 크롤링 불필요한 API/리소스는 선택적으로 막기
+Disallow: /api/
+Disallow: /assets/admin/
