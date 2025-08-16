@@ -45,13 +45,13 @@ export interface CopyQuestionSetRequest {
 }
 
 export interface UpdateQuestionSet {
-  content: string;
-  questionType: number;
-  expectedAnswer: string;
+  questionId: number | null;
+  newExpectedAnswer: string;
   displayOrder: number;
 }
 
 export interface UpdateQuestionSetRequest {
+  parentQuestionSetId: number;
   questions: UpdateQuestionSet[];
   tags?: string[];
 }

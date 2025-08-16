@@ -6,10 +6,12 @@ import { QUESTION_ANSWER_FORMAT_TYPE } from '@/entities/questionSet/model/consta
 describe('QuestionAnswerForm', () => {
   const setQuestionAnswerList = jest.fn();
   const onSubmit = jest.fn();
-  let questionAnswerList = [{ question: 'test', answer: 'test' }];
+  let questionAnswerList = [
+    { questionId: 1, question: 'test', answer: 'test' },
+  ];
   beforeEach(() => {
     jest.clearAllMocks();
-    questionAnswerList = [{ question: 'test', answer: 'test' }];
+    questionAnswerList = [{ questionId: 1, question: 'test', answer: 'test' }];
     render(
       <QuestionAnswerForm
         questionAnswerList={questionAnswerList}
@@ -32,11 +34,15 @@ describe('QuestionAnswerForm', () => {
     const addButton = screen.getByLabelText('add-question-button');
     await userEvent.click(addButton);
 
-    expect(setQuestionAnswerList).toHaveBeenCalled(); // 호출 여부
+    expect(setQuestionAnswerList).toHaveBeenCalled();
     const lastArg = setQuestionAnswerList.mock.calls.at(-1)[0];
     expect(Array.isArray(lastArg)).toBe(true);
     expect(lastArg).toHaveLength(2);
-    expect(lastArg[1]).toEqual({ question: '', answer: '' }); // 새 항목 형태 검증
+    expect(lastArg[1]).toEqual({
+      questionId: null,
+      question: '',
+      answer: '',
+    });
   });
 
   test('QuestionAnswerForm의 값이 변경되면 onSubmit 함수가 호출된다.', async () => {

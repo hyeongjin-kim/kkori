@@ -5,4 +5,8 @@ export const NAVIGATION_BAR_LINKS = Object.freeze({
     path: '/interview-questions',
     text: '면접 질문',
   },
+  myInterviewResult: {
+    path: '/my-interview-result',
+    text: '내 면접 기록',
+  },
 });
