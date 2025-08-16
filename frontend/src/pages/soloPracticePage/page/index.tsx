@@ -16,7 +16,6 @@ function SoloPracticePage() {
     useInterviewRoomStore
       .getState()
       .setStatus(interviewStatus.BEFORE_INTERVIEW);
-    useInterviewRoomStore.getState().setType(interviewType.SOLO);
     return () => {
       disconnect();
     };

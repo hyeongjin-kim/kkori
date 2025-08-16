@@ -12,7 +12,6 @@ function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
   useEffect(() => {
-    useInterviewRoomStore.getState().setType(interviewType.PAIR);
     useInterviewRoomStore
       .getState()
       .setStatus(interviewStatus.BEFORE_INTERVIEW);

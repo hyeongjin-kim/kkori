@@ -1,6 +1,7 @@
 import { Client } from '@stomp/stompjs';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 import useInterviewRoomStore, {
+  interviewRole,
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import {
@@ -39,7 +40,6 @@ export const pairWebSocketEventHandler = (
       nextQuestionChoiceHandler(client, set, response.data);
       break;
     case 'received-ice-candidate':
-      console.log('!!!!RECEIVED ICE CANDIDATE 이벤트 발생이라고!!!!: ');
       receivedIceCandidateHandler(client, get, set, response.data);
       break;
     case 'interview-ended':
@@ -78,6 +78,7 @@ const existingUserHandler = async (
   set: any,
   data: any,
 ) => {
+  useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWER);
   subscribeInterview(client, get, get().roomId || '');
   get().setOpponentNickname(data.nickName);
   console.log('OPPONENT NICKNAME : ', data.nickName);
@@ -115,7 +116,8 @@ const existingUserHandler = async (
 };
 
 const joinedUserHandler = (client: Client, get: any, set: any, data: any) => {
-  set({ opponentNickname: data.nickname });
+  useInterviewRoomStore.getState().setRole(interviewRole.INTERVIEWEE);
+  get().setOpponentNickname(data.nickname);
 };
 
 const roomStatusHandler = (client: Client, set: any, data: any) => {
