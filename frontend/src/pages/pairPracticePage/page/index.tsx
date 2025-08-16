@@ -8,6 +8,7 @@ import useInterviewRoomStore, {
   interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
+import { useModal } from '@/shared/lib/useModal';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
 
@@ -20,14 +21,17 @@ function PairPracticePage() {
       disconnect();
     };
   }, []);
-
+  const nextQuestionModal = useModal();
   return (
     <main
       aria-label={`pair-practice-page`}
       className="flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
     >
-      <NextQuestionModal />
-      <InterviewSection />
+      <NextQuestionModal
+        onClose={nextQuestionModal.close}
+        contentRef={nextQuestionModal.contentRef}
+      />
+      <InterviewSection openModal={nextQuestionModal.open} />
       <ChattingWindowContainer />
     </main>
   );

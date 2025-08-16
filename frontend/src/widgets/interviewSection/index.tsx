@@ -3,7 +3,7 @@ import MediaStreamViewer from '@/widgets/interviewSection/ui/MediaStreamViewer';
 import InterviewController from '@/widgets/interviewSection/ui/InterviewController';
 import useMediaStreamStore from './model/useMediaStreamStore';
 
-function InterviewSection() {
+function InterviewSection({ openModal }: { openModal: () => void }) {
   const mainStreamType = useMediaStreamStore(state => state.mainStreamType);
   const subStreamType = useMediaStreamStore(state => state.subStreamType);
 
@@ -20,7 +20,7 @@ function InterviewSection() {
         <MediaStreamViewer type={mainStreamType} />
         <MediaStreamViewer type={subStreamType} />
       </div>
-      <InterviewController />
+      <InterviewController openModal={openModal} />
     </div>
   );
 }
