@@ -28,16 +28,6 @@ const mainLayoutRoutes: readonly Route[] = [
     element: <QuestionSetDetailPage />,
     label: 'question-set-detail-page',
   },
-  {
-    path: '/my-interview-result',
-    element: <MyInterviewResultPage />,
-    label: 'my-interview-result-page',
-  },
-  {
-    path: '/interview-record-detail/:interviewId',
-    element: <InterviewRecordDetailPage />,
-    label: 'interview-record-detail-page',
-  },
 ];
 
 const appRoutes: AppRoutes = Object.freeze({ mainLayout: mainLayoutRoutes });
