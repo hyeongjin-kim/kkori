@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { MediaStreamType } from '@/widgets/interviewSection/model/types';
+
 interface MediaStreamState {
   myStream: MediaStream | null;
   peerStream: MediaStream | null;
@@ -12,6 +13,15 @@ interface MediaStreamState {
   myRecorder: MediaRecorder | null;
   blob: Blob | null;
   timerId: NodeJS.Timeout | null;
+
+  // 준비 상태/에러
+  isReady: boolean;
+  error: string | null;
+
+  // 내부 대기자
+  _readyPromise: Promise<MediaStream> | null;
+  _resolveReady?: (s: MediaStream) => void;
+  _rejectReady?: (e: unknown) => void;
 }
 
 interface MediaStreamActions {
@@ -27,9 +37,16 @@ interface MediaStreamActions {
   setSubStreamType: (subStreamType: MediaStreamType) => void;
   setBlob: (blob: Blob | null) => void;
   setTimerId: (timerId: NodeJS.Timeout | null) => void;
+
+  // 핵심 추가
+  initMyStream: () => Promise<MediaStream>;
+  waitForReady: () => Promise<MediaStream>;
 }
 
-const initialState: MediaStreamState = {
+const initialState: Omit<
+  MediaStreamState,
+  '_readyPromise' | '_resolveReady' | '_rejectReady'
+> = {
   myStream: null,
   peerStream: null,
   isMyVideoOn: false,
@@ -41,11 +58,26 @@ const initialState: MediaStreamState = {
   myRecorder: null,
   blob: null,
   timerId: null,
+
+  isReady: false,
+  error: null,
 };
 
+function createDeferred<T>() {
+  let resolve!: (v: T) => void;
+  let reject!: (e: unknown) => void;
+  const p = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { p, resolve, reject };
+}
+
 const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
-  set => ({
+  (set, get) => ({
     ...initialState,
+    _readyPromise: null,
+
     setMyStream: myStream => set({ myStream }),
     setMyRecorder: myRecorder => set({ myRecorder }),
     setPeerStream: peerStream => set({ peerStream }),
@@ -53,11 +85,86 @@ const useMediaStreamStore = create<MediaStreamState & MediaStreamActions>(
     setIsMyAudioOn: isMyAudioOn => set({ isMyAudioOn }),
     setIsPeerVideoOn: isPeerVideoOn => set({ isPeerVideoOn }),
     setIsPeerAudioOn: isPeerAudioOn => set({ isPeerAudioOn }),
-    reset: () => set(initialState),
     setMainStreamType: mainStreamType => set({ mainStreamType }),
     setSubStreamType: subStreamType => set({ subStreamType }),
     setBlob: blob => set({ blob }),
     setTimerId: timerId => set({ timerId }),
+
+    reset: () => {
+      const { myStream, myRecorder } = get();
+      // 트랙 정리
+      try {
+        myStream?.getTracks().forEach(t => t.stop());
+      } catch {}
+      try {
+        if (myRecorder && myRecorder.state !== 'inactive') myRecorder.stop();
+      } catch {}
+
+      set({
+        ...initialState,
+        _readyPromise: null,
+        _resolveReady: undefined,
+        _rejectReady: undefined,
+      });
+    },
+
+    initMyStream: async () => {
+      const { myStream, _readyPromise } = get();
+
+      if (myStream) return myStream;
+
+      if (_readyPromise) return _readyPromise;
+
+      const { p, resolve, reject } = createDeferred<MediaStream>();
+      set({
+        _readyPromise: p,
+        _resolveReady: resolve,
+        _rejectReady: reject,
+        error: null,
+      });
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+
+        const audioOnly = new MediaStream(stream.getAudioTracks());
+        const recorder = new MediaRecorder(audioOnly);
+
+        set({
+          myStream: stream,
+          myRecorder: recorder,
+          isMyVideoOn: true,
+          isMyAudioOn: true,
+          isReady: true,
+        });
+
+        resolve(stream);
+        return p;
+      } catch (e) {
+        set({ error: (e as Error)?.message ?? 'getUserMedia 실패' });
+        get()._rejectReady?.(e);
+        set({
+          _readyPromise: null,
+          _resolveReady: undefined,
+          _rejectReady: undefined,
+          isReady: false,
+        });
+        throw e;
+      }
+    },
+
+    waitForReady: () => {
+      const { myStream, _readyPromise, initMyStream } = get();
+      if (myStream) return Promise.resolve(myStream);
+      if (_readyPromise) return _readyPromise;
+      return initMyStream();
+    },
   }),
 );
 

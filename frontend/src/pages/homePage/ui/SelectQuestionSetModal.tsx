@@ -7,6 +7,7 @@ import GoToButton from '@/shared/ui/GoToButton';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { JOIN_ROOM_MODE } from '@/shared/lib/webSocketSlice';
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
+import { interviewType } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 interface SelectQuestionSetModalProps {
   onClose: () => void;
@@ -30,7 +31,7 @@ function SelectQuestionSetModal({
     onClose();
     setJoinRoomMode(JOIN_ROOM_MODE.CREATE_ROOM);
     navigate(
-      practiceMode === 'PAIR_INTERVIEW' ? '/pair-practice' : '/solo-practice',
+      practiceMode === interviewType.PAIR ? '/pair-practice' : '/solo-practice',
     );
   };
 

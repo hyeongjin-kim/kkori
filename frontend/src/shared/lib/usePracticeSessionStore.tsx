@@ -3,20 +3,40 @@ import {
   createInterviewSlice,
   InterviewSlice,
 } from '@/widgets/interviewSection/model/interviewSlice';
-import { createWebSocketSlice, WebSocketSlice } from './webSocketSlice';
+import {
+  createWebSocketSlice,
+  WebSocketSlice,
+} from '@/shared/lib/webSocketSlice';
 import {
   ChattingWindowSlice,
   createChattingWindowSlice,
 } from '@/widgets/chattingWindow/model/chattingWindowSlice';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 type PracticeSessionStore = InterviewSlice &
   ChattingWindowSlice &
   WebSocketSlice;
 
 export const usePracticeSessionStore = create<PracticeSessionStore>()(
-  (...args) => ({
-    ...createInterviewSlice(...args),
-    ...createChattingWindowSlice(...args),
-    ...createWebSocketSlice(...args),
-  }),
+  persist(
+    (set, get, api) => ({
+      ...createInterviewSlice(set, get, api),
+      ...createChattingWindowSlice(set, get, api),
+      ...createWebSocketSlice(set, get, api),
+    }),
+    {
+      name: 'practiceSessionStore',
+      storage: createJSONStorage(() => localStorage),
+      partialize: state => {
+        const { roomId, questionSetId, opponentNickname, joinRoomMode } = state;
+        return {
+          roomId,
+          questionSetId,
+          opponentNickname,
+          joinRoomMode,
+        };
+      },
+      version: 1,
+    },
+  ),
 );

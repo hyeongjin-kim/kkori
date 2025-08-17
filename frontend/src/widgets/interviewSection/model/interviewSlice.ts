@@ -5,12 +5,10 @@ import useInterviewRoomStore, {
   interviewRole,
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import {
-  Question,
-  useInterviewQuestionStore,
-} from './useInterviewQuestionStore';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 import useUserStore from '@/entities/user/model/useUserStore';
 import usePeerConnectionStore from '@/entities/interviewRoom/model/usePeerConnectionStore';
+import { JOIN_ROOM_MODE } from '@/shared/lib/webSocketSlice';
 
 interface InterviewState {}
 
@@ -34,7 +32,7 @@ export const createInterviewSlice: StateCreator<
   InterviewMessageHandler: (client: Client, response: any) => {
     switch (response.type) {
       case INTERVIEW_MESSAGE_TYPE.USER_EXITED:
-        userExitedHandler(client, response.data);
+        userExitedHandler(client, get, response.data);
         break;
       case INTERVIEW_MESSAGE_TYPE.ROLES_SWAP:
         rolesSwapHandler(client, get, response.data);
@@ -80,8 +78,11 @@ export const createInterviewSlice: StateCreator<
   },
 });
 
-const userExitedHandler = (client: Client, data: any) => {
+const userExitedHandler = (client: Client, get: any, data: any) => {
   usePeerConnectionStore.getState().clearConnections();
+  if (get().joinRoomMode === JOIN_ROOM_MODE.JOIN_ROOM) {
+    useInterviewRoomStore.getState().setStatus(interviewStatus.END_INTERVIEW);
+  }
 };
 
 const rolesSwapHandler = (client: Client, get: any, data: any) => {

@@ -4,10 +4,8 @@ import LeftSection from '@/pages/homePage/ui/LeftSection';
 import { useModal } from '@/shared/lib/useModal';
 import SelectQuestionSetModal from '@/pages/homePage/ui/SelectQuestionSetModal';
 import JoinInterviewRoomModal from '@/pages/homePage/ui/JoinInterviewRoomModal';
-import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 
 function HomePage() {
-  const { error } = useInitMediaStream();
   const questionSetModal = useModal();
   const joinRoomModal = useModal();
   const handleJoinClose = () => {

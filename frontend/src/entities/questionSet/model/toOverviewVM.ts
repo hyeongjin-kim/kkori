@@ -1,5 +1,5 @@
 // entities/questionSet/model/toOverviewVM.ts
-import { QuestionSetResponse } from '../model/response';
+import { QuestionSetResponse } from '@/entities/questionSet/model/response';
 
 export type QuestionSetOverviewVM = {
   title: string;

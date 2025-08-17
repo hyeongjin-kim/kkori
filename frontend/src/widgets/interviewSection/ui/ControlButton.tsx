@@ -1,7 +1,7 @@
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { useNavigate } from 'react-router-dom';
-import { controlStatus } from '../model/types';
+import { controlStatus } from '@/widgets/interviewSection/model/types';
 
 interface ControlButtonProps {
   onClick: () => void;

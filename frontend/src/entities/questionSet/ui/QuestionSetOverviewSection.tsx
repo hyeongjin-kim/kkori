@@ -2,12 +2,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuestionSet } from '@/entities/questionSet/model/useQuestionSetList';
 import { toOverviewVM } from '@/entities/questionSet/model/toOverviewVM';
-import QuestionSetOverviewCard from './QuestionSetOverviewCard';
+import QuestionSetOverviewCard from '@/entities/questionSet/ui/QuestionSetOverviewCard';
 import Alert from '@/shared/ui/Alert';
 import Skeleton from '@/pages/questionSetDetailPage/ui/Skeleton';
 import { QueryBoundary } from '@/shared/ui/QueryBoundary';
 import { QuestionSetResponse } from '@/entities/questionSet/model/response';
-import DetailPageActions from './DetailPageActions';
+import DetailPageActions from '@/entities/questionSet/ui/DetailPageActions';
 
 export default function QuestionSetOverviewSection() {
   return (

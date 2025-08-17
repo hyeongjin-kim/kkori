@@ -1,17 +1,23 @@
 import ChattingWindowContainer from '@/widgets/chattingWindow';
 import InterviewSection from '@/widgets/interviewSection';
-import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import { useEffect } from 'react';
 import useInterviewRoomStore, {
   interviewStatus,
-  interviewType,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 import { useModal } from '@/shared/lib/useModal';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import { usePracticeSessionHydrated } from '@/shared/lib/usePracticeSessionHydrated';
+import { useInterviewRoomHydrated } from '@/entities/interviewRoom/model/useInterviewRoomHydrated';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
+  const practiceSessionHydrated = usePracticeSessionHydrated();
+  const interviewRoomHydrated = useInterviewRoomHydrated();
+  if (!practiceSessionHydrated || !interviewRoomHydrated) return null;
 
+  useMediaStreamStore.getState().initMyStream();
   useEffect(() => {
     useInterviewRoomStore
       .getState()
@@ -19,18 +25,25 @@ function PairPracticePage() {
     connect();
     return () => {
       disconnect();
+      useInterviewQuestionStore.getState().clearCurrentQuestion();
+      nextQuestionModal.close();
     };
   }, []);
   const nextQuestionModal = useModal();
+  const handleNextQuestionModalClose = () => {
+    nextQuestionModal.close();
+  };
   return (
     <main
       aria-label={`pair-practice-page`}
       className="flex h-full max-h-screen w-full items-center justify-center gap-5 px-8"
     >
-      <NextQuestionModal
-        onClose={nextQuestionModal.close}
-        contentRef={nextQuestionModal.contentRef}
-      />
+      {nextQuestionModal.isOpen && (
+        <NextQuestionModal
+          onClose={handleNextQuestionModalClose}
+          contentRef={nextQuestionModal.contentRef}
+        />
+      )}
       <InterviewSection openModal={nextQuestionModal.open} />
       <ChattingWindowContainer />
     </main>

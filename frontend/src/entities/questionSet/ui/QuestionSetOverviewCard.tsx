@@ -2,7 +2,7 @@
 import Pill from '@/shared/ui/Pill';
 import SectionCard from '@/shared/ui/SectionCard';
 import Separator from '@/shared/ui/Separator';
-import type { QuestionSetOverviewVM } from '../model/toOverviewVM';
+import type { QuestionSetOverviewVM } from '@/entities/questionSet/model/toOverviewVM';
 
 export default function QuestionSetOverviewCard({
   vm,

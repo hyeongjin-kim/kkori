@@ -29,12 +29,6 @@ export function soloIntervieweeControlButtonProps({
 }: Dependencies): ControlButtonProps[] {
   return [
     {
-      onClick: switchScreen,
-      label: 'screen-change',
-      text: '화면 전환',
-      status: 'always',
-    },
-    {
       onClick: startInterview,
       label: 'interview-start',
       text: '면접 시작',
@@ -62,7 +56,7 @@ export function soloIntervieweeControlButtonProps({
       onClick: endInterview,
       label: 'interview-end',
       text: '면접 종료',
-      status: controlStatus.ALWAYS,
+      status: controlStatus.DURING_INTERVIEW,
     },
     {
       onClick: startCustomQuestion,
@@ -130,7 +124,7 @@ export function pairIntervieweeControlButtonProps({
       onClick: endInterview,
       label: 'interview-end',
       text: '면접 종료',
-      status: controlStatus.ALWAYS,
+      status: controlStatus.DURING_INTERVIEW,
     },
     {
       onClick: exitInterview,
@@ -186,7 +180,7 @@ export function pairInterviewerControlButtonProps({
       onClick: endInterview,
       label: 'interview-end',
       text: '면접 종료',
-      status: controlStatus.ALWAYS,
+      status: controlStatus.DURING_INTERVIEW,
     },
     {
       onClick: exitInterview,

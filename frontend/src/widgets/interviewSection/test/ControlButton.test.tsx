@@ -5,7 +5,7 @@ import useInterviewRoomStore, {
   interviewStatus,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import MemoryRouterWrapped from '@/app/routes/MemoryRouterWrapped';
-import { controlStatus } from '../model/types';
+import { controlStatus } from '@/widgets/interviewSection/model/types';
 
 describe('ControlButton', () => {
   const testFunction = jest.fn();

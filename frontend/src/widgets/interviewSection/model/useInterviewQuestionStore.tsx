@@ -21,6 +21,7 @@ interface InterviewQuestionActions {
   setDefaultQuestion: (question: Question) => void;
   setNextQuestion: (question: Question) => void;
   setCustomQuestion: (question: string) => void;
+  clearCurrentQuestion: () => void;
 }
 
 type InterviewQuestionStore = InterviewQuestionState & InterviewQuestionActions;
@@ -41,5 +42,7 @@ export const useInterviewQuestionStore = create<InterviewQuestionStore>(
     setDefaultQuestion: question => set({ defaultQuestion: question }),
     setNextQuestion: question => set({ nextQuestion: question }),
     setCustomQuestion: question => set({ customQuestion: question }),
+    clearCurrentQuestion: () =>
+      set({ currentQuestion: mockupQuestion.currentQuestion }),
   }),
 );
