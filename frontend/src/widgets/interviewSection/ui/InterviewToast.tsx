@@ -13,7 +13,7 @@ function InterviewToast() {
   return (
     <div
       aria-label="interview-toast"
-      className="fixed bottom-20 left-1/2 flex -translate-x-1/2 flex-col gap-2"
+      className="fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 flex-col gap-2"
     >
       {toasts.map(toast => (
         <div
