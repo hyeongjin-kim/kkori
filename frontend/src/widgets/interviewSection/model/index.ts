@@ -1,7 +1,7 @@
 import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
-import { useInterviewQuestionStore } from './useInterviewQuestionStore';
+import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 import { interviewStatus } from '@/entities/interviewRoom/model/useInterviewRoomStore';
 import { toast } from 'sonner';
 

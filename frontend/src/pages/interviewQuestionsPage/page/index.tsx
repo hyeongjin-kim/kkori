@@ -1,6 +1,6 @@
 import QuestionSetTagFilter from '@/pages/interviewQuestionsPage/ui/QuestionSetTagFilter';
 import Separator from '@/shared/ui/Separator';
-import QuestionSetListContainer from '../ui/QuestionSetListContainer';
+import QuestionSetListContainer from '@/pages/interviewQuestionsPage/ui/QuestionSetListContainer';
 
 function InterviewQuestionsPage() {
   return (

@@ -1,6 +1,6 @@
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import InterviewToast from '@/widgets/interviewSection/ui/InterviewToast';
-import useInterviewToastStore from '../model/useInterviewToastStore';
+import useInterviewToastStore from '@/widgets/interviewSection/model/useInterviewToastStore';
 import { act } from 'react';
 
 describe('InterviewToast', () => {

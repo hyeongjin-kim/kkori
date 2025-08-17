@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Logo from '../../../shared/ui/Logo';
+import Logo from '@/shared/ui/Logo';
 
 function LogoLink() {
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { usePracticeSessionStore } from './usePracticeSessionStore';
+import { usePracticeSessionStore } from '@/shared/lib/usePracticeSessionStore';
 
 export function usePracticeSessionHydrated() {
   const hasHydrated = (usePracticeSessionStore as any).persist?.hasHydrated?.();

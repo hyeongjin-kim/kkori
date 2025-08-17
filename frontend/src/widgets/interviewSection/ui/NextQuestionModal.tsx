@@ -4,7 +4,7 @@ import {
   chooseCustomQuestion,
   chooseDefaultQuestion,
   chooseTailQuestion,
-} from '../model';
+} from '@/widgets/interviewSection/model';
 import Modal from '@/shared/ui/Modal';
 
 function NextQuestionModal({

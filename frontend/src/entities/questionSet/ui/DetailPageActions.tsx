@@ -5,7 +5,7 @@ import { QuestionSetOverviewVM } from '@/entities/questionSet/model/toOverviewVM
 import useUserStore from '@/entities/user/model/useUserStore';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { deleteQuestionSet } from '../model/deleteQuestionSets';
+import { deleteQuestionSet } from '@/entities/questionSet/model/deleteQuestionSets';
 
 function DetailPageActions({ vm }: { vm: QuestionSetOverviewVM }) {
   const { id: questionSetId } = useParams();

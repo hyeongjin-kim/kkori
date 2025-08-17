@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import useInterviewToastStore from '../model/useInterviewToastStore';
+import useInterviewToastStore from '@/widgets/interviewSection/model/useInterviewToastStore';
 
 function InterviewToast() {
   const { toasts, removeToast } = useInterviewToastStore();

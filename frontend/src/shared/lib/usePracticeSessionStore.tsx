@@ -3,7 +3,10 @@ import {
   createInterviewSlice,
   InterviewSlice,
 } from '@/widgets/interviewSection/model/interviewSlice';
-import { createWebSocketSlice, WebSocketSlice } from './webSocketSlice';
+import {
+  createWebSocketSlice,
+  WebSocketSlice,
+} from '@/shared/lib/webSocketSlice';
 import {
   ChattingWindowSlice,
   createChattingWindowSlice,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import useInterviewRoomStore from './useInterviewRoomStore';
+import useInterviewRoomStore from '@/entities/interviewRoom/model/useInterviewRoomStore';
 
 export function useInterviewRoomHydrated() {
   const hasHydrated = (useInterviewRoomStore as any).persist?.hasHydrated?.();

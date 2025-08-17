@@ -8,7 +8,7 @@ import useInterviewRoomStore, {
   interviewType,
   interviewRole,
 } from '@/entities/interviewRoom/model/useInterviewRoomStore';
-import { audioPost } from '../api/api';
+import { audioPost } from '@/shared/api/api';
 import {
   Question,
   useInterviewQuestionStore,
