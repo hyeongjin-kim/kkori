@@ -84,6 +84,11 @@ const usePeerConnectionStore = create<
       .forEach(receiver => {
         receiver.track?.stop();
       });
+    get()
+      .peerConnection?.getTransceivers()
+      .forEach(transceiver => {
+        transceiver.stop();
+      });
     get().peerConnection?.close();
     set({ peerConnection: null });
   },
