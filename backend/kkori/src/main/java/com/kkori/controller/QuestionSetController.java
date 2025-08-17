@@ -79,6 +79,25 @@ public class QuestionSetController {
                 .body(CommonApiResponse.ok(response, "기존 질문+새 답변으로 새 버전이 생성되었습니다."));
     }
 
+    @PostMapping("/{questionSetId}/versions/edit")
+    public ResponseEntity<CommonApiResponse<CreateQuestionSetResponse>> editQuestionSetVersion(
+            @LoginUser Long userId,
+            @PathVariable Long questionSetId,
+            @RequestBody @Valid EditQuestionSetVersionRequest request
+    ) {
+        // PathVariable에서 받은 ID를 request에 설정
+        EditQuestionSetVersionRequest updatedRequest = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .existingQuestions(request.getExistingQuestions())
+                .newQuestions(request.getNewQuestions())
+                .tags(request.getTags())
+                .build();
+        
+        CreateQuestionSetResponse response = questionSetService.editQuestionSetVersion(userId, updatedRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonApiResponse.ok(response, "질문 세트 새 버전이 생성되었습니다."));
+    }
+
     // ===== READ OPERATIONS =====
 
     @GetMapping

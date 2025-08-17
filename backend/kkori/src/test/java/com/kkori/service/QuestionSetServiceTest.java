@@ -2,9 +2,14 @@ package com.kkori.service;
 
 import com.kkori.dto.question.request.CreateNewQuestionSetRequest;
 import com.kkori.dto.question.request.CreateQuestionRequest;
+import com.kkori.dto.question.request.EditQuestionSetVersionRequest;
+import com.kkori.dto.question.request.QuestionAnswerModificationRequest;
+import com.kkori.dto.question.request.CreateQuestionWithAnswerRequest;
 import com.kkori.dto.question.response.QuestionSetResponse;
+import com.kkori.dto.question.response.CreateQuestionSetResponse;
 import com.kkori.entity.Question;
 import com.kkori.entity.QuestionSet;
+import com.kkori.entity.QuestionSetQuestionMap;
 import com.kkori.entity.User;
 import com.kkori.entity.QuestionType;
 import com.kkori.exception.questionset.QuestionSetException;
@@ -573,5 +578,236 @@ class QuestionSetServiceTest {
                 .description(description)
                 .questions(Arrays.asList(questionRequest))
                 .build();
+    }
+
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 해피 케이스")
+    void editQuestionSetVersion_Success() {
+        // Given
+        Long userId = 1L;
+        Long parentQuestionSetId = 100L;
+        
+        User user = createUser(userId, "test@example.com");
+        QuestionSet parentQuestionSet = createQuestionSet(parentQuestionSetId, user, "부모 질문세트", "부모 설명");
+        
+        Question existingQuestion = Question.createDefault("기존 질문", "기존 답변");
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(questionSetRepository.findByIdAndNotDeleted(parentQuestionSetId))
+                .willReturn(Optional.of(parentQuestionSet));
+        given(questionRepository.findById(101L)).willReturn(Optional.of(existingQuestion));
+        given(questionSetRepository.findMaxVersionNumberByParentVersionId(any())).willReturn(Optional.of(1));
+        
+        // 새 질문 세트는 실제 객체 반환하되 ID만 설정
+        given(questionSetRepository.save(any(QuestionSet.class))).willAnswer(invocation -> {
+            QuestionSet qs = invocation.getArgument(0);
+            try {
+                java.lang.reflect.Field idField = QuestionSet.class.getDeclaredField("id");
+                idField.setAccessible(true);
+                idField.set(qs, 200L);
+            } catch (Exception e) {
+                // ignore
+            }
+            return qs;
+        });
+        
+        given(questionRepository.save(any(Question.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(questionSetQuestionMapRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0));
+        given(tagRepository.findByTag(anyString())).willReturn(Optional.empty());
+        given(tagRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0));
+        given(questionSetTagRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0));
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(Arrays.asList(
+                    QuestionAnswerModificationRequest.builder()
+                        .questionId(101L)
+                        .newExpectedAnswer("새 답변")
+                        .displayOrder(1)
+                        .build()
+                ))
+                .newQuestions(Arrays.asList(
+                    CreateQuestionWithAnswerRequest.builder()
+                        .content("새 질문")
+                        .expectedAnswer("새 질문 답변")
+                        .build()
+                ))
+                .tags(Arrays.asList("Java"))
+                .build();
+        
+        // When
+        CreateQuestionSetResponse result = questionSetService.editQuestionSetVersion(userId, request);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEqualTo(parentQuestionSet.getTitle());
+        assertThat(result.getParentVersionId()).isEqualTo(parentQuestionSetId);
+        assertThat(result.getVersionNumber()).isEqualTo(2);
+        
+        verify(questionRepository, times(2)).save(any(Question.class)); // 기존 질문 수정 + 새 질문 생성
+        verify(questionSetQuestionMapRepository, times(2)).save(any());
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 사용자 없음 예외")
+    void editQuestionSetVersion_UserNotFound_ThrowsException() {
+        // Given
+        Long userId = 999L;
+        Long parentQuestionSetId = 100L;
+        
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(Arrays.asList())
+                .newQuestions(Arrays.asList())
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> questionSetService.editQuestionSetVersion(userId, request))
+                .isInstanceOf(UserException.class);
+        
+        verify(questionSetRepository, never()).findByIdAndNotDeleted(any());
+        verify(questionRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 부모 질문세트 없음 예외")
+    void editQuestionSetVersion_ParentQuestionSetNotFound_ThrowsException() {
+        // Given
+        Long userId = 1L;
+        Long parentQuestionSetId = 999L;
+        
+        User user = createUser(userId, "test@example.com");
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(questionSetRepository.findByIdAndNotDeleted(parentQuestionSetId))
+                .willReturn(Optional.empty());
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(Arrays.asList())
+                .newQuestions(Arrays.asList())
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> questionSetService.editQuestionSetVersion(userId, request))
+                .isInstanceOf(QuestionSetException.class);
+        
+        verify(questionRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 기존 질문 없음 예외")
+    void editQuestionSetVersion_ExistingQuestionNotFound_ThrowsException() {
+        // Given
+        Long userId = 1L;
+        Long parentQuestionSetId = 100L;
+        
+        User user = createUser(userId, "test@example.com");
+        QuestionSet parentQuestionSet = createQuestionSet(parentQuestionSetId, user, "부모 질문세트", "부모 설명");
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(questionSetRepository.findByIdAndNotDeleted(parentQuestionSetId))
+                .willReturn(Optional.of(parentQuestionSet));
+        given(questionRepository.findById(999L)).willReturn(Optional.empty()); // 존재하지 않는 질문
+        given(questionSetRepository.findMaxVersionNumberByParentVersionId(any())).willReturn(Optional.of(1));
+        given(questionSetRepository.save(any(QuestionSet.class))).willAnswer(invocation -> invocation.getArgument(0));
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(Arrays.asList(
+                    QuestionAnswerModificationRequest.builder()
+                        .questionId(999L) // 존재하지 않는 질문 ID
+                        .newExpectedAnswer("새 답변")
+                        .displayOrder(1)
+                        .build()
+                ))
+                .newQuestions(Arrays.asList())
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> questionSetService.editQuestionSetVersion(userId, request))
+                .isInstanceOf(QuestionSetException.class);
+        
+        verify(questionSetQuestionMapRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 빈 요청 처리")
+    void editQuestionSetVersion_EmptyRequest_Success() {
+        // Given
+        Long userId = 1L;
+        Long parentQuestionSetId = 100L;
+        
+        User user = createUser(userId, "test@example.com");
+        QuestionSet parentQuestionSet = createQuestionSet(parentQuestionSetId, user, "부모 질문세트", "부모 설명");
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(questionSetRepository.findByIdAndNotDeleted(parentQuestionSetId))
+                .willReturn(Optional.of(parentQuestionSet));
+        given(questionSetRepository.findMaxVersionNumberByParentVersionId(any())).willReturn(Optional.of(1));
+        
+        given(questionSetRepository.save(any(QuestionSet.class))).willAnswer(invocation -> {
+            QuestionSet qs = invocation.getArgument(0);
+            try {
+                java.lang.reflect.Field idField = QuestionSet.class.getDeclaredField("id");
+                idField.setAccessible(true);
+                idField.set(qs, 200L);
+            } catch (Exception e) {
+                // ignore
+            }
+            return qs;
+        });
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(null) // 기존 질문 수정 없음
+                .newQuestions(null)      // 새 질문 추가 없음
+                .tags(null)
+                .build();
+        
+        // When
+        CreateQuestionSetResponse result = questionSetService.editQuestionSetVersion(userId, request);
+        
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEqualTo(parentQuestionSet.getTitle());
+        assertThat(result.getParentVersionId()).isEqualTo(parentQuestionSetId);
+        assertThat(result.getVersionNumber()).isEqualTo(2);
+        
+        // 질문 처리가 없으므로 질문/매핑 저장은 호출되지 않음
+        verify(questionRepository, never()).save(any(Question.class));
+        verify(questionSetQuestionMapRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 권한 없음 예외")
+    void editQuestionSetVersion_NoPermission_ThrowsException() {
+        // Given
+        Long userId = 1L;
+        Long otherUserId = 2L;
+        Long parentQuestionSetId = 100L;
+        
+        User user = createUser(userId, "test@example.com");
+        User otherUser = createUser(otherUserId, "other@example.com");
+        QuestionSet parentQuestionSet = createQuestionSet(parentQuestionSetId, otherUser, "다른 사용자 질문세트", "설명");
+        
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(questionSetRepository.findByIdAndNotDeleted(parentQuestionSetId))
+                .willReturn(Optional.of(parentQuestionSet));
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(parentQuestionSetId)
+                .existingQuestions(Arrays.asList())
+                .newQuestions(Arrays.asList())
+                .build();
+        
+        // When & Then
+        assertThatThrownBy(() -> questionSetService.editQuestionSetVersion(userId, request))
+                .isInstanceOf(QuestionSetException.class);
+        
+        verify(questionRepository, never()).save(any());
+        verify(questionSetRepository, never()).save(any());
     }
 }

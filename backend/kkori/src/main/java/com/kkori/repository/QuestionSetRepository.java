@@ -138,7 +138,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
             Pageable pageable);
 
     /**
-     * 사용자 본인의 질문 세트 페이징 조회
+     * 사용자 본인의 질문 세트 페이징 조회 (모든 버전)
      */
     @Query("SELECT qs FROM QuestionSet qs " +
            "JOIN FETCH qs.ownerUserId " +
@@ -146,6 +146,28 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "AND qs.isDeleted = false " +
            "ORDER BY qs.versionNumber DESC, qs.createdAt DESC")
     org.springframework.data.domain.Page<QuestionSet> findMyQuestionSets(@Param("userId") Long userId, Pageable pageable);
+
+    /**
+     * 사용자 본인의 질문 세트 최신 버전만 조회
+     * 각 질문 세트 그룹(루트)별로 최신 버전만 반환
+     */
+    @Query("""
+        SELECT qs FROM QuestionSet qs
+        JOIN FETCH qs.ownerUserId
+        WHERE qs.ownerUserId.userId = :userId
+        AND qs.isDeleted = false
+        AND qs.id IN (
+            SELECT MAX(qs2.id) FROM QuestionSet qs2
+            WHERE qs2.ownerUserId.userId = :userId
+            AND qs2.isDeleted = false
+            GROUP BY COALESCE(
+                CASE WHEN qs2.parentVersionId IS NULL THEN qs2.id ELSE qs2.parentVersionId.id END,
+                qs2.id
+            )
+        )
+        ORDER BY qs.createdAt DESC
+        """)
+    org.springframework.data.domain.Page<QuestionSet> findMyLatestQuestionSets(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 공개된 질문 세트 페이징 조회 (본인 제외)

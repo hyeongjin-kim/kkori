@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kkori.dto.question.request.CreateQuestionSetWithQuestionsRequest;
 import com.kkori.dto.question.request.CreateQuestionWithAnswerRequest;
 import com.kkori.dto.question.request.UpdateQuestionSetMetadataRequest;
+import com.kkori.dto.question.request.EditQuestionSetVersionRequest;
+import com.kkori.dto.question.request.QuestionAnswerModificationRequest;
 import com.kkori.dto.question.response.QuestionSetResponse;
 import com.kkori.dto.question.response.QuestionSetListResponse;
 import com.kkori.dto.question.response.QuestionSetDetailResponse;
@@ -24,6 +26,8 @@ import com.kkori.dto.question.response.QuestionSummaryResponse;
 import com.kkori.dto.question.response.TagResponse;
 import com.kkori.dto.question.response.CreateQuestionSetResponse;
 import com.kkori.dto.question.response.QuestionMapResponse;
+import com.kkori.dto.question.response.QuestionDetailResponse;
+import com.kkori.dto.question.response.AnswerDetailResponse;
 import com.kkori.exception.questionset.QuestionSetException;
 import com.kkori.security.CustomUserDetails;
 import com.kkori.service.QuestionSetService;
@@ -581,6 +585,304 @@ class QuestionSetControllerTest {
 
     private <T> Page<T> createMockPage(List<T> content) {
         return new PageImpl<>(content, PageRequest.of(0, 10), content.size());
+    }
+
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 성공 - 기존 질문 + 새 질문 혼합")
+    void editQuestionSetVersion_Success() throws Exception {
+        // Given
+        Long questionSetId = 1L;
+        
+        // Request data
+        CreateQuestionWithAnswerRequest newQuestion1 = CreateQuestionWithAnswerRequest.builder()
+                .content("새 질문1")
+                .expectedAnswer("새 답변1")
+                .build();
+        
+        CreateQuestionWithAnswerRequest newQuestion2 = CreateQuestionWithAnswerRequest.builder()
+                .content("새 질문2")
+                .expectedAnswer("새 답변2")
+                .build();
+        
+        // 기존 질문 수정 (답변만 변경)
+        QuestionAnswerModificationRequest existingQuestion1 = QuestionAnswerModificationRequest.builder()
+                .questionId(101L)
+                .newExpectedAnswer("수정된 답변1")
+                .displayOrder(1)
+                .build();
+        
+        QuestionAnswerModificationRequest existingQuestion2 = QuestionAnswerModificationRequest.builder()
+                .questionId(102L)
+                .newExpectedAnswer("수정된 답변2")
+                .displayOrder(2)
+                .build();
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .existingQuestions(Arrays.asList(existingQuestion1, existingQuestion2))
+                .newQuestions(Arrays.asList(newQuestion1, newQuestion2))
+                .tags(Arrays.asList("Java", "Spring"))
+                .build();
+        
+        // Response data
+        QuestionMapResponse questionMap1 = QuestionMapResponse.builder()
+                .mapId(1L)
+                .questionId(201L)
+                .answerId(301L)
+                .displayOrder(1)
+                .question(QuestionDetailResponse.builder()
+                    .id(201L)
+                    .content("기존 질문1")
+                    .questionType(1)
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .answer(AnswerDetailResponse.builder()
+                    .id(301L)
+                    .content("수정된 답변1")
+                    .createdByNickname("테스트사용자")
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .build();
+        
+        QuestionMapResponse questionMap2 = QuestionMapResponse.builder()
+                .mapId(2L)
+                .questionId(202L)
+                .answerId(302L)
+                .displayOrder(2)
+                .question(QuestionDetailResponse.builder()
+                    .id(202L)
+                    .content("기존 질문2")
+                    .questionType(1)
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .answer(AnswerDetailResponse.builder()
+                    .id(302L)
+                    .content("수정된 답변2")
+                    .createdByNickname("테스트사용자")
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .build();
+        
+        QuestionMapResponse questionMap3 = QuestionMapResponse.builder()
+                .mapId(3L)
+                .questionId(203L)
+                .answerId(303L)
+                .displayOrder(3)
+                .question(QuestionDetailResponse.builder()
+                    .id(203L)
+                    .content("새 질문1")
+                    .questionType(1)
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .answer(AnswerDetailResponse.builder()
+                    .id(303L)
+                    .content("새 답변1")
+                    .createdByNickname("테스트사용자")
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .build();
+        
+        QuestionMapResponse questionMap4 = QuestionMapResponse.builder()
+                .mapId(4L)
+                .questionId(204L)
+                .answerId(304L)
+                .displayOrder(4)
+                .question(QuestionDetailResponse.builder()
+                    .id(204L)
+                    .content("새 질문2")
+                    .questionType(1)
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .answer(AnswerDetailResponse.builder()
+                    .id(304L)
+                    .content("새 답변2")
+                    .createdByNickname("테스트사용자")
+                    .createdAt(LocalDateTime.now())
+                    .build())
+                .build();
+        
+        CreateQuestionSetResponse response = CreateQuestionSetResponse.builder()
+                .questionSetId(2L)
+                .title("테스트 질문세트")
+                .description("테스트 설명")
+                .versionNumber(2)
+                .parentVersionId(questionSetId)
+                .isPublic(false)
+                .ownerNickname("테스트사용자")
+                .questionMaps(Arrays.asList(questionMap1, questionMap2, questionMap3, questionMap4))
+                .tags(Arrays.asList(
+                    TagResponse.builder().id(1L).tag("Java").build(),
+                    TagResponse.builder().id(2L).tag("Spring").build()
+                ))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        
+        given(questionSetService.editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class)))
+                .willReturn(response);
+        
+        setAuthentication();
+        
+        // When & Then
+        mockMvc.perform(post(API_URL + "/{questionSetId}/versions/edit", questionSetId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.questionSetId").value(2L))
+                .andExpect(jsonPath("$.data.versionNumber").value(2))
+                .andExpect(jsonPath("$.data.parentVersionId").value(questionSetId))
+                .andExpect(jsonPath("$.data.questionMaps").isArray())
+                .andExpect(jsonPath("$.data.questionMaps").value(org.hamcrest.Matchers.hasSize(4)))
+                .andExpect(jsonPath("$.data.questionMaps[0].answer.content").value("수정된 답변1"))
+                .andExpect(jsonPath("$.data.questionMaps[1].answer.content").value("수정된 답변2"))
+                .andExpect(jsonPath("$.data.questionMaps[2].question.content").value("새 질문1"))
+                .andExpect(jsonPath("$.data.questionMaps[3].question.content").value("새 질문2"))
+                .andExpect(jsonPath("$.data.tags").isArray())
+                .andExpect(jsonPath("$.data.tags").value(org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.message").value("질문 세트 새 버전이 생성되었습니다."));
+        
+        verify(questionSetService).editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class));
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 기존 질문만 수정")
+    void editQuestionSetVersion_OnlyExistingQuestions_Success() throws Exception {
+        // Given
+        Long questionSetId = 1L;
+        
+        QuestionAnswerModificationRequest existingQuestion = QuestionAnswerModificationRequest.builder()
+                .questionId(101L)
+                .newExpectedAnswer("수정된 답변")
+                .displayOrder(1)
+                .build();
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .existingQuestions(Arrays.asList(existingQuestion))
+                .newQuestions(null) // 새 질문 없음
+                .tags(Arrays.asList("Java"))
+                .build();
+        
+        CreateQuestionSetResponse response = CreateQuestionSetResponse.builder()
+                .questionSetId(2L)
+                .title("테스트 질문세트")
+                .description("테스트 설명")
+                .versionNumber(2)
+                .parentVersionId(questionSetId)
+                .isPublic(false)
+                .ownerNickname("테스트사용자")
+                .questionMaps(Arrays.asList(
+                    QuestionMapResponse.builder()
+                        .mapId(1L)
+                        .questionId(201L)
+                        .answerId(301L)
+                        .displayOrder(1)
+                        .question(QuestionDetailResponse.builder()
+                            .id(201L)
+                            .content("기존 질문")
+                            .questionType(1)
+                            .createdAt(LocalDateTime.now())
+                            .build())
+                        .answer(AnswerDetailResponse.builder()
+                            .id(301L)
+                            .content("수정된 답변")
+                            .createdByNickname("테스트사용자")
+                            .createdAt(LocalDateTime.now())
+                            .build())
+                        .build()
+                ))
+                .tags(Arrays.asList(TagResponse.builder().id(1L).tag("Java").build()))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        
+        given(questionSetService.editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class)))
+                .willReturn(response);
+        
+        setAuthentication();
+        
+        // When & Then
+        mockMvc.perform(post(API_URL + "/{questionSetId}/versions/edit", questionSetId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.questionMaps").value(org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.data.questionMaps[0].answer.content").value("수정된 답변"));
+        
+        verify(questionSetService).editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class));
+    }
+    
+    @Test
+    @DisplayName("질문 세트 편집으로 새 버전 생성 - 새 질문만 추가")
+    void editQuestionSetVersion_OnlyNewQuestions_Success() throws Exception {
+        // Given
+        Long questionSetId = 1L;
+        
+        CreateQuestionWithAnswerRequest newQuestion = CreateQuestionWithAnswerRequest.builder()
+                .content("새 질문")
+                .expectedAnswer("새 답변")
+                .build();
+        
+        EditQuestionSetVersionRequest request = EditQuestionSetVersionRequest.builder()
+                .parentQuestionSetId(questionSetId)
+                .existingQuestions(null) // 기존 질문 수정 없음
+                .newQuestions(Arrays.asList(newQuestion))
+                .tags(Arrays.asList("Java"))
+                .build();
+        
+        CreateQuestionSetResponse response = CreateQuestionSetResponse.builder()
+                .questionSetId(2L)
+                .title("테스트 질문세트")
+                .description("테스트 설명")
+                .versionNumber(2)
+                .parentVersionId(questionSetId)
+                .isPublic(false)
+                .ownerNickname("테스트사용자")
+                .questionMaps(Arrays.asList(
+                    QuestionMapResponse.builder()
+                        .mapId(1L)
+                        .questionId(201L)
+                        .answerId(301L)
+                        .displayOrder(1)
+                        .question(QuestionDetailResponse.builder()
+                            .id(201L)
+                            .content("새 질문")
+                            .questionType(1)
+                            .createdAt(LocalDateTime.now())
+                            .build())
+                        .answer(AnswerDetailResponse.builder()
+                            .id(301L)
+                            .content("새 답변")
+                            .createdByNickname("테스트사용자")
+                            .createdAt(LocalDateTime.now())
+                            .build())
+                        .build()
+                ))
+                .tags(Arrays.asList(TagResponse.builder().id(1L).tag("Java").build()))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        
+        given(questionSetService.editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class)))
+                .willReturn(response);
+        
+        setAuthentication();
+        
+        // When & Then
+        mockMvc.perform(post(API_URL + "/{questionSetId}/versions/edit", questionSetId)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.questionMaps").value(org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.data.questionMaps[0].question.content").value("새 질문"));
+        
+        verify(questionSetService).editQuestionSetVersion(eq(TEST_USER_ID), any(EditQuestionSetVersionRequest.class));
     }
 
 }

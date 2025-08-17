@@ -560,7 +560,7 @@ class QuestionSetServiceCrudTest {
             Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList(questionSet));
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class)))
+            given(questionSetRepository.findMyLatestQuestionSets(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
             given(questionSetQuestionMapRepository.countByQuestionSetId(anyLong())).willReturn(5L);
 
@@ -574,7 +574,7 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getContent().get(0).getQuestionCount()).isEqualTo(5);
             assertThat(response.getContent().get(0).getOwnerNickname()).isEqualTo("테스트사용자");
 
-            verify(questionSetRepository).findMyQuestionSets(eq(1L), any(Pageable.class));
+            verify(questionSetRepository).findMyLatestQuestionSets(eq(1L), any(Pageable.class));
         }
 
         @Test
@@ -657,7 +657,7 @@ class QuestionSetServiceCrudTest {
             Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList());
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class)))
+            given(questionSetRepository.findMyLatestQuestionSets(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
 
             // When - 잘못된 정렬도 기본값으로 처리됨
@@ -668,7 +668,7 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getContent()).isEmpty();
 
             verify(userRepository).findById(1L);
-            verify(questionSetRepository).findMyQuestionSets(eq(1L), any(Pageable.class));
+            verify(questionSetRepository).findMyLatestQuestionSets(eq(1L), any(Pageable.class));
         }
 
         @Test
@@ -754,7 +754,7 @@ class QuestionSetServiceCrudTest {
             Page<QuestionSet> emptyPage = new PageImpl<>(Arrays.asList());
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class)))
+            given(questionSetRepository.findMyLatestQuestionSets(eq(1L), any(Pageable.class)))
                     .willReturn(emptyPage);
 
             // When
@@ -765,7 +765,7 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getContent()).isEmpty();
             assertThat(response.getTotalElements()).isEqualTo(0);
 
-            verify(questionSetRepository).findMyQuestionSets(eq(1L), any(Pageable.class));
+            verify(questionSetRepository).findMyLatestQuestionSets(eq(1L), any(Pageable.class));
         }
 
         @Test
@@ -775,7 +775,7 @@ class QuestionSetServiceCrudTest {
             Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList());
 
             given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-            given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class)))
+            given(questionSetRepository.findMyLatestQuestionSets(eq(1L), any(Pageable.class)))
                     .willReturn(questionSetsPage);
 
             // When - 큰 페이지 크기도 정상 처리됨
@@ -786,7 +786,7 @@ class QuestionSetServiceCrudTest {
             assertThat(response.getContent()).isEmpty();
 
             verify(userRepository).findById(1L);
-            verify(questionSetRepository).findMyQuestionSets(eq(1L), any(Pageable.class));
+            verify(questionSetRepository).findMyLatestQuestionSets(eq(1L), any(Pageable.class));
         }
     }
 
