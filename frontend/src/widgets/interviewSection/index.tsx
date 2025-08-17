@@ -2,6 +2,7 @@ import CurrentQuestionDisplay from '@/widgets/interviewSection/ui/CurrentQuestio
 import MediaStreamViewer from '@/widgets/interviewSection/ui/MediaStreamViewer';
 import InterviewController from '@/widgets/interviewSection/ui/InterviewController';
 import useMediaStreamStore from './model/useMediaStreamStore';
+import InterviewToast from './ui/InterviewToast';
 
 function InterviewSection({ openModal }: { openModal: () => void }) {
   const mainStreamType = useMediaStreamStore(state => state.mainStreamType);
@@ -21,6 +22,7 @@ function InterviewSection({ openModal }: { openModal: () => void }) {
         <MediaStreamViewer type={subStreamType} />
       </div>
       <InterviewController openModal={openModal} />
+      <InterviewToast />
     </div>
   );
 }
