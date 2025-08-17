@@ -83,15 +83,16 @@ function QuestionAnswerForm({
           </div>
         </div>
       ))}
-      <button
-        type="button"
-        aria-label="add-question-button"
-        onClick={addNewQuestionAnswer}
-        className="ml-auto block items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.99]"
-      >
-        <span aria-hidden>➕ 질문 추가하기</span>
-      </button>
-
+      {type === QUESTION_ANSWER_FORMAT_TYPE.create && (
+        <button
+          type="button"
+          aria-label="add-question-button"
+          onClick={addNewQuestionAnswer}
+          className="ml-auto block items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 active:scale-[0.99]"
+        >
+          <span aria-hidden>➕ 질문 추가하기</span>
+        </button>
+      )}
       <button
         type="button"
         aria-label="submit-button"
