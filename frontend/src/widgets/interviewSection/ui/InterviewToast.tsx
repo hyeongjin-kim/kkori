@@ -4,11 +4,12 @@ import useInterviewToastStore from '../model/useInterviewToastStore';
 function InterviewToast() {
   const { toasts, removeToast } = useInterviewToastStore();
   useEffect(() => {
-    if (toasts.length > 0) {
-      const timer = setTimeout(() => removeToast(toasts[0].id), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [toasts]);
+    const timers = toasts.map(t => setTimeout(() => removeToast(t.id), 2000));
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, [toasts, removeToast]);
 
   return (
     <div
