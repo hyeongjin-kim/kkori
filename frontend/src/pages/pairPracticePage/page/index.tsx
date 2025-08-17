@@ -10,13 +10,14 @@ import { useModal } from '@/shared/lib/useModal';
 import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
 import { usePracticeSessionHydrated } from '@/shared/lib/usePracticeSessionHydrated';
 import { useInterviewRoomHydrated } from '@/entities/interviewRoom/model/useInterviewRoomHydrated';
-import useInitMediaStream from '@/widgets/interviewSection/model/useInitMediaStream';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 function PairPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
-  const { error } = useInitMediaStream();
   const practiceSessionHydrated = usePracticeSessionHydrated();
   const interviewRoomHydrated = useInterviewRoomHydrated();
   if (!practiceSessionHydrated || !interviewRoomHydrated) return null;
+
+  useMediaStreamStore.getState().initMyStream();
   useEffect(() => {
     useInterviewRoomStore
       .getState()

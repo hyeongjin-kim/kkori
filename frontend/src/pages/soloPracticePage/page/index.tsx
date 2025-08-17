@@ -9,11 +9,12 @@ import useInterviewRoomStore, {
 import NextQuestionModal from '@/widgets/interviewSection/ui/NextQuestionModal';
 import { useModal } from '@/shared/lib/useModal';
 import { useInterviewQuestionStore } from '@/widgets/interviewSection/model/useInterviewQuestionStore';
+import useMediaStreamStore from '@/widgets/interviewSection/model/useMediaStreamStore';
 
 function SoloPracticePage() {
   const { connect, disconnect } = usePracticeSessionStore();
   const nextQuestionModal = useModal();
-
+  useMediaStreamStore.getState().initMyStream();
   const handleNextQuestionModalClose = () => {
     nextQuestionModal.close();
   };

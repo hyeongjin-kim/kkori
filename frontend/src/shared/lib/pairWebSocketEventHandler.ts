@@ -93,7 +93,7 @@ const existingUserHandler = async (
   };
   const peerConnection = createPeerConnection(onIceCandidate);
 
-  const myStream = useMediaStreamStore.getState().myStream;
+  const myStream = await useMediaStreamStore.getState().waitForReady();
   console.log('MY STREAM : ', myStream);
   if (!myStream) return;
 
@@ -135,7 +135,7 @@ const offerHandler = async (client: Client, get: any, set: any, data: any) => {
     });
   };
   const peerConnection = createPeerConnection(onIceCandidate);
-  const myStream = useMediaStreamStore.getState().myStream;
+  const myStream = await useMediaStreamStore.getState().waitForReady();
   if (!myStream) return;
   myStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, myStream);
