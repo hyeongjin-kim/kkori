@@ -74,6 +74,16 @@ const usePeerConnectionStore = create<
   },
   setPeerConnection: peerConnection => set({ peerConnection }),
   clearConnections: () => {
+    get()
+      .peerConnection?.getSenders()
+      .forEach(sender => {
+        sender.track?.stop();
+      });
+    get()
+      .peerConnection?.getReceivers()
+      .forEach(receiver => {
+        receiver.track?.stop();
+      });
     get().peerConnection?.close();
     set({ peerConnection: null });
   },
