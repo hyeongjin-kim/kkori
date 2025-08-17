@@ -184,7 +184,6 @@ class InterviewSessionServiceImplTest {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
             when(mockInterview.getInterviewId()).thenReturn(INTERVIEW_ID);
-            when(mockRoom.getCreatorId()).thenReturn(CREATOR_ID);
             when(mockRoom.getInterviewerId()).thenReturn(CREATOR_ID);
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
             when(mockRoom.getQuestionSetId()).thenReturn(QUESTION_SET_ID);
@@ -192,8 +191,8 @@ class InterviewSessionServiceImplTest {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(mockUser));
             when(questionSetRepository.findById(QUESTION_SET_ID)).thenReturn(Optional.of(mockQuestionSet));
             when(interviewRepository.save(any(Interview.class))).thenReturn(mockInterview);
-            // when
-            Long interviewId = service.startInterview(ROOM_ID, CREATOR_ID);
+            // when - 면접자(USER_ID)가 면접 시작
+            Long interviewId = service.startInterview(ROOM_ID, USER_ID);
             // then
             assertThat(interviewId).isEqualTo(INTERVIEW_ID);
             verify(roomManager).startInterview(ROOM_ID, INTERVIEW_ID);
@@ -205,9 +204,9 @@ class InterviewSessionServiceImplTest {
         void startInterview_Fail_NoPermission() {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
-            when(mockRoom.getCreatorId()).thenReturn(CREATOR_ID);
-            // when & then
-            assertThatThrownBy(() -> service.startInterview(ROOM_ID, USER_ID))
+            when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+            // when & then - 면접관(CREATOR_ID)이 시작 시도하면 실패
+            assertThatThrownBy(() -> service.startInterview(ROOM_ID, CREATOR_ID))
                     .isInstanceOf(InterviewSessionException.class);
         }
 
@@ -216,15 +215,14 @@ class InterviewSessionServiceImplTest {
         void startInterview_Fail_QuestionSetNotFound() {
             // given
             when(roomManager.getRoom(ROOM_ID)).thenReturn(mockRoom);
-            when(mockRoom.getCreatorId()).thenReturn(CREATOR_ID);
-            when(mockRoom.getInterviewerId()).thenReturn(CREATOR_ID);
             when(mockRoom.getIntervieweeId()).thenReturn(USER_ID);
+            when(mockRoom.getInterviewerId()).thenReturn(CREATOR_ID);
             when(mockRoom.getQuestionSetId()).thenReturn(QUESTION_SET_ID);
             when(userRepository.findById(CREATOR_ID)).thenReturn(Optional.of(mockCreator));
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(mockUser));
             when(questionSetRepository.findById(QUESTION_SET_ID)).thenReturn(Optional.empty());
-            // when & then
-            assertThatThrownBy(() -> service.startInterview(ROOM_ID, CREATOR_ID))
+            // when & then - 면접자(USER_ID)가 시작 시도
+            assertThatThrownBy(() -> service.startInterview(ROOM_ID, USER_ID))
                     .isInstanceOf(InterviewSessionException.class);
         }
     }

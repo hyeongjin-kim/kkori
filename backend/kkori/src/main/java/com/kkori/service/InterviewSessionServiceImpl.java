@@ -418,7 +418,7 @@ public class InterviewSessionServiceImpl implements InterviewSessionService {
      * 면접 시작 권한 검증
      */
     private void validateStartPermission(InterviewRoom room, Long userId) {
-        if (!room.getCreatorId().equals(userId)) {
+        if (!room.getIntervieweeId().equals(userId)) {
             throw InterviewSessionException.permissionDenied();
         }
     }
