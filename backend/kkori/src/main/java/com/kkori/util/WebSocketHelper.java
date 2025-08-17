@@ -29,7 +29,13 @@ public class WebSocketHelper {
             "roles-swapped",
             "interview-ended",
             "answer-recording-started",
-            "custom-question-recording-started"
+            "custom-question-recording-started",
+            "existing-user",
+            "joined-user",
+            "room-created",
+            "received-ice-candidate",
+            "received-offer",
+            "received-answer"
     );
 
     // ==================== 메시지 전송 관련 ====================
