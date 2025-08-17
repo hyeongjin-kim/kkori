@@ -201,5 +201,5 @@ const errorHandler = (client: Client, set: any, data: any) => {
 };
 
 const interviewEndedHandler = (client: Client, set: any, data: any) => {
-  useInterviewRoomStore.getState().setStatus('endInterview');
+  useInterviewRoomStore.getState().setStatus(interviewStatus.END_INTERVIEW);
 };
