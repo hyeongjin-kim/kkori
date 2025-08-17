@@ -77,7 +77,10 @@ describe('QuestionSetListContainer', () => {
     render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(useQuestionSetsMock).toHaveBeenCalledTimes(1);
-    expect(useQuestionSetsMock).toHaveBeenCalledWith({ tags: undefined });
+    expect(useQuestionSetsMock).toHaveBeenCalledWith({
+      page: 0,
+      size: 6,
+    });
   });
 
   test('선택 태그가 일반 태그면 tags 배열로 호출한다', () => {
@@ -91,6 +94,10 @@ describe('QuestionSetListContainer', () => {
     render(<MemoryRouterWrapped component={<QuestionSetListContainer />} />);
 
     expect(useQuestionSetsMock).toHaveBeenCalledTimes(1);
-    expect(useQuestionSetsMock).toHaveBeenCalledWith({ tags: ['백엔드'] });
+    expect(useQuestionSetsMock).toHaveBeenCalledWith({
+      page: 0,
+      size: 6,
+      tags: ['백엔드'],
+    });
   });
 });
