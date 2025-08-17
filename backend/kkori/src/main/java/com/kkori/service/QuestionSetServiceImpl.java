@@ -206,7 +206,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         
         Pageable pageable = PageRequest.of(page, size);
         Page<QuestionSet> questionSetsPage = questionSetRepository
-                .findMyQuestionSets(userId, pageable);
+                .findMyLatestQuestionSets(userId, pageable);
         List<QuestionSet> questionSets = questionSetsPage.getContent();
 
         return questionSets.stream()
@@ -454,7 +454,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
         
-        Page<QuestionSet> questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
+        Page<QuestionSet> questionSets = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
         return questionSets.map(this::convertToQuestionSetListResponse);
     }
 
@@ -686,7 +686,7 @@ public class QuestionSetServiceImpl implements QuestionSetService {
             if (userId == null) {
                 throw new IllegalArgumentException("내 질문세트 조회는 로그인이 필요합니다.");
             }
-            questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
+            questionSets = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
         } else if (isPublic != null && isPublic) {
             // 공개된 질문 세트 조회
             questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);

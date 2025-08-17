@@ -1,6 +1,7 @@
 package com.kkori.repository;
 
 import com.kkori.entity.QuestionSet;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -132,7 +133,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "AND (:isPublic IS NULL OR qs.isPublic = :isPublic) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findQuestionSetsWithFilters(
+    Page<QuestionSet> findQuestionSetsWithFilters(
             @Param("userId") Long userId, 
             @Param("isPublic") Boolean isPublic, 
             Pageable pageable);
@@ -145,7 +146,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "WHERE qs.ownerUserId.userId = :userId " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.versionNumber DESC, qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findMyQuestionSets(@Param("userId") Long userId, Pageable pageable);
+    Page<QuestionSet> findMyQuestionSets(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 공개된 질문 세트 페이징 조회 (본인 제외)
@@ -156,7 +157,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "AND qs.ownerUserId.userId != :userId " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findPublicQuestionSetsWithPaging(@Param("userId") Long userId, Pageable pageable);
+    Page<QuestionSet> findPublicQuestionSetsWithPaging(@Param("userId") Long userId, Pageable pageable);
 
     /**
      * 태그 기반 질문 세트 검색
@@ -169,7 +170,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "AND (:userId IS NULL OR qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findByTagNames(@Param("tagNames") List<String> tagNames, 
+    Page<QuestionSet> findByTagNames(@Param("tagNames") List<String> tagNames,
                                                                     @Param("userId") Long userId, 
                                                                     Pageable pageable);
 
@@ -199,7 +200,7 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
            "WHERE (qs.ownerUserId.userId = :userId OR qs.isPublic = true) " +
            "AND qs.isDeleted = false " +
            "ORDER BY qs.createdAt DESC")
-    org.springframework.data.domain.Page<QuestionSet> findAccessibleQuestionSets(@Param("userId") Long userId, Pageable pageable);
+    Page<QuestionSet> findAccessibleQuestionSets(@Param("userId") Long userId, Pageable pageable);
     
     /**
      * 최근 생성된 공개 질문 세트 Top N 조회 (캐싱용)
@@ -225,4 +226,27 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
     @org.springframework.data.jpa.repository.Modifying
     void softDeleteByIds(@Param("questionSetIds") List<Long> questionSetIds, 
                          @Param("userId") Long userId);
+
+    /**
+     * 사용자 본인의 질문 세트 최신 버전만 조회
+     * 각 질문 세트 그룹(루트)별로 최신 버전만 반환
+     */
+    @Query("""
+        SELECT qs FROM QuestionSet qs
+        JOIN FETCH qs.ownerUserId
+        WHERE qs.ownerUserId.userId = :userId
+        AND qs.isDeleted = false
+        AND qs.id IN (
+            SELECT MAX(qs2.id) FROM QuestionSet qs2
+            WHERE qs2.ownerUserId.userId = :userId
+            AND qs2.isDeleted = false
+            GROUP BY COALESCE(
+                CASE WHEN qs2.parentVersionId IS NULL THEN qs2.id ELSE qs2.parentVersionId.id END,
+                qs2.id
+            )
+        )
+        ORDER BY qs.createdAt DESC
+        """)
+    Page<QuestionSet> findMyLatestQuestionSets(@Param("userId") Long userId, Pageable pageable);
+
 }

@@ -230,7 +230,7 @@ class QuestionSetServiceTest {
         
         given(userRepository.findById(userId)).willReturn(Optional.of(owner));
         Page<QuestionSet> questionSetPage = new PageImpl<>(Arrays.asList(questionSet1, questionSet2), pageable, 2);
-        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+        given(questionSetRepository.findMyLatestQuestionSets(userId, pageable))
                 .willReturn(questionSetPage);
 
         // When
@@ -242,7 +242,7 @@ class QuestionSetServiceTest {
         assertThat(responses.get(1).getTitle()).isEqualTo("질문세트 2");
         
         verify(userRepository).findById(userId);
-        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
+        verify(questionSetRepository).findMyLatestQuestionSets(userId, pageable);
     }
 
     @Test
@@ -314,7 +314,7 @@ class QuestionSetServiceTest {
         Page<QuestionSet> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
         
         given(userRepository.findById(userId)).willReturn(Optional.of(owner));
-        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+        given(questionSetRepository.findMyLatestQuestionSets(userId, pageable))
                 .willReturn(emptyPage);
 
         // When
@@ -324,7 +324,7 @@ class QuestionSetServiceTest {
         assertThat(responses).isEmpty();
         
         verify(userRepository).findById(userId);
-        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
+        verify(questionSetRepository).findMyLatestQuestionSets(userId, pageable);
     }
 
     @Test
@@ -412,7 +412,7 @@ class QuestionSetServiceTest {
         Page<QuestionSet> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
         
         given(userRepository.findById(userId)).willReturn(Optional.of(owner));
-        given(questionSetRepository.findMyQuestionSets(userId, pageable))
+        given(questionSetRepository.findMyLatestQuestionSets(userId, pageable))
                 .willReturn(emptyPage);
 
         // When
@@ -422,7 +422,7 @@ class QuestionSetServiceTest {
         assertThat(responses).isEmpty();
         
         verify(userRepository).findById(userId);
-        verify(questionSetRepository).findMyQuestionSets(userId, pageable);
+        verify(questionSetRepository).findMyLatestQuestionSets(userId, pageable);
     }
 
     @Test

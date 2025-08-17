@@ -190,14 +190,14 @@ class QuestionSetRepositoryOptimizedQueryTest {
         }
 
         @Test
-        @DisplayName("findMyQuestionSets - 내 질문세트 페이징 조회")
-        void findMyQuestionSets_Success() {
+        @DisplayName("findMyLatestQuestionSets - 내 질문세트 페이징 조회")
+        void findMyLatestQuestionSets_Success() {
             // Given
             Long userId = testUser1.getUserId();
             Pageable pageable = PageRequest.of(0, 10);
 
             // When
-            Page<QuestionSet> results = questionSetRepository.findMyQuestionSets(userId, pageable);
+            Page<QuestionSet> results = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
 
             // Then
             assertThat(results.getContent()).hasSize(2);
@@ -258,7 +258,7 @@ class QuestionSetRepositoryOptimizedQueryTest {
             Pageable pageable = PageRequest.of(0, 10);
 
             // When - JOIN FETCH로 한 번에 로딩
-            Page<QuestionSet> results = questionSetRepository.findMyQuestionSets(userId, pageable);
+            Page<QuestionSet> results = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
 
             // Then - Lazy Loading이 발생하지 않아야 함
             entityManager.clear(); // 영속성 컨텍스트 클리어
@@ -340,11 +340,11 @@ class QuestionSetRepositoryOptimizedQueryTest {
 
             // When
             long startTime1 = System.nanoTime();
-            Page<QuestionSet> smallResults = questionSetRepository.findMyQuestionSets(testUser1.getUserId(), smallPage);
+            Page<QuestionSet> smallResults = questionSetRepository.findMyLatestQuestionSets(testUser1.getUserId(), smallPage);
             long endTime1 = System.nanoTime();
 
             long startTime2 = System.nanoTime();
-            Page<QuestionSet> largeResults = questionSetRepository.findMyQuestionSets(testUser1.getUserId(), largePage);
+            Page<QuestionSet> largeResults = questionSetRepository.findMyLatestQuestionSets(testUser1.getUserId(), largePage);
             long endTime2 = System.nanoTime();
 
             // Then - 성능 비교
@@ -403,7 +403,7 @@ class QuestionSetRepositoryOptimizedQueryTest {
             Long countAfter = questionSetRepository.countByUserId(userId);
             assertThat(countAfter).isEqualTo(1L);
 
-            Page<QuestionSet> myQuestionSets = questionSetRepository.findMyQuestionSets(
+            Page<QuestionSet> myQuestionSets = questionSetRepository.findMyLatestQuestionSets(
                     userId, PageRequest.of(0, 10));
             assertThat(myQuestionSets.getContent()).hasSize(1);
             assertThat(myQuestionSets.getContent().get(0).getTitle()).isEqualTo("비공개 질문세트");

@@ -193,7 +193,7 @@ class QuestionSetServiceSimpleTest {
         Page<QuestionSet> questionSetsPage = new PageImpl<>(Arrays.asList(questionSet));
 
         given(userRepository.findById(1L)).willReturn(Optional.of(testUser));
-        given(questionSetRepository.findMyQuestionSets(eq(1L), any(Pageable.class))).willReturn(questionSetsPage);
+        given(questionSetRepository.findMyLatestQuestionSets(eq(1L), any(Pageable.class))).willReturn(questionSetsPage);
         given(questionSetQuestionMapRepository.countByQuestionSetId(any())).willReturn(3L);
 
         // When
@@ -204,7 +204,7 @@ class QuestionSetServiceSimpleTest {
         assertThat(response.getContent().get(0).getTitle()).isEqualTo("테스트 질문세트");
         assertThat(response.getContent().get(0).getQuestionCount()).isEqualTo(3);
 
-        verify(questionSetRepository).findMyQuestionSets(eq(1L), any(Pageable.class));
+        verify(questionSetRepository).findMyLatestQuestionSets(eq(1L), any(Pageable.class));
     }
 
     @Test
