@@ -116,8 +116,13 @@ class InterviewWebSocketReconnectionTest {
     @DisplayName("재연결 감지 테스트 - roomId가 있는 경우")
     void reconnectionWithRoomIdTest() throws Exception {
         // given - 사용자가 이미 방에 접속해 있는 상황 시뮬레이션
+        InterviewRoom mockRoom = InterviewRoom.createSoloRoom(TEST_ROOM_ID, 1L, TEST_USER_ID, null);
+        
         given(interviewSessionService.isReconnection(TEST_ROOM_ID, TEST_USER_ID)).willReturn(true);
         given(interviewSessionService.getRoomIdByUserId(TEST_USER_ID)).willReturn(TEST_ROOM_ID);
+        given(interviewSessionService.getRoom(TEST_ROOM_ID)).willReturn(mockRoom);
+        given(userService.findById(TEST_USER_ID)).willReturn(testUser);
+        
         Object lastEvent = Map.of(
                 "type", "interview-started",
                 "data", Map.of("firstQuestion", Map.of("questionText", "자기소개를 해주세요."))
@@ -129,7 +134,8 @@ class InterviewWebSocketReconnectionTest {
         stompSession.send("/app/room-join", request);
 
         // then - 마지막 이벤트 재전송 확인
-        Map<String, Object> lastEventResponse = personalSubscriber.waitForMessage("interview-started", 10);
+        Map<String, Object> lastEventResponse = personalSubscriber.
+                waitForMessage("interview-started", 10);
         assertThat(lastEventResponse).isNotNull();
         assertThat(lastEventResponse.get("type")).isEqualTo("interview-started");
         
@@ -140,7 +146,12 @@ class InterviewWebSocketReconnectionTest {
     @DisplayName("새로고침으로 인한 재접속 테스트 (roomId가 null인 경우)")
     void pageRefreshReconnectionTest() throws Exception {
         // given - 새로고침으로 roomId가 없는 상황
+        InterviewRoom mockRoom = InterviewRoom.createSoloRoom(TEST_ROOM_ID, 1L, TEST_USER_ID, null);
+        
         given(interviewSessionService.getRoomIdByUserId(TEST_USER_ID)).willReturn(TEST_ROOM_ID);
+        given(interviewSessionService.getRoom(TEST_ROOM_ID)).willReturn(mockRoom);
+        given(userService.findById(TEST_USER_ID)).willReturn(testUser);
+        
         Object lastEvent = Map.of(
                 "type", "next-question-selected",
                 "data", Map.of("questionText", "개발자가 되고 싶은 이유는?")
@@ -152,6 +163,7 @@ class InterviewWebSocketReconnectionTest {
         stompSession.send("/app/room-join", request);
 
         // then - 마지막 이벤트 재전송 확인
+
         Map<String, Object> lastEventResponse = personalSubscriber.waitForMessage("next-question-selected", 10);
         assertThat(lastEventResponse).isNotNull();
         assertThat(lastEventResponse.get("type")).isEqualTo("next-question-selected");
@@ -163,12 +175,16 @@ class InterviewWebSocketReconnectionTest {
     @DisplayName("네트워크 장애 후 재접속 테스트 - 마지막 이벤트 복구")
     void networkFailureReconnectionTest() throws Exception {
         // given - 네트워크 장애 후 재접속 상황
+        InterviewRoom mockRoom = InterviewRoom.createSoloRoom(TEST_ROOM_ID, 1L, TEST_USER_ID, null);
+        
         Object lastEvent = Map.of(
                 "type", "interview-started",
                 "data", Map.of("firstQuestion", Map.of("questionText", "자기소개를 해주세요."))
         );
         
         given(interviewSessionService.getRoomIdByUserId(TEST_USER_ID)).willReturn(TEST_ROOM_ID);
+        given(interviewSessionService.getRoom(TEST_ROOM_ID)).willReturn(mockRoom);
+        given(userService.findById(TEST_USER_ID)).willReturn(testUser);
         given(userLastEventStore.getLastEvent(TEST_USER_ID)).willReturn(lastEvent);
         given(userLastEventStore.getLastInterviewStatus(TEST_USER_ID))
                 .willReturn(InterviewStatus.QUESTION_PRESENTED);

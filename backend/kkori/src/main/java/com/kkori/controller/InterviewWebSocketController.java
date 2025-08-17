@@ -335,9 +335,13 @@ public class InterviewWebSocketController {
     private void handleReconnection(Long userId) {
         try {
             String roomId = interviewSessionService.getRoomIdByUserId(userId);
+            InterviewRoom interviewRoom = interviewSessionService.getRoom(roomId);
 
             RoomReconnectionResponse response = new RoomReconnectionResponse(roomId);
 //            webSocketHelper.sendPersonalMessage(userId, "room-reconnected", response);
+
+            // 재연결 시 다른 사용자와의 WebRTC 연결을 위해 조인 메시지 전송
+            sendJoinMessage(interviewRoom.getCreatorId(), userId);
 
 //            webSocketHelper.sendLastStatusToUser(userId);
             webSocketHelper.sendLastEventToUser(userId);
