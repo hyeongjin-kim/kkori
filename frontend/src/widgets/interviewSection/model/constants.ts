@@ -124,7 +124,7 @@ export function pairIntervieweeControlButtonProps({
       onClick: endInterview,
       label: 'interview-end',
       text: '면접 종료',
-      status: controlStatus.ALWAYS,
+      status: controlStatus.DURING_INTERVIEW,
     },
     {
       onClick: exitInterview,
@@ -180,7 +180,7 @@ export function pairInterviewerControlButtonProps({
       onClick: endInterview,
       label: 'interview-end',
       text: '면접 종료',
-      status: controlStatus.ALWAYS,
+      status: controlStatus.DURING_INTERVIEW,
     },
     {
       onClick: exitInterview,
