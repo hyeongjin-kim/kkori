@@ -236,13 +236,17 @@ public interface QuestionSetRepository extends JpaRepository<QuestionSet, Long> 
         JOIN FETCH qs.ownerUserId
         WHERE qs.ownerUserId.userId = :userId
         AND qs.isDeleted = false
-        AND qs.id IN (
-            SELECT MAX(qs2.id) FROM QuestionSet qs2
+        AND qs.versionNumber = (
+            SELECT MAX(qs2.versionNumber)
+            FROM QuestionSet qs2
             WHERE qs2.ownerUserId.userId = :userId
             AND qs2.isDeleted = false
-            GROUP BY COALESCE(
+            AND COALESCE(
                 CASE WHEN qs2.parentVersionId IS NULL THEN qs2.id ELSE qs2.parentVersionId.id END,
                 qs2.id
+            ) = COALESCE(
+                CASE WHEN qs.parentVersionId IS NULL THEN qs.id ELSE qs.parentVersionId.id END,
+                qs.id
             )
         )
         ORDER BY qs.createdAt DESC
