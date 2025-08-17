@@ -40,6 +40,11 @@ public interface QuestionSetService {
      */
     CreateQuestionSetResponse createVersionWithAnswerModifications(Long userId, CreateVersionWithAnswerModificationsRequest request);
 
+    /**
+     * 기존 질문 수정 + 새 질문 추가로 새 버전 생성 (통합 API)
+     */
+    CreateQuestionSetResponse editQuestionSetVersion(Long userId, EditQuestionSetVersionRequest request);
+
     // ===============================================
     // READ OPERATIONS - 조회 작업
     // ===============================================

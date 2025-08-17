@@ -454,7 +454,8 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         findUserById(userId);
         Pageable pageable = PageRequest.of(page, size);
         
-        Page<QuestionSet> questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
+        // 사용자의 질문 세트 중 최신 버전만 조회
+        Page<QuestionSet> questionSets = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
         return questionSets.map(this::convertToQuestionSetListResponse);
     }
 
@@ -682,11 +683,11 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         Page<QuestionSet> questionSets;
         
         if ("me".equals(createdBy)) {
-            // 내가 생성한 질문 세트만 조회 (로그인 필수)
+            // 내가 생성한 질문 세트만 조회 (로그인 필수) - 최신 버전만
             if (userId == null) {
                 throw new IllegalArgumentException("내 질문세트 조회는 로그인이 필요합니다.");
             }
-            questionSets = questionSetRepository.findMyQuestionSets(userId, pageable);
+            questionSets = questionSetRepository.findMyLatestQuestionSets(userId, pageable);
         } else if (isPublic != null && isPublic) {
             // 공개된 질문 세트 조회
             questionSets = questionSetRepository.findPublicQuestionSetsWithPaging(userId, pageable);
@@ -984,6 +985,104 @@ public class QuestionSetServiceImpl implements QuestionSetService {
         }
         
         return new ArrayList<>();
+    }
+
+    @Override
+    @Transactional(
+        isolation = Isolation.READ_COMMITTED, 
+        rollbackFor = Exception.class,
+        timeout = 30
+    )
+    public CreateQuestionSetResponse editQuestionSetVersion(Long userId, EditQuestionSetVersionRequest request) {
+        log.info("질문 세트 편집으로 새 버전 생성 시작 - userId: {}, parentId: {}", userId, request.getParentQuestionSetId());
+        
+        User user = findUserById(userId);
+        
+        // 1. 부모 질문 세트 조회 및 권한 검증
+        QuestionSet parentQuestionSet = questionSetRepository.findByIdAndNotDeleted(request.getParentQuestionSetId())
+                .orElseThrow(QuestionSetException::questionSetNotFound);
+        
+        if (!parentQuestionSet.isOwner(userId)) {
+            throw QuestionSetException.noPermission();
+        }
+        
+        // 2. 새 버전 생성
+        Integer nextVersionNumber = getNextVersionNumber(request.getParentQuestionSetId());
+        QuestionSet newVersionQuestionSet = QuestionSet.createVersion(
+                parentQuestionSet, user, 
+                parentQuestionSet.getTitle(),  // 제목은 부모와 동일
+                parentQuestionSet.getDescription()  // 설명도 부모와 동일
+        );
+        QuestionSet savedQuestionSet = questionSetRepository.save(newVersionQuestionSet);
+        
+        // 3. 질문 매핑 리스트
+        List<QuestionMapResponse> questionMaps = new ArrayList<>();
+        
+        // 4. 기존 질문 + 새 답변 처리
+        if (request.getExistingQuestions() != null) {
+            for (QuestionAnswerModificationRequest questionRequest : request.getExistingQuestions()) {
+                // 기존 질문 조회
+                Question existingQuestion = questionRepository.findById(questionRequest.getQuestionId())
+                        .orElseThrow(QuestionSetException::questionSetNotFound);
+                
+                // 새로운 expectedAnswer로 새 질문 생성 (불변성 보장)
+                Question newQuestion = Question.createDefault(existingQuestion.getContent(), questionRequest.getNewExpectedAnswer());
+                Question savedQuestion = questionRepository.save(newQuestion);
+                
+                // 질문 매핑 생성
+                QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
+                        savedQuestionSet, savedQuestion, questionRequest.getDisplayOrder());
+                questionSetQuestionMapRepository.save(questionMap);
+                
+                questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion));
+            }
+        }
+        
+        // 5. 새 질문 + 새 답변 처리
+        if (request.getNewQuestions() != null) {
+            // 기존 질문들의 최대 displayOrder 계산
+            int maxDisplayOrder = request.getExistingQuestions() != null ? 
+                request.getExistingQuestions().stream()
+                    .mapToInt(QuestionAnswerModificationRequest::getDisplayOrder)
+                    .max().orElse(0) : 0;
+            
+            int displayOrder = maxDisplayOrder + 1;
+            
+            for (CreateQuestionWithAnswerRequest questionRequest : request.getNewQuestions()) {
+                // 새 질문 생성
+                Question newQuestion = Question.createDefault(
+                        questionRequest.getContent(),
+                        questionRequest.getExpectedAnswer()
+                );
+                Question savedQuestion = questionRepository.save(newQuestion);
+                
+                // 질문 매핑 생성
+                QuestionSetQuestionMap questionMap = QuestionSetQuestionMap.create(
+                        savedQuestionSet, savedQuestion, displayOrder);
+                questionSetQuestionMapRepository.save(questionMap);
+                
+                questionMaps.add(convertToQuestionMapResponse(questionMap, savedQuestion));
+                
+                displayOrder++;
+            }
+        }
+        
+        log.info("질문 세트 편집으로 새 버전 생성 완료 - newQuestionSetId: {}, version: {}, 질문 수: {}", 
+                savedQuestionSet.getId(), nextVersionNumber, questionMaps.size());
+        
+        return CreateQuestionSetResponse.builder()
+                .questionSetId(savedQuestionSet.getId())
+                .title(savedQuestionSet.getTitle())
+                .description(savedQuestionSet.getDescription())
+                .versionNumber(nextVersionNumber)
+                .parentVersionId(parentQuestionSet.getId())
+                .isPublic(savedQuestionSet.getIsPublic())
+                .ownerNickname(user.getNickname())
+                .questionMaps(questionMaps)
+                .tags(processTags(savedQuestionSet, request.getTags()))
+                .createdAt(savedQuestionSet.getCreatedAt())
+                .updatedAt(savedQuestionSet.getUpdatedAt())
+                .build();
     }
 
 }
