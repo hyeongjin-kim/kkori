@@ -1,93 +1,251 @@
-# kkori
+
+## 🗂️ 팀 문서 & 자료 링크
+
+<p align="center">
+  <a href="https://www.notion.so/229656e282d88069a69fe9a18ca1cc58?v=229656e282d88040a866000cc977e780">📒 팀 노션</a> &nbsp;|&nbsp;
+  <a href="https://www.notion.so/230656e282d8801991e7fda7326561a8">📚 개발 위키</a> &nbsp;|&nbsp;
+  <a href="https://www.notion.so/Ground-Rule-229656e282d88055a6bccf41c7cf1064">📏 그라운드 룰</a> &nbsp;|&nbsp;
+<!--   <a href="https://kkori.site/">🚀 데모 페이지</a> -->
+</p>
+
+<br/>
+<br/>
+
+## 🧑‍💻 역할 및 기여
+
+| 담당자 | 주요 작업                                                                                                                                                                                       |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **김형진** | - 혼자 / 같이 연습하기 페이지 구현<br> - 서버와 연동하여 면접 상태(질문 제시, 답변 시작/제출, 종료 등) 실시간으로 동기화<br>  - STOMP 기반 채팅 기능 구현<br> - STOMP 기반 WebSocket 시그널링 서버 연동<br> - Zustand를 활용한 상태 관리(Store) 모듈화<br> - 재연결을 위한 zustand 상태 저장 기능 구현<br> - 상대방 입·퇴장 이벤트 처리 및 PeerConnection 관리 로직 설계<br> - 면접 상황에 맞춘 토스트 알림 구현<br> - MediaRecorder API를 이용한 답변 녹화 기능 구현<br> - React Testing Library를 이용한 컴포넌트 단위 테스트 작성<br> |
+| **강진규** | - CI/CD 파이프라인 구축 및 배포 자동화 설정<br>- [실시간 채팅 기능 WebSocket 구현](https://velog.io/@jin0410/%EB%82%98%EB%8A%94-%EA%B0%9C%EC%9D%B8-%EB%A9%94%EC%8B%9C%EC%A7%80%EB%A5%BC-%EB%B3%B4%EB%82%B4%EA%B3%A0-%EC%8B%B6%EC%97%88%EC%9D%84-%EB%BF%90%EC%9D%B8%EB%8D%B0)<br>- WebRTC 시그널링 서버 구현 및 P2P 연결 관리<br>- 꼬리질문 생성 로직 및 STT API 연동 구현<br>- 음성 처리 및 텍스트 변환 기능 개발<br>- [면접 세션 관리 및 WebSocket 기반 면접 로직 개발](https://velog.io/@jin0410/%EB%8B%A4%EC%8B%9C-%EC%97%B0%EA%B2%B0%ED%95%9C%EB%8B%A4-%EB%A7%90%ED%95%A0%EA%B9%8C) |
+| **배수한** | [- 면접 세션 클래스 설계 및 상태 관리 로직 개발 및 구현](https://velog.io/@swnbae/%EA%B0%84%EB%8B%A8%ED%95%B4-%EB%B3%B4%EC%98%80%EB%8D%98-%EC%8B%A4%EC%8B%9C%EA%B0%84-%EB%A9%B4%EC%A0%91-%EC%84%B8%EC%85%98-%EC%99%9C-%EC%84%A4%EA%B3%84%EA%B0%80-%EB%B3%B5%EC%9E%A1%ED%95%B4%EC%A1%8C%EC%9D%84%EA%B9%8C)<br>[- WebSocket 기반 면접 비즈니스 로직 전반 개발](https://velog.io/@swnbae/WebSocket-인증-트러블슈팅-HandshakeInterceptor만으로는-부족했던-이유)<br>[- 연결 끊김 시 재연결 로직 및 상태 복구 구현](https://velog.io/@swnbae/실시간-면접-시스템의-세션-안정성-강화-네트워크-장애와-중복-접속-대응-전략)<br>- 면접 결과 저장 및 조회 API 구현<br>- 면접방 관리 및 사용자 권한 처리 로직 개발                                 |
+| **유윤지** | - 질문 세트 전체 로직 구현<br>- [버전 관리 시스템 구현](https://velog.io/@yj8080/%EA%B3%B5%EC%9C%A0%EB%90%90%EB%8A%94%EB%8D%B0-%EB%8F%85%EB%A6%BD%EC%A0%81%EC%9D%B4%EB%9D%BC%EB%8B%88-%EC%9D%B4%EA%B2%8C-%EB%AC%B4%EC%8A%A8-%EC%97%B4%EB%A6%B0-%EA%B5%90%ED%9A%8C-%EB%8B%AB%ED%9E%98-%EA%B0%99%EC%9D%80-%EB%A7%90%EC%9D%B4%EC%A3%A0)<br>- 권한 기반 접근 제어<br>- [데이터 조회 로직 최적화](https://velog.io/@yj8080/%EA%B1%B0%EB%B6%81%EC%95%84-%EA%B7%B8-%EC%86%8D%EB%8F%84%EB%A1%9C%EB%8A%94-%EB%A9%80%EB%A6%AC-%EB%AA%BB-%EB%8F%84%EB%A7%9D%EA%B0%80-%EA%B2%8C%EB%8B%A4%EA%B0%80-%EA%B7%B8-%EC%84%B1%EB%8A%A5%EC%9D%80-%EB%84%88%EB%AC%B4-%EB%A9%80%EA%B3%A0-%ED%97%98%ED%95%98%EC%9E%96%EC%95%84)<br>- 페이징 및 필터링 시스템<br>- 카카오 OAuth2 로그인 구현<br>- 게스트 로그인 시스템 구현<br>- [JWT 토큰 기반 인증 시스템](https://velog.io/@yj8080/JWT)<br>- 사용자 권한 관리 및 어노테이션<br>- [보안 설정 및 CORS 처리](https://velog.io/@yj8080/%EC%84%B8%EC%83%81%EC%97%90-%EC%A0%95%EB%8B%B5%EC%9D%B8-%EB%B3%B4%EC%95%88-%EC%84%A4%EC%A0%95%EC%9D%80-%EC%97%86%EB%8B%A4)<br>- [쿠키 기반 토큰 관리](https://velog.io/@yj8080/%ED%86%A0%ED%81%B0%EC%9D%80-%EC%99%9C-%EB%A7%A8%EB%82%A0-%EA%B7%B8%EB%A0%87%EA%B2%8C-%ED%83%88%EC%B7%A8%EB%8B%B9%ED%95%B4%EC%84%9C-%EB%82%98%EB%A5%BC-%EC%9D%B4%EB%A0%87%EA%B2%8C-%ED%9E%98%EB%93%A4%EA%B2%8C-%EB%A7%8C%EB%93%A4%EA%B3%A0) |
+| **장동현** | - kkori 프로젝트 기획<br>- OAuth 2.0 로그인 로직 설계<br>- 데이터베이스 스키마 설계 및 로직 구성 |
+| **이찬** | - Lighthouse 성능 개선 (LCP 2.5s → 0.6s)<br>- [역할 기반 구조에서 기능 기반 구조(FSD)로 리팩토링](https://velog.io/@today-is-first/%EC%86%8C%EC%9E%83%EA%B3%A0-%ED%8F%B4%EB%8D%94-%EA%B5%AC%EC%A1%B0-%EA%B3%A0%EC%B9%98%EA%B8%B0)<br>- [프론트엔드 코드 고도화 및 리팩토링](https://velog.io/@today-is-first/%EC%B6%94%EC%83%81%ED%99%94%EB%8A%94-%ED%95%9C-%EB%81%97-%EC%B0%A8%EC%9D%B4)<br>- [OAuth 로그인 로직 설계 및 프론트 구현](https://velog.io/@today-is-first/%EB%8B%B9%EC%8B%A0%EC%9D%B4-%EB%A1%9C%EA%B7%B8%EC%9D%B8%EC%9D%84-%EA%B5%AC%ED%98%84%ED%95%A0-%EB%95%8C-%EB%B0%98%EB%93%9C%EC%8B%9C-%EC%95%8C%EC%95%84%EC%95%BC%ED%95%98%EB%8A%94-%EA%B2%83%EB%93%A4)<br>- 프론트엔드 테스트 코드 작성 [참고1](https://velog.io/@today-is-first/%EC%9D%B4%EB%B2%88-%ED%94%8C%EC%A0%9D%EC%97%90-TDD%EB%A5%BC-%EB%8F%84%EC%9E%85%ED%95%B4%EB%B3%BC%EA%B9%8C) [참고2](https://velog.io/@today-is-first/TDD%EB%A5%BC-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B3%A0-%EB%82%98%EC%9D%98-%EC%84%B1%EA%B3%B5%EC%8B%9C%EB%8C%80-%EC%8B%9C%EC%9E%91%EB%90%90%EB%8B%A4)<br>- [면접 질문 세트 버전 관리 구조 설계](https://velog.io/@today-is-first/%EC%9A%B0%EB%A6%AC-%EC%84%9C%EB%B9%84%EC%8A%A4%EC%97%90-%EB%A7%9E%EB%8A%94-%EC%8A%A4%ED%82%A4%EB%A7%88%EB%8A%94-%EB%AC%B4%EC%97%87%EC%9D%BC%EA%B9%8C)<br>- 면접 질문 세트 생성 / 수정 페이지 구현<br>- 내가 만든 세트 / 가져온 세트 마이페이지 구현 |
 
 
+<br/>
+<br/>
 
-## Getting started
+## 👋 프로젝트 소개
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### 🎤 *"AI 기반 실시간 면접 연습 플랫폼"*
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+**Kkori**는 사용자가 **실시간 WebSocket 통신을 통해 면접을 연습**하고,  
+**AI 기반 음성 인식과 꼬리질문 생성**으로 실제 면접과 같은 경험을 제공하는 **면접 연습 서비스**입니다.
 
-## Add your files
+- 사용자는 **혼자 연습(SOLO)** 또는 **둘이서 연습(PAIR)** 모드를 선택할 수 있어요.
+- **실시간 음성 인식(STT)** 으로 답변을 텍스트로 변환하고 **AI가 꼬리질문을 자동 생성**합니다.
+- **WebRTC 기반 영상/음성 통화**와 **실시간 채팅**으로 생생한 면접 환경을 제공해요.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+<br/>
+<br/>
 
-```
-cd existing_repo
-git remote add origin https://lab.ssafy.com/diligent0644/kkori.git
-git branch -M master
-git push -uf origin master
-```
+## 🧩 **고민과 해결 방안**
 
-## Integrate with your tools
+### 🔄 **WebSocket 재연결 전략으로 안정적인 면접 환경 구축**
 
-- [ ] [Set up project integrations](https://lab.ssafy.com/diligent0644/kkori/-/settings/integrations)
+실시간 면접 시스템에서 네트워크 불안정이나 브라우저 강제 종료로 인한 WebSocket 연결 끊김은 치명적인 문제였습니다. 연결이 끊어지면 진행 중인 면접이 중단되고, 사용자는 처음부터 다시 시작해야 하는 상황이 발생할 수 있었습니다.
 
-## Collaborate with your team
+전통적인 heartbeat나 ping/pong 방식은 지속적인 메시지 교환으로 인한 오버헤드가 발생했고, 우리 서비스의 특성상 대부분의 이벤트가 broadcast되어 즉각적인 연결 끊김 감지가 어려웠습니다.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+이를 해결하기 위해 **"마지막 이벤트 재발송"** 전략을 도입했습니다. 각 사용자별로 마지막 발생 이벤트를 메모리에 저장하고, 재연결 시 해당 이벤트를 재전송하여 끊어진 지점부터 자연스럽게 이어갈 수 있도록 구현했습니다.
 
-## Test and Deploy
+JWT 기반 사용자 인증과 userId 매핑을 통해 재연결 시 이전 세션 상태를 정확히 복구할 수 있었고, 연결 상태 모니터링 오버헤드 없이도 빠른 재연결이 가능한 안정적인 면접 환경을 구축했습니다.
 
-Use the built-in continuous integration in GitLab.
+[Wiki로 자세히 보기](https://lab.ssafy.com/s13-webmobile1-sub1/S13P11A707/-/wikis/Home/%7B%EC%A7%84%EA%B7%9C,-%EC%88%98%ED%95%9C%EC%9D%98-%EA%B3%A0%EB%AF%BC%EA%B3%BC-%ED%95%B4%EA%B2%B0%7D)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+<br/>
 
-***
+### 🛡️ **백**
+### 📚 **복잡한 질문세트 버전 관리와 데이터 무결성 보장**
+만약 1000명이 같은 "Spring 면접 질문 30개"를 각자 복사해서 조금씩만 수정한다면, 실제로는 거의 동일한 질문들이 1000번 중복 저장되는 문제가 발생했습니다.
 
-# Editing this README
+"자바란 무엇인가?" 라는 질문이 데이터베이스에 1000번 똑같이 저장되는 상황이었습니다.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+또, 질문 세트를 '가져가기' 하게 되면 원본 작성자가 질문을 수정했을 때, 그걸 복사한 모든 사람들의 질문 세트도 함께 바뀌지 않도록 설계해야 했습니다.
 
-## Suggestions for a good README
+완전한 복사 방식으로 모든 질문을 새로 저장하는 방법은 저장 공간 낭비 문제를 해결할 수 없었고, 참조 방식으로 원본을 계속 바라보는 방법은 개인화 요구사항을 만족시킬 수 없었습니다.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+질문과 기대되는 답변을 하나로 묶어 변하지 않도록 관리하고, 해당 질문 엔티티를 참조하는 개별 질문 세트 엔티티를 사용하는 방식을 선택했습니다. 독립적으로 관리가 필요했기 때문에 질문 세트의 버전과 질문 순서를 관리하는 질문 세트 맵을 통해서 공유되면서 독립적인 구조로 설계했습니다.
 
-## Name
-Choose a self-explaining name for your project.
+[Wiki로 자세히 보기](https://lab.ssafy.com/s13-webmobile1-sub1/S13P11A707/-/wikis/Home/%EC%9C%A4%EC%A7%80%EC%9D%98-%EA%B3%A0%EB%AF%BC%EA%B3%BC-%ED%95%B4%EA%B2%B0#-%EA%B3%A0%EB%AF%BC-1-%EC%A7%88%EB%AC%B8-%EC%84%B8%ED%8A%B8-%EA%B3%B5%EC%9C%A0%EC%99%80-%EA%B0%9C%EC%9D%B8%ED%99%94)
+### 🔄 **N+1 문제**
+면접 연습 서비스를 개발하면서 질문 세트 목록 조회가 핵심 기능 중 하나였습니다.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+하지만 사용자 시나리오 테스트를 진행하면서 **필요할 때마다 개별 조회**하는 반복적 조회 문제가 발생했습니다.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+질문 세트 50,000개의 가짜 데이터를 넣고 질문 목록 조회 기능을 테스트했을 때, 평균 418ms만큼의 응답 시간이 나왔습니다. 더 많은 사용자가 사이트를 이용하게 되면 응답 시간이 더 증가할 우려가 있어 한 번의 조회로 연관되는 데이터들을 모두 가져오는 방식으로 문제를 해결했습니다.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+[Wiki로 자세히 보기](https://lab.ssafy.com/s13-webmobile1-sub1/S13P11A707/-/wikis/Home/%EC%9C%A4%EC%A7%80%EC%9D%98-%EA%B3%A0%EB%AF%BC%EA%B3%BC-%ED%95%B4%EA%B2%B0#-%EA%B3%A0%EB%AF%BC-2-%EC%A7%88%EB%AC%B8-%EB%AA%A9%EB%A1%9D-%EC%A1%B0%ED%9A%8C-n1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+<br />
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### 🚀 프론트
+사용자 진입 시점 UX 최적화를 위해 CWV를 개선할 필요가 있었습니다.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+MVP 개발 후 최초로 LCP를 측정했을 때 2.5s가 나왔습니다.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+구글에서는 LCP가 2.5초가 넘으면 개선이 필요하다고 권장하고 있어서, LCP 개선 필요성을 느꼈습니다.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+**이미지 파일 개선, 코드 스플리트, SEO 개선 3가지를 시도**하였습니다.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+최종적으로 **LCP 2.5초에서 0.6초로 개선**하였고, `Performance`, `SEO` 항목을 100점으로 만들 수 있었습니다.
 
-## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+[Wiki로 자세히 보기](https://www.notion.so/Core-Web-Vital-253656e282d880e187ebdc828b58b4d5)
+
+<br/>
+<br/>
+
+## 🎯 주요 기능 소개
+
+### 🎤 실시간 면접 세션 관리
+> **"혼자도, 둘이서도! 다양한 면접 연습 모드"**
+
+**사용자는 SOLO 또는 PAIR 모드를 선택해 면접을 시작**할 수 있습니다.  
+**WebSocket 기반 실시간 통신**으로 면접 상태가 실시간으로 동기화되며,  
+**면접관/면접자 역할을 자유롭게 바꿔가며** 연습할 수 있어요.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SwnBae/kkori_img/main/%EB%91%98%EC%9D%B4.gif" width="70%" alt="면접 세션 관리" />
+</p>
+
+<br/>
+<br/>
+
+### 🤖 AI 기반 꼬리질문 생성
+> **"답변에 따라 달라지는 똑똑한 질문!"**
+
+**사용자의 답변을 실시간으로 분석**하여  
+**GPT API를 통해 맞춤형 꼬리질문을 자동 생성**합니다.  
+**STT(Speech-to-Text) 기술**로 음성 답변을 텍스트로 변환하고,  
+이를 바탕으로 **개인화된 후속 질문**을 제공해요.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SwnBae/kkori_img/main/STT.gif" width="70%" alt="AI 꼬리질문" />
+</p>
+
+<br/>
+<br/>
+
+### 🎥 WebRTC 화상 면접
+> **"실제 면접과 똑같은 화상 환경!"**
+
+**WebRTC 시그널링 서버**를 통해 P2P 화상 통화를 지원하며,  
+**실시간 음성/영상 스트리밍**으로 실제 면접과 동일한 환경을 제공합니다.  
+**화면 공유와 음성 제어** 기능으로 다양한 면접 상황을 연출할 수 있어요.
+
+<img src="" width="700" alt="WebRTC 화상면접" />
+
+<br/>
+<br/>
+
+### 💬 실시간 채팅 시스템
+> **"면접 중에도 소통은 계속되어야죠!"**
+
+**WebSocket 기반 실시간 채팅**으로 면접 진행 중  
+**참여자들이 즉시 소통**할 수 있습니다.  
+**방별 채팅방 관리**와 **메시지 브로드캐스팅**으로  
+원활한 커뮤니케이션을 지원해요.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/실시간채팅시스템.gif" width="70%" alt="실시간 채팅 시스템" />
+</p>
+
+<br/>
+
+### 🔐 카카오 소셜 로그인
+> "간편하고 안전한 로그인!"
+
+**카카오 OAuth2 연동**으로 복잡한 회원가입 절차 없이 원클릭으로 빠른 로그인이 가능합니다.<br/>
+JWT 토큰 기반 인증으로 보안성을 보장하며, 리프레시 토큰을 통해 안정적인 세션 관리를 제공해요.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/카카오로그인.gif" width="70%" alt="카카오 소셜 로그인" />
+</p>
+
+### 👤 게스트 로그인
+> "회원가입 없이도 바로 체험!"
+
+**익명 사용자**도 즉시 면접 연습을 시작할 수 있습니다.<br/>
+임시 게스트 계정 생성으로 서비스 제한 없이 모든 기능을 자유롭게 이용할 수 있어요.<br/>
+부담 없는 서비스 체험이 가능합니다.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/게스트로그인.gif" width="70%" alt="익명 게스트 로그인" />
+</p>
+
+### 📋 질문 세트 조회
+> "모든 질문 세트를 깔끔하게!"
+
+**태그별 필터링 시스템**으로 태그 기반 검색과 페이징 처리로 효율적인 질문 세트 탐색이 가능합니다.<br/>
+**내 질문세트(/my)**와 공개 질문세트 분리 조회로 체계적인 관리가 가능해요.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/질문세트조회.gif" width="70%" alt="질문 세트 조회" />
+</p>
+
+### ➕ 질문 세트 생성
+> "나만의 맞춤 질문 세트 만들기!"
+
+직관적인 UI로 **질문과 예상 답변**을 한 번에 등록하고, 태그 시스템으로 체계적인 분류가 가능합니다.<br/>
+**공개/비공개 설정**으로 다른 사용자와의 공유 여부를 자유롭게 결정할 수 있어요.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/질문세트추가.gif" width="70%" alt="질문 세트 생성" />
+</p>
+
+### 📥 질문 세트 가져오기
+> "마음에 드는 질문을 내 것으로!"
+
+다른 사용자가 공유한 질문 세트를 발견했다면 클릭 한 번으로 내 계정에 복사할 수 있습니다.<br/>
+제목과 설명을 자유롭게 수정할 수 있어요.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/질문세트가져오기.gif" width="70%" alt="질문 세트 가져오기기" />
+</p>
+
+### ✏️ 질문 세트 수정
+> "기존 질문의 답을 더 좋게 만들어보세요!"
+
+**내 소유의 질문 세트를 수정**해 기존 답변을 더 좋게 개선할 수 있습니다.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/질문세트수정.gif" width="70%" alt="질문 세트 수정" />
+</p>
+
+### 🗑️ 질문 세트 삭제
+> "실수도 걱정없는 소프트 삭제!"
+
+**내가 만든 질문 세트만 삭제**할 수 있어요.
+더 이상 필요하지 않은 질문 세트는 삭제해 내 질문 세트를 관리할 수 있습니다.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/llcodingll/kkori_img/main/질문세트삭제.gif" width="70%" alt="질문 세트 삭제" />
+</p>
+
+<br/>
+
+## ✅ 서비스 구조도
+
+<img src="https://raw.githubusercontent.com/SwnBae/kkori_img/main/Architecture.png" width="700" alt="Kkori 서비스 아키텍처" />
+
+<br/>
+<br/>
+
+## ⚒️ Tech Stacks
+
+| 분류 | 기술 스택                                                                                                |
+|------|------------------------------------------------------------------------------------------------------|
+| **Frontend** | [![My Skills](https://skillicons.dev/icons?i=react,vite,tailwind,ts,nodejs)](https://skillicons.dev) |
+| **Backend** | [![My Skills](https://skillicons.dev/icons?i=java,spring,hibernate)](https://skillicons.dev)          |
+| **Database / Infra** | [![My Skills](https://skillicons.dev/icons?i=mysql,nginx,aws)](https://skillicons.dev)               |
+| **배포** | [![My Skills](https://skillicons.dev/icons?i=docker,jenkins)](https://skillicons.dev)                 |
+| **협업 / 개발도구** | [![My Skills](https://skillicons.dev/icons?i=git,gitlab,notion,jira)](https://skillicons.dev)        |
+
+<br/>
+<br/>
+
+## 🤼 팀원 소개
+
+| 이찬 | 김형진 | 강진규 | 배수한 | 유윤지 | 장동현 |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/3bc958ec-4303-4559-b20e-465fe1776e17" width="120"> | <img src="https://avatars.githubusercontent.com/u/49364688?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/64190888?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/128581113?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/105447233?v=4" width="120"> | <img src="https://avatars.githubusercontent.com/u/205485545?v=4" width="120"> |
+| **Frontend** | **Frontend** | **Backend** | **Backend** | **Backend** | **Backend** |
+| [@today-is-first](https://github.com/today-is-first) | [@hyeongjin-kim](https://github.com/hyeongjin-kim) | [@jin0410](https://github.com/jin0410) | [@SwnBae](https://github.com/SwnBae) | [@llcodingll](https://github.com/llcodingll) | [@SuitGGam](https://github.com/SuitGGam) |
+
